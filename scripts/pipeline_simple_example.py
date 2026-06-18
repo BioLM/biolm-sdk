@@ -10,19 +10,19 @@ import traceback
 import os
 from pathlib import Path
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     DataPipeline,
     DirectGenerationConfig,
     GenerativePipeline,
     Predict,
 )
-from biolmai.pipeline.filters import (
+from biolm.pipeline.filters import (
     DiversitySamplingFilter,
     RankingFilter,
     SequenceLengthFilter,
     ThresholdFilter,
 )
-from biolmai.pipeline.visualization import PipelinePlotter
+from biolm.pipeline.visualization import PipelinePlotter
 
 # PDB fixtures bundled with the SDK
 _HERE = Path(__file__).parent.parent
@@ -168,7 +168,7 @@ def example_5_datastore_usage():
     print("Example 5: DataStore (direct usage)")
     print("=" * 60)
 
-    from biolmai.pipeline import DataStore
+    from biolm.pipeline import DataStore
 
     store = DataStore("example.db", "example_data")
 

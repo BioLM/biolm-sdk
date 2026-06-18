@@ -11,7 +11,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline.filters import (
+from biolm.pipeline.filters import (
     CompositeFilter,
     ConservedResidueFilter,
     CustomFilter,
@@ -24,7 +24,7 @@ from biolmai.pipeline.filters import (
     _validate_sql_identifier,
     combine_filters,
 )
-from biolmai.pipeline.pipeline_def import filter_from_spec
+from biolm.pipeline.pipeline_def import filter_from_spec
 
 
 class TestFilters(unittest.TestCase):
@@ -279,14 +279,14 @@ class TestFilterEdgeCases(unittest.TestCase):
 
     def test_filter_streamability_flags(self):
         """Filters have correct requires_complete_data flags."""
-        from biolmai.pipeline.filters import RankingFilter, ThresholdFilter
+        from biolm.pipeline.filters import RankingFilter, ThresholdFilter
         assert ThresholdFilter("col").requires_complete_data is False
         assert RankingFilter("col", n=10).requires_complete_data is True
 
     def test_all_filter_subclasses_have_streamability_flag(self):
         """Every BaseFilter subclass must declare requires_complete_data."""
         import inspect
-        from biolmai.pipeline import filters
+        from biolm.pipeline import filters
         subclasses = [
             cls for name, cls in inspect.getmembers(filters, inspect.isclass)
             if issubclass(cls, filters.BaseFilter) and cls is not filters.BaseFilter

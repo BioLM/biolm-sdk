@@ -26,11 +26,11 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline.base import WorkingSet
-from biolmai.pipeline.data import DataPipeline, EmbeddingSpec, ExtractionSpec
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import RankingFilter, ThresholdFilter, ValidAminoAcidFilter
-from biolmai.pipeline.generative import DirectGenerationConfig, GenerativePipeline
+from biolm.pipeline.base import WorkingSet
+from biolm.pipeline.data import DataPipeline, EmbeddingSpec, ExtractionSpec
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import RankingFilter, ThresholdFilter, ValidAminoAcidFilter
+from biolm.pipeline.generative import DirectGenerationConfig, GenerativePipeline
 
 TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
 if not TOKEN:

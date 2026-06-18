@@ -70,7 +70,7 @@ author = "Nikhil Haas"
 # for |version| and |release|, also used in various other places throughout
 # the built documents.
 #
-from biolmai import __version__
+from biolm import __version__
 
 # The short X.Y version.
 version = __version__

@@ -4,9 +4,9 @@ import random
 import httpx
 import pytest
 
-from biolmai import biolm
-from biolmai.biolmai import BioLM
-from biolmai.models import Model
+from biolm import biolm
+from biolm.client import BioLM
+from biolm.models import Model
 
 N = 6
 

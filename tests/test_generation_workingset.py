@@ -21,9 +21,9 @@ import pytest
 
 pytest.importorskip("duckdb")
 
-from biolmai.pipeline.base import StageResult, WorkingSet
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.generative import (
+from biolm.pipeline.base import StageResult, WorkingSet
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.generative import (
     DirectGenerationConfig,
     GenerationStage,
     GenerativePipeline,
@@ -56,8 +56,8 @@ class TestFilterStageBatchMode:
     """FilterStage.process_ws() must shrink the WorkingSet when sequences fail."""
 
     def test_length_filter_removes_short_sequences(self, tmp_path):
-        from biolmai.pipeline.data import DataPipeline, FilterStage
-        from biolmai.pipeline.filters import SequenceLengthFilter
+        from biolm.pipeline.data import DataPipeline, FilterStage
+        from biolm.pipeline.filters import SequenceLengthFilter
 
         ds = DuckDBDataStore(db_path=tmp_path / "f1.duckdb", data_dir=tmp_path / "d1")
         sequences = ["MK", "MKTAYIAKQRQ", "MKLAVIDSAQ"]
@@ -72,8 +72,8 @@ class TestFilterStageBatchMode:
         assert all(final["sequence"].str.len() >= 5)
 
     def test_threshold_filter_removes_low_scoring_sequences(self, tmp_path):
-        from biolmai.pipeline.data import DataPipeline, FilterStage
-        from biolmai.pipeline.filters import ThresholdFilter
+        from biolm.pipeline.data import DataPipeline, FilterStage
+        from biolm.pipeline.filters import ThresholdFilter
 
         ds = DuckDBDataStore(db_path=tmp_path / "f2.duckdb", data_dir=tmp_path / "d2")
         sequences = ["MKLLIV", "ACDEFG", "GHIKLM", "MNPQRS", "TVWXYZ"]
@@ -101,8 +101,8 @@ class TestFilterStageBatchMode:
 
     def test_filter_does_not_pass_all_on_empty_df(self, tmp_path):
         """Calling FilterStage.process_ws with an empty WS returns empty WS."""
-        from biolmai.pipeline.data import FilterStage
-        from biolmai.pipeline.filters import SequenceLengthFilter
+        from biolm.pipeline.data import FilterStage
+        from biolm.pipeline.filters import SequenceLengthFilter
 
         ds = DuckDBDataStore(db_path=tmp_path / "f3.duckdb", data_dir=tmp_path / "d3")
         stage = FilterStage(name="f", filter_func=SequenceLengthFilter(min_length=5))
@@ -309,7 +309,7 @@ class TestGenerativePipelineE2E:
         assert "sequence" in final.columns
 
     def test_filter_after_generation_prunes_correctly(self, tmp_path):
-        from biolmai.pipeline.filters import SequenceLengthFilter
+        from biolm.pipeline.filters import SequenceLengthFilter
 
         ds = DuckDBDataStore(db_path=tmp_path / "p2.duckdb", data_dir=tmp_path / "d2")
         pipeline = GenerativePipeline(datastore=ds, output_dir=tmp_path, verbose=False)
@@ -366,7 +366,7 @@ class TestGenerativePipelineE2E:
 
 class TestGenerationStageSpec:
     def test_sequence_source_roundtrip(self):
-        from biolmai.pipeline.pipeline_def import stage_from_spec
+        from biolm.pipeline.pipeline_def import stage_from_spec
 
         config = SequenceSourceConfig(sequences=["MKTAYIAKQRQ", "MKLAVIDSAQ"])
         stage = GenerationStage(name="gen", config=config, deduplicate=False)
@@ -382,7 +382,7 @@ class TestGenerationStageSpec:
         assert len(reconstructed.configs) == 1
 
     def test_direct_generation_config_roundtrip(self):
-        from biolmai.pipeline.pipeline_def import stage_from_spec
+        from biolm.pipeline.pipeline_def import stage_from_spec
 
         config = DirectGenerationConfig(
             model_name="protein-mpnn",
@@ -399,7 +399,7 @@ class TestGenerationStageSpec:
         assert rc.temperature == 0.5
 
     def test_remasking_config_preserves_parent_and_variants(self):
-        from biolmai.pipeline.pipeline_def import stage_from_spec
+        from biolm.pipeline.pipeline_def import stage_from_spec
 
         config = RemaskingConfig(
             model_name="esm2-8m",
@@ -430,7 +430,7 @@ class TestGenerationStageSpec:
         import warnings as _w
         with _w.catch_warnings():
             _w.simplefilter("ignore", DeprecationWarning)
-            from biolmai.pipeline.generative import GenerationConfig
+            from biolm.pipeline.generative import GenerationConfig
             with _w.catch_warnings():
                 _w.simplefilter("ignore", DeprecationWarning)
                 cfg = GenerationConfig(model_name="protein-mpnn")

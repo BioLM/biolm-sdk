@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from biolmai.pipeline.clustering import (
+from biolm.pipeline.clustering import (
     ClusteringResult,
     DiversityAnalyzer,
     SequenceClusterer,

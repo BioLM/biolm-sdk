@@ -56,7 +56,7 @@ clean-ruff: ## remove ruff artifacts
 	rm -fr .ruff_cache/
 
 lint/ruff: ## run ruff to check Python code style
-	ruff biolmai/ tests/
+	ruff biolm/ tests/
 
 lint/black: ## run black to check and format Python code style
 	black --check biolmai/ tests/
@@ -90,7 +90,7 @@ test-parallel: ## run tests on every Python version with tox
 	tox --parallel 8
 
 coverage: ## check code coverage quickly with the default Python
-	coverage run --source biolmai -m pytest
+	coverage run --source biolm -m pytest
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
@@ -98,7 +98,7 @@ coverage: ## check code coverage quickly with the default Python
 docs: ## generate Sphinx HTML documentation, including API docs
 	mkdir -p docs/_static docs/api-reference
 	rm -f docs/api-reference/modules.rst docs/api-reference/biolmai.rst docs/api-reference/biolmai.*.rst
-	sphinx-apidoc -o docs/api-reference biolmai
+	sphinx-apidoc -o docs/api-reference biolm
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(BROWSER) docs/_build/html/index.html
@@ -106,7 +106,7 @@ docs: ## generate Sphinx HTML documentation, including API docs
 docs-iframe: ## generate docs in iframe mode (no header, for embedding)
 	mkdir -p docs/_static docs/api-reference
 	rm -f docs/api-reference/modules.rst docs/api-reference/biolmai.rst docs/api-reference/biolmai.*.rst
-	sphinx-apidoc -o docs/api-reference biolmai
+	sphinx-apidoc -o docs/api-reference biolm
 	$(MAKE) -C docs clean
 	IFRAME_MODE=1 $(MAKE) -C docs html
 

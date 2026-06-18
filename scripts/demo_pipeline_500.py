@@ -12,9 +12,9 @@ import os
 import tempfile
 from pathlib import Path
 
-from biolmai.pipeline.data import DataPipeline
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import (
+from biolm.pipeline.data import DataPipeline
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import (
     RankingFilter,
     SequenceLengthFilter,
     ThresholdFilter,

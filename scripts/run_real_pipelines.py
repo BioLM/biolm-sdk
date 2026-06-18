@@ -25,10 +25,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from biolmai.pipeline.base import PipelineContext, WorkingSet
-from biolmai.pipeline.data import DataPipeline
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import (
+from biolm.pipeline.base import PipelineContext, WorkingSet
+from biolm.pipeline.data import DataPipeline
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import (
     CustomFilter,
     RankingFilter,
     SequenceLengthFilter,

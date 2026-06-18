@@ -59,5 +59,5 @@ Login with custom scope (read and write for API access):
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:login
+.. click:: biolm.cli:login
    :prog: biolmai login

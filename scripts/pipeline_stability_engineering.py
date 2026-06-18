@@ -23,8 +23,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from biolmai.client import BioLMApiClient
-from biolmai.pipeline import DataPipeline, DuckDBDataStore
+from biolm.client import BioLMApiClient
+from biolm.pipeline import DataPipeline, DuckDBDataStore
 
 TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
 if not TOKEN:

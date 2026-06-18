@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
-from biolmai.cli import cli
-from biolmai.protocols import (
+from biolm.cli import cli
+from biolm.protocols import (
     Protocol,
     ProtocolValidationResult,
     ValidationError,

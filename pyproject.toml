@@ -1,5 +1,5 @@
 [tool.black]
-target-version = ["py37", "py38", "py39", "py310", "py311"]  # all versions of python we support
+target-version = ["py37", "py38", "py39", "py310", "py311"]
 line-length = 88
 quiet = true
 include = '\.pyi?$'
@@ -18,25 +18,24 @@ exclude = '''
 '''
 
 [tool.ruff]
-target-version = "py37"  # the lowest version of python we support
+target-version = "py37"
 select = [
-    "B", # flake8-bugbear
-    "C", # flake8-comprehensions
-    "C90", # mccabe
-    "E", # pycodestyle errors
-    "F", # pyflakes
-    "I", # isort
-    "UP", # pyupgrade
-    "W", # pycode warnings
+    "B",
+    "C",
+    "C90",
+    "E",
+    "F",
+    "I",
+    "UP",
+    "W",
 ]
 extend-ignore = [
-    "E501", # Let black handle line length
-    "F821", # For need of global names
+    "E501",
+    "F821",
 ]
 fix = true
 exclude = [
     ".venv",
-    # any other directories or files to exclude
 ]
 
 [tool.flake8]
@@ -55,18 +54,18 @@ build-backend = "setuptools.build_meta"
 asyncio_default_fixture_loop_scope = "function"
 
 [project]
-name = "biolmai"
+name = "biolm-sdk"
 version = "0.5.0"
-description = "BioLM Python client"
+description = "BioLM Python client for the hosted platform and biolm-hub"
 authors = [
     { name="BioLM", email="support@biolm.ai" }
 ]
 requires-python = ">=3.8"
 readme = "README.rst"
 license = { text = "Apache Software License 2.0" }
-keywords = ["biolmai"]
+keywords = ["biolm", "biolmai", "bioai"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
@@ -97,12 +96,12 @@ dependencies = [
     "rich>=13.0.0",
     "pyyaml>=5.0",
     "jsonschema>=4.0,<5",
-    "websockets>=11.0",
 ]
-scripts = { biolmai = "biolmai.cli_entry:cli" }
+scripts = { biolm = "biolm.cli_entry:cli", biolmai = "biolm.cli_entry:cli" }
 
 [project.entry-points."mlflow.request_header_provider"]
-unused = "biolmai.core.seqflow_auth:BiolmaiRequestHeaderProvider"
+biolm = "biolm.core.seqflow_auth:BiolmRequestHeaderProvider"
+unused = "biolm.core.seqflow_auth:BiolmaiRequestHeaderProvider"
 
 [project.optional-dependencies]
 pipeline = [
@@ -121,7 +120,7 @@ pipeline = [
 ]
 
 [tool.semantic_release]
-version_variables = ["biolmai/__init__.py:__version__"]
+version_variables = ["biolm/__init__.py:__version__"]
 version_toml = ["pyproject.toml:project.version"]
 commit_message = "chore(release): {version} [skip ci]"
 tag_format = "v{version}"

@@ -6,13 +6,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from biolmai.core.expression_evaluator import (
+from biolm.core.expression_evaluator import (
     evaluate_expression,
     evaluate_template_value,
     evaluate_where_clause,
     extract_template_expr,
 )
-from biolmai.protocols_mlflow import (
+from biolm.protocols_mlflow import (
     MLflowNotAvailableError,
     combine_output_rules,
     compute_aggregates,
@@ -515,7 +515,7 @@ class TestCLICommand:
         """Test CLI log command with dry run."""
         from click.testing import CliRunner
 
-        from biolmai.cli import cli
+        from biolm.cli import cli
 
         # Create test files
         results_file = tmp_path / "results.jsonl"
@@ -557,7 +557,7 @@ class TestCLICommand:
         """Test CLI log command with missing outputs option."""
         from click.testing import CliRunner
 
-        from biolmai.cli import cli
+        from biolm.cli import cli
 
         results_file = tmp_path / "results.jsonl"
         with open(results_file, "w") as f:

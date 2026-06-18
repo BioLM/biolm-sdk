@@ -18,6 +18,6 @@ List, show, create, or delete workspaces.
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:workspace
+.. click:: biolm.cli:workspace
    :prog: biolmai workspace
    :show-nested:

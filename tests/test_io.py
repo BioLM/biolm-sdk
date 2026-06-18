@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from biolmai.io import load_csv, load_fasta, load_pdb, to_csv, to_fasta, to_pdb
+from biolm.io import load_csv, load_fasta, load_pdb, to_csv, to_fasta, to_pdb
 
 
 class TestLoadFasta:

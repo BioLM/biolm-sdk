@@ -32,20 +32,20 @@ from pathlib import Path
 
 import pandas as pd
 
-from biolmai.client import BioLMApiClient
-from biolmai.pipeline.data import DataPipeline, EmbeddingSpec
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import (
+from biolm.client import BioLMApiClient
+from biolm.pipeline.data import DataPipeline, EmbeddingSpec
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import (
     RankingFilter,
     SequenceLengthFilter,
     ThresholdFilter,
     ValidAminoAcidFilter,
 )
-from biolmai.pipeline.generative import (
+from biolm.pipeline.generative import (
     DirectGenerationConfig,
     GenerativePipeline,
 )
-from biolmai.pipeline.mlm_remasking import RemaskingConfig
+from biolm.pipeline.mlm_remasking import RemaskingConfig
 
 TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
 if not TOKEN:

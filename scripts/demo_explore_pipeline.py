@@ -22,7 +22,7 @@ import os
 import sys
 from pathlib import Path
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     DataPipeline,
     DuckDBDataStore,
     RankingFilter,

@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
 from click.testing import CliRunner
 
-from biolmai.cli import cli
+from biolm.cli import cli
 
 
 @pytest.fixture
@@ -52,7 +52,7 @@ def sample_json_file(tmp_path):
 class TestModelRun:
     """Test biolm model run command."""
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_encode_with_fasta(self, mock_model_class, sample_fasta_file, mock_model):
         """Test running encode action with FASTA input."""
         mock_model_class.return_value = mock_model
@@ -67,7 +67,7 @@ class TestModelRun:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_predict_with_csv(self, mock_model_class, sample_csv_file, mock_model):
         """Test running predict action with CSV input."""
         mock_model_class.return_value = mock_model
@@ -82,7 +82,7 @@ class TestModelRun:
         assert result.exit_code == 0
         mock_model.predict.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_with_json(self, mock_model_class, sample_json_file, mock_model):
         """Test running with JSON input."""
         mock_model_class.return_value = mock_model
@@ -97,7 +97,7 @@ class TestModelRun:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_with_params(self, mock_model_class, sample_fasta_file, mock_model):
         """Test running with parameters."""
         mock_model_class.return_value = mock_model
@@ -115,7 +115,7 @@ class TestModelRun:
         call_args = mock_model.encode.call_args
         assert call_args[1]['params'] == {'normalize': True}
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_with_params_file(self, mock_model_class, sample_fasta_file, tmp_path, mock_model):
         """Test running with parameters from file."""
         mock_model_class.return_value = mock_model
@@ -135,7 +135,7 @@ class TestModelRun:
         call_args = mock_model.encode.call_args
         assert call_args[1]['params']['normalize'] is True
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_save_to_file(self, mock_model_class, sample_fasta_file, tmp_path, mock_model):
         """Test saving output to file."""
         mock_model_class.return_value = mock_model
@@ -152,7 +152,7 @@ class TestModelRun:
         assert result.exit_code == 0
         assert output_file.exists()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_different_actions(self, mock_model_class, sample_fasta_file, mock_model):
         """Test different actions (encode, predict, generate, lookup)."""
         mock_model_class.return_value = mock_model
@@ -170,7 +170,7 @@ class TestModelRun:
             getattr(mock_model, action).assert_called()
             mock_model.reset_mock()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_lookup_action(self, mock_model_class, sample_json_file, mock_model):
         """Test lookup action."""
         mock_model_class.return_value = mock_model
@@ -185,7 +185,7 @@ class TestModelRun:
         assert result.exit_code == 0
         mock_model.lookup.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_with_output_format(self, mock_model_class, sample_fasta_file, tmp_path, mock_model):
         """Test specifying output format."""
         mock_model_class.return_value = mock_model
@@ -208,7 +208,7 @@ class TestModelRun:
         assert result.exit_code == 0
         assert output_file.exists()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_missing_input(self, mock_model_class, mock_model):
         """Test error when input is missing."""
         mock_model_class.return_value = mock_model
@@ -221,7 +221,7 @@ class TestModelRun:
         assert result.exit_code == 1
         assert 'Input is required' in result.output or 'input' in result.output.lower()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_invalid_file(self, mock_model_class, mock_model):
         """Test error with invalid file path."""
         mock_model_class.return_value = mock_model
@@ -235,7 +235,7 @@ class TestModelRun:
         assert result.exit_code == 1
         assert 'not found' in result.output.lower() or 'Error' in result.output
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_invalid_params_json(self, mock_model_class, sample_fasta_file, mock_model):
         """Test error with invalid JSON in params."""
         mock_model_class.return_value = mock_model
@@ -250,7 +250,7 @@ class TestModelRun:
         assert result.exit_code == 1
         assert 'Invalid JSON' in result.output or 'Error' in result.output
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     @patch('biolmai.core.http.BioLMApiClient')
     def test_run_with_batch_size(self, mock_client_class, mock_model_class, sample_fasta_file, mock_model):
         """Test running with batch size detection."""
@@ -277,7 +277,7 @@ class TestModelRun:
         
         assert result.exit_code == 0
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_with_progress(self, mock_model_class, sample_fasta_file, mock_model):
         """Test running with progress bar."""
         # Make model return multiple results to trigger progress
@@ -296,7 +296,7 @@ class TestModelRun:
         
         assert result.exit_code == 0
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_with_type_override(self, mock_model_class, sample_csv_file, mock_model):
         """Test running with type override."""
         mock_model_class.return_value = mock_model
@@ -312,7 +312,7 @@ class TestModelRun:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_run_api_error(self, mock_model_class, sample_fasta_file):
         """Test handling API errors."""
         mock_model = MagicMock()

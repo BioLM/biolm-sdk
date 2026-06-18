@@ -31,7 +31,7 @@ def _isolated_pipeline_import(**fake_modules):
     Context manager that:
     1. Removes biolmai.pipeline (and sub-modules) from sys.modules.
     2. Injects ``None`` sentinel(s) for the named packages (simulating missing).
-    3. Attempts to import biolmai.pipeline — yields the ImportError if raised,
+    3. Attempts to import biolm.pipeline — yields the ImportError if raised,
        or yields None if the import succeeded.
     4. Always restores sys.modules to its pre-test state.
     """
@@ -86,7 +86,7 @@ _SENTINEL = object()  # marker for "was not in sys.modules"
 
 @pytest.fixture(autouse=True)
 def _restore_pipeline_after_test():
-    """Always re-import biolmai.pipeline after each test so the module is valid."""
+    """Always re-import biolm.pipeline after each test so the module is valid."""
     yield
     # If biolmai.pipeline was evicted (e.g. by an isolation context) and not yet
     # restored, import it fresh so the next test in the session can use it.
@@ -113,13 +113,13 @@ class TestMissingExtrasGate:
             )
 
     def test_import_error_includes_install_command(self):
-        """Error message includes the pip install command for biolmai[pipeline]."""
+        """Error message includes the pip install command for biolm[pipeline]."""
         with _isolated_pipeline_import(duckdb=None) as err:
             assert err is not None, "Expected ImportError when duckdb is missing"
             msg = str(err)
             assert "pip install" in msg, f"Expected pip install hint in: {msg}"
-            assert "biolmai[pipeline]" in msg, (
-                f"Expected 'biolmai[pipeline]' in error message but got: {msg}"
+            assert "biolm[pipeline]" in msg, (
+                f"Expected 'biolm[pipeline]' in error message but got: {msg}"
             )
 
     def test_import_error_lists_multiple_missing_packages(self):
@@ -136,7 +136,7 @@ class TestMissingExtrasGate:
         # (this will fail the test suite immediately if deps are broken).
         if "biolmai.pipeline" not in sys.modules:
             importlib.import_module("biolmai.pipeline")
-        import biolmai.pipeline as pipeline
+        import biolm.pipeline as pipeline
         assert pipeline is not None
         # Check key symbols are present
         assert hasattr(pipeline, "DataPipeline")

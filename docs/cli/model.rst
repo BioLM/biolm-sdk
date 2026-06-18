@@ -52,6 +52,6 @@ Generate SDK usage examples:
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:model
+.. click:: biolm.cli:model
    :prog: biolmai model
    :show-nested:

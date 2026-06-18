@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     DataPipeline,
     DuckDBDataStore,
     EmbeddingSpec,

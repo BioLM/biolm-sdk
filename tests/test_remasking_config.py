@@ -6,7 +6,7 @@ pytest.importorskip("pandas")
 
 import pytest
 
-from biolmai.pipeline.mlm_remasking import (
+from biolm.pipeline.mlm_remasking import (
     AGGRESSIVE_CONFIG,
     CONSERVATIVE_CONFIG,
     MODERATE_CONFIG,

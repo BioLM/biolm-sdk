@@ -1,7 +1,7 @@
 """Tests for biolmai.progress (shared Rich progress helper)."""
 import unittest
 
-from biolmai.progress import rich_progress
+from biolm.progress import rich_progress
 
 
 class TestRichProgress(unittest.TestCase):

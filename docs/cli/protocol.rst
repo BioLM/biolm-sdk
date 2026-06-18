@@ -20,6 +20,6 @@ List, show, run, validate, or initialize protocols.
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:protocol
+.. click:: biolm.cli:protocol
    :prog: biolmai protocol
    :show-nested:

@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 from click.testing import CliRunner
 
-from biolmai.cli import cli
+from biolm.cli import cli
 
 
 @pytest.fixture
@@ -64,7 +64,7 @@ ATOM      2  CA  MET A   1      21.477  16.967   9.789  1.00 20.00           C
 class TestModelIO:
     """Test IO module integration with CLI."""
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_format_auto_detection_fasta(self, mock_model_class, sample_fasta_file):
         """Test auto-detection of FASTA format."""
         mock_model = MagicMock()
@@ -82,7 +82,7 @@ class TestModelIO:
         # Should successfully load FASTA
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_format_auto_detection_csv(self, mock_model_class, sample_csv_file):
         """Test auto-detection of CSV format."""
         mock_model = MagicMock()
@@ -99,7 +99,7 @@ class TestModelIO:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_format_auto_detection_json(self, mock_model_class, sample_json_file):
         """Test auto-detection of JSON format."""
         mock_model = MagicMock()
@@ -116,7 +116,7 @@ class TestModelIO:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_format_auto_detection_jsonl(self, mock_model_class, sample_jsonl_file):
         """Test auto-detection of JSONL format."""
         mock_model = MagicMock()
@@ -133,7 +133,7 @@ class TestModelIO:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_format_auto_detection_pdb(self, mock_model_class, sample_pdb_file):
         """Test auto-detection of PDB format."""
         mock_model = MagicMock()
@@ -150,7 +150,7 @@ class TestModelIO:
         assert result.exit_code == 0
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_output_format_json(self, mock_model_class, sample_fasta_file, tmp_path):
         """Test output format JSON."""
         mock_model = MagicMock()
@@ -178,7 +178,7 @@ class TestModelIO:
             assert isinstance(data, list)
             assert len(data) == 2
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_output_format_fasta(self, mock_model_class, sample_fasta_file, tmp_path):
         """Test output format FASTA."""
         mock_model = MagicMock()
@@ -205,7 +205,7 @@ class TestModelIO:
         assert content.startswith('>')
         assert 'ACDEFGHIKLMNPQRSTVWY' in content
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_output_format_csv(self, mock_model_class, sample_fasta_file, tmp_path):
         """Test output format CSV."""
         mock_model = MagicMock()
@@ -232,7 +232,7 @@ class TestModelIO:
         assert ',' in content
         assert 'id' in content or 'embedding' in content
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_output_format_auto_detect_from_extension(self, mock_model_class, sample_fasta_file, tmp_path):
         """Test output format auto-detection from file extension."""
         mock_model = MagicMock()
@@ -258,7 +258,7 @@ class TestModelIO:
             data = json.load(f)
             assert isinstance(data, list)
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_stdin_input_requires_format(self, mock_model_class):
         """Test that stdin input requires format specification."""
         mock_model = MagicMock()
@@ -273,7 +273,7 @@ class TestModelIO:
         assert result.exit_code == 1
         assert 'Format must be specified' in result.output or 'format' in result.output.lower()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_stdin_input_with_format(self, mock_model_class, tmp_path):
         """Test stdin input with format specified."""
         mock_model = MagicMock()
@@ -294,7 +294,7 @@ class TestModelIO:
         assert output_file.exists()
         mock_model.encode.assert_called_once()
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_file_format_conversion_fasta_to_json(self, mock_model_class, sample_fasta_file, tmp_path):
         """Test converting from FASTA input to JSON output."""
         mock_model = MagicMock()
@@ -322,7 +322,7 @@ class TestModelIO:
             assert isinstance(data, list)
             assert len(data) == 2
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_file_format_conversion_csv_to_fasta(self, mock_model_class, sample_csv_file, tmp_path):
         """Test converting from CSV input to FASTA output."""
         mock_model = MagicMock()
@@ -349,7 +349,7 @@ class TestModelIO:
         assert content.startswith('>')
         assert 'ACDEFGHIKLMNPQRSTVWY' in content
     
-    @patch('biolmai.cli.Model')
+    @patch('biolm.cli.Model')
     def test_unknown_format_error(self, mock_model_class, tmp_path):
         """Test error handling for unknown format."""
         mock_model = MagicMock()

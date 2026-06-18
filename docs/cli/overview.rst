@@ -15,7 +15,7 @@ Documentation Structure
 
 **Auto-generated documentation:**
 
-- **Command reference:** ``docs/cli/reference.rst`` - Auto-generated from ``biolmai.cli`` using ``sphinx-click``
+- **Command reference:** ``docs/cli/reference.rst`` - Auto-generated from ``biolm.cli`` using ``sphinx-click``
 
 **How to update CLI documentation:**
 

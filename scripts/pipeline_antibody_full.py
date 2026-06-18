@@ -27,13 +27,13 @@ import os
 import traceback
 from pathlib import Path
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     DirectGenerationConfig,
     DuckDBDataStore,
     GenerativePipeline,
     RankingFilter,
 )
-from biolmai.pipeline.data import ExtractionSpec
+from biolm.pipeline.data import ExtractionSpec
 
 # ---------------------------------------------------------------------------
 # Configuration

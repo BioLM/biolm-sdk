@@ -11,7 +11,7 @@ import pytest
 
 pytest.importorskip("duckdb")
 
-from biolmai.pipeline.data import (
+from biolm.pipeline.data import (
     MatrixExtractionSpec,
     StructureSpec,
     _dot_access,
@@ -63,7 +63,7 @@ class TestStructureSpec:
     def test_store_structure_index_in_bounds(self, tmp_path):
         """_store_structure with list-valued key, index=0 extracts first element."""
         import unittest.mock as mock
-        from biolmai.pipeline.data import PredictionStage
+        from biolm.pipeline.data import PredictionStage
 
         spec = StructureSpec(key="pdbs", index=0)
         stage = mock.MagicMock()
@@ -86,7 +86,7 @@ class TestStructureSpec:
     def test_store_structure_index_out_of_bounds_silently_nops(self, tmp_path):
         """_store_structure with out-of-bounds index is a silent no-op (returns early)."""
         import unittest.mock as mock
-        from biolmai.pipeline.data import PredictionStage
+        from biolm.pipeline.data import PredictionStage
 
         spec = StructureSpec(key="pdbs", index=99)
         stage = mock.MagicMock()
@@ -104,7 +104,7 @@ class TestStructureSpec:
     def test_store_structure_missing_key_is_nop(self):
         """_store_structure when key is absent in result is a no-op."""
         import unittest.mock as mock
-        from biolmai.pipeline.data import PredictionStage
+        from biolm.pipeline.data import PredictionStage
 
         spec = StructureSpec(key="pdb", index=0)
         stage = mock.MagicMock()
@@ -183,7 +183,7 @@ class TestMatrixExtractionSpec:
     def _make_matrix_stage(self, spec: MatrixExtractionSpec):
         """Return a mock PredictionStage-like object wired to use _extract_matrix."""
         import unittest.mock as mock
-        from biolmai.pipeline.data import PredictionStage
+        from biolm.pipeline.data import PredictionStage
 
         stage = mock.MagicMock()
         stage._matrix_extraction = spec

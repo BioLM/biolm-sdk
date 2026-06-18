@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline.datastore import DataStore
+from biolm.pipeline.datastore import DataStore
 
 
 class TestDataStore(unittest.TestCase):

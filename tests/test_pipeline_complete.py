@@ -22,11 +22,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline.base import WorkingSet
-from biolmai.pipeline.data import DataPipeline, EmbeddingSpec, ExtractionSpec, PredictionStage, _ResolvedExtraction
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.pipeline_def import stage_from_spec
-from biolmai.pipeline.filters import (
+from biolm.pipeline.base import WorkingSet
+from biolm.pipeline.data import DataPipeline, EmbeddingSpec, ExtractionSpec, PredictionStage, _ResolvedExtraction
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.pipeline_def import stage_from_spec
+from biolm.pipeline.filters import (
     CustomFilter,
     HammingDistanceFilter,
     RankingFilter,
@@ -34,13 +34,13 @@ from biolmai.pipeline.filters import (
     ThresholdFilter,
     ValidAminoAcidFilter,
 )
-from biolmai.pipeline.generative import (
+from biolm.pipeline.generative import (
     DirectGenerationConfig,
     GenerationStage,
     GenerativePipeline,
     SequenceSourceConfig,
 )
-from biolmai.pipeline.mlm_remasking import RemaskingConfig
+from biolm.pipeline.mlm_remasking import RemaskingConfig
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -1038,7 +1038,7 @@ def test_ranking_filter_sql_in_full_pipeline(tmp_path):
 
 def test_pipeline_metadata_exposed(tmp_path):
     """Pipeline.metadata returns usable PipelineMetadata after construction."""
-    from biolmai.pipeline.base import PipelineMetadata
+    from biolm.pipeline.base import PipelineMetadata
 
     pipeline = _make_pipeline(tmp_path, sequences=SEQS[:2])
     meta = pipeline.metadata
@@ -1227,7 +1227,7 @@ def test_pipeline_context_round_trip(tmp_path):
     db = tmp_path / "test.duckdb"
     ds = DuckDBDataStore(db_path=db, data_dir=tmp_path / "data")
 
-    from biolmai.pipeline.base import PipelineContext
+    from biolm.pipeline.base import PipelineContext
 
     ctx = PipelineContext(ds, "run_001")
     ctx.set("stage_1_model", "esmfold")
@@ -1245,7 +1245,7 @@ def test_pipeline_context_isolation(tmp_path):
     db = tmp_path / "test.duckdb"
     ds = DuckDBDataStore(db_path=db, data_dir=tmp_path / "data")
 
-    from biolmai.pipeline.base import PipelineContext
+    from biolm.pipeline.base import PipelineContext
 
     ctx1 = PipelineContext(ds, "run_001")
     ctx2 = PipelineContext(ds, "run_002")
@@ -1265,7 +1265,7 @@ def test_pipeline_context_get_structure(tmp_path):
     seq_id = ds.add_sequence("MKLLIV")
     ds.add_structure(seq_id, "esmfold", structure_str="ATOM 1 CA ALA A 1 0.0 0.0 0.0")
 
-    from biolmai.pipeline.base import PipelineContext
+    from biolm.pipeline.base import PipelineContext
 
     ctx = PipelineContext(ds, "run_001")
     struct = ctx.get_structure(seq_id, "esmfold")
@@ -1838,7 +1838,7 @@ def test_sequence_source_config_to_spec_roundtrip():
     assert spec["sequences"] == ["MKTAY"]
     assert spec["column"] == "sequence"
 
-    from biolmai.pipeline.pipeline_def import _config_from_spec
+    from biolm.pipeline.pipeline_def import _config_from_spec
     cfg2 = _config_from_spec(spec)
     assert isinstance(cfg2, SequenceSourceConfig)
 
@@ -2119,7 +2119,7 @@ def test_concurrent_pipeline_write_guard_raises_and_releases(tmp_path):
     registered in _RUNNING_DB_PATHS.
     Sub-scenario 2: after cleanup, the path is released and a new pipeline can run.
     """
-    from biolmai.pipeline.datastore_duckdb import _RUNNING_DB_PATHS
+    from biolm.pipeline.datastore_duckdb import _RUNNING_DB_PATHS
 
     db = tmp_path / "guard_test.duckdb"
     data_dir = tmp_path / "guard_data"

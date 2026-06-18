@@ -13,7 +13,7 @@ import duckdb
 import numpy as np
 import pytest
 
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
 
 
 @pytest.fixture

@@ -18,6 +18,6 @@ List datasets, show details, upload, or download.
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:dataset
+.. click:: biolm.cli:dataset
    :prog: biolmai dataset
    :show-nested:

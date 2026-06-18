@@ -15,5 +15,5 @@ Displays whether you are logged in and where credentials are stored.
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:status
+.. click:: biolm.cli:status
    :prog: biolmai status

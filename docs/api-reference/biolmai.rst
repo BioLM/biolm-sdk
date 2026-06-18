@@ -21,18 +21,18 @@ biolmai.biolmai module
    :undoc-members:
    :show-inheritance:
 
-biolmai.cli module
+biolm.cli module
 ------------------
 
-.. automodule:: biolmai.cli
+.. automodule:: biolm.cli
    :members:
    :undoc-members:
    :show-inheritance:
 
-biolmai.cli\_entry module
+biolm.cli\_entry module
 -------------------------
 
-.. automodule:: biolmai.cli_entry
+.. automodule:: biolm.cli_entry
    :members:
    :undoc-members:
    :show-inheritance:

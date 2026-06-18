@@ -8,13 +8,20 @@ Installation
 Stable release
 --------------
 
-To install BioLM AI, run this command in your terminal:
+To install BioLM, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install biolmai
+    $ pip install biolm
 
-This is the preferred method to install BioLM AI, as it will always install the most recent stable release.
+Optional extras:
+
+.. code-block:: console
+
+    $ pip install 'biolm[server]'    # local Modal proxy (biolm server)
+    $ pip install 'biolm[pipeline]'  # pipeline features
+
+The ``biolmai`` package name is deprecated; use ``biolm``. See :doc:`migration-1.0`.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -26,7 +33,7 @@ you through the process.
 From sources
 ------------
 
-The sources for BioLM AI can be downloaded from the `GitHub repo`_.
+The sources for BioLM can be downloaded from the `GitHub repo`_.
 
 You can either clone the public repository:
 
@@ -44,7 +51,7 @@ Once you have a copy of the source, you can install it with:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ pip install -e ".[server]"
 
 
 .. _GitHub repo: https://github.com/BioLM/py-biolm

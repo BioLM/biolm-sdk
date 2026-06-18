@@ -14,7 +14,7 @@ The ``load_fasta()`` function parses FASTA files and returns a list of dictionar
 
 .. code-block:: python
 
-    from biolmai.io import load_fasta
+    from biolm.io import load_fasta
 
     # Load sequences from file
     items = load_fasta("sequences.fasta")
@@ -48,7 +48,7 @@ The ``to_fasta()`` function writes sequences to FASTA format:
 
 .. code-block:: python
 
-    from biolmai.io import to_fasta
+    from biolm.io import to_fasta
 
     # Data from API response
     data = [
@@ -86,7 +86,7 @@ The ``load_csv()`` function parses CSV files with headers:
 
 .. code-block:: python
 
-    from biolmai.io import load_csv
+    from biolm.io import load_csv
 
     # Load CSV file
     items = load_csv("data.csv")
@@ -117,7 +117,7 @@ The ``to_csv()`` function writes data to CSV format:
 
 .. code-block:: python
 
-    from biolmai.io import to_csv
+    from biolm.io import to_csv
 
     # Data from API response
     data = [
@@ -143,7 +143,7 @@ The ``load_pdb()`` function reads PDB structure files:
 
 .. code-block:: python
 
-    from biolmai.io import load_pdb
+    from biolm.io import load_pdb
 
     # Load single-model PDB
     items = load_pdb("structure.pdb")
@@ -161,7 +161,7 @@ The ``to_pdb()`` function writes PDB structures:
 
 .. code-block:: python
 
-    from biolmai.io import to_pdb
+    from biolm.io import to_pdb
 
     # Data from API response
     data = [{"pdb": "HEADER    TEST\nATOM      1  N   MET A   1\nEND\n"}]
@@ -183,8 +183,8 @@ The io module is designed to work seamlessly with the ``Model`` class:
 
 .. code-block:: python
 
-    from biolmai.io import load_fasta, to_csv
-    from biolmai import Model
+    from biolm.io import load_fasta, to_csv
+    from biolm import Model
 
     # Load sequences from FASTA
     items = load_fasta("sequences.fasta")
@@ -200,8 +200,8 @@ The io module is designed to work seamlessly with the ``Model`` class:
 
 .. code-block:: python
 
-    from biolmai.io import load_fasta, to_csv
-    from biolmai import Model
+    from biolm.io import load_fasta, to_csv
+    from biolm import Model
 
     # 1. Load input sequences
     sequences = load_fasta("input.fasta")
@@ -221,7 +221,7 @@ All functions support both file paths and file-like objects:
 .. code-block:: python
 
     import io
-    from biolmai.io import load_fasta, to_fasta
+    from biolm.io import load_fasta, to_fasta
 
     # Load from file-like object
     file_obj = io.StringIO(">seq1\nACDEFGHIKLMNPQRSTVWY\n")
@@ -239,7 +239,7 @@ The io module raises clear exceptions for common errors:
 
 .. code-block:: python
 
-    from biolmai.io import load_fasta
+    from biolm.io import load_fasta
 
     try:
         items = load_fasta("nonexistent.fasta")

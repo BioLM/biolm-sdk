@@ -14,9 +14,9 @@ import pytest
 
 pytest.importorskip("duckdb")
 
-from biolmai.pipeline.base import StageResult, WorkingSet
-from biolmai.pipeline.data import DataPipeline, EmbeddingSpec, PredictionStage
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.base import StageResult, WorkingSet
+from biolm.pipeline.data import DataPipeline, EmbeddingSpec, PredictionStage
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
 
 
 # ---------------------------------------------------------------------------
@@ -69,7 +69,7 @@ class TestEmbedFunction:
 
     def _run_embed(self, sequences, tmp_path, emb):
         """Run Embed() with a mocked BioLMApiClient."""
-        from biolmai.pipeline.data import Embed
+        from biolm.pipeline.data import Embed
 
         mock_instance = AsyncMock()
         # Embed() auto-detects key="embeddings" for ESM models (model_name contains "esm").

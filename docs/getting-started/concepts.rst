@@ -29,7 +29,7 @@ BioLM (simple sync)
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
 
     # Single item: returns a dict
     result = biolm(entity="esmfold", action="predict", items="MDNELE")
@@ -61,14 +61,14 @@ For more control or high throughput you can use:
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
     result = biolm(entity="esmfold", action="predict", items="MDNELE")
 
 **Async example:**
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApiClient
+    from biolm.core.http import BioLMApiClient
     import asyncio
 
     async def main():
@@ -123,7 +123,7 @@ You can raise HTTP errors as exceptions or get them as dicts in the results. You
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
     try:
         result = biolm(entity="esmfold", action="predict", type="sequence", items="BADSEQ", raise_httpx=True)
     except Exception as e:
@@ -169,7 +169,7 @@ By default the client uses the API schema’s recommended throttle and a concurr
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApi
+    from biolm.core.http import BioLMApi
 
     # Default (recommended): uses API throttle + semaphore
     model = BioLMApi("esmfold")

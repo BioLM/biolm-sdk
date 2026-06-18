@@ -19,7 +19,7 @@ from pathlib import Path
 
 import numpy as np
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     DataPipeline,
     DiversitySamplingFilter,
     DuckDBDataStore,

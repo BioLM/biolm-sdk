@@ -124,7 +124,7 @@ You can read the maximum batch size from the schema:
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApi
+    from biolm.core.http import BioLMApi
     model = BioLMApi("esm2-8m")
     schema = model.schema("esm2-8m", "encode")
     max_batch = model.extract_max_items(schema)
@@ -171,7 +171,7 @@ Examples
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
 
     items = [{"sequence": "SEQ1"}, {"sequence": "SEQ2"}]
     result = biolm(entity="esm2-8m", action="encode", items=items)

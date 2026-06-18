@@ -3,11 +3,11 @@ import random
 
 import pytest
 
-from biolmai import biolm
-from biolmai.biolmai import BioLM
-from biolmai.core.http import BioLMApiClient, BioLMApi
-from biolmai.core.utils import batch_iterable
-from biolmai.models import Model
+from biolm import biolm
+from biolm.client import BioLM
+from biolm.core.http import BioLMApiClient, BioLMApi
+from biolm.core.utils import batch_iterable
+from biolm.models import Model
 
 
 def random_sequence(length=5):

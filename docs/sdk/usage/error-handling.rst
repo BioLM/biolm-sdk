@@ -8,7 +8,7 @@ You can either raise HTTP errors as exceptions (fail fast) or get them as dicts 
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
     try:
         result = biolm(entity="esmfold", action="predict", type="sequence", items="BADSEQ", raise_httpx=True)
     except Exception as e:
@@ -87,7 +87,7 @@ Sync (BioLMApi):
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApi
+    from biolm.core.http import BioLMApi
 
     model = BioLMApi("esm2-8m", raise_httpx=False, retry_error_batches=True)
     result = model.encode(items=[{"sequence": "GOOD"}, {"sequence": "BAD"}])
@@ -97,7 +97,7 @@ Async (BioLMApiClient):
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApiClient
+    from biolm.core.http import BioLMApiClient
     import asyncio
 
     async def main():

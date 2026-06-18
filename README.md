@@ -12,7 +12,7 @@ pip install 'biolmai[pipeline]'
 ```
 
 ```python
-from biolmai.pipeline import DataPipeline, ThresholdFilter
+from biolm.pipeline import DataPipeline, ThresholdFilter
 
 pipeline = DataPipeline(sequences=my_sequences)
 pipeline.add_prediction("temberture-regression", extractions="prediction", columns="tm")

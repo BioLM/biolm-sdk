@@ -26,7 +26,7 @@ requirements = [
     "requests",
     "httpx>=0.23.0",
     "httpcore",
-    "h2",  # Required for HTTP/2 support
+    "h2",
     "synchronicity>=0.5.0; python_version >= '3.9'",
     "synchronicity<0.5.0; python_version < '3.9'",
     "typing_extensions; python_version < '3.9'",
@@ -39,7 +39,7 @@ requirements = [
     "nest_asyncio",
     "rich>=13.0.0",
     "pyyaml>=5.0",
-    "jsonschema<=4.26.0"
+    "jsonschema<=4.26.0",
 ]
 
 test_requirements = [
@@ -51,7 +51,7 @@ setup(
     author_email="support@biolm.ai",
     python_requires=">=3.8",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
@@ -63,13 +63,15 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    description="BioLM Python client",
+    description="BioLM Python client and local server",
     entry_points={
         "console_scripts": [
-            "biolmai=biolmai.cli_entry:cli",
+            "biolm=biolm.cli_entry:cli",
+            "biolmai=biolm.cli_entry:cli",
         ],
-        'mlflow.request_header_provider': [
-            'unused=biolmai.core.seqflow_auth:BiolmaiRequestHeaderProvider',
+        "mlflow.request_header_provider": [
+            "biolm=biolm.core.seqflow_auth:BiolmRequestHeaderProvider",
+            "unused=biolm.core.seqflow_auth:BiolmaiRequestHeaderProvider",
         ],
     },
     install_requires=requirements,
@@ -88,16 +90,22 @@ setup(
             "duckdb>=0.9.0,<2",
             "pyarrow>=10.0.0",
         ],
+        "server": [
+            "fastapi>=0.100.0",
+            "uvicorn[standard]>=0.23.0",
+            "modal>=0.64.0",
+        ],
     },
     license="Apache Software License 2.0",
     long_description=readme + "\n\n" + history,
     include_package_data=True,
-    keywords=["biolmai", "biolm", "bioai", "bio-ai", "bio-lm", "bio-llm", "bio-language-model", "bio-language-models-api", "python-client"],
-    name="biolmai",
-    packages=find_packages(include=["biolmai", "biolmai.*"]),
+    keywords=["biolm", "biolmai", "bioai", "bio-ai", "bio-lm", "bio-llm"],
+    name="biolm",
+    packages=find_packages(include=["biolm", "biolm.*", "biolmai", "biolmai.*"]),
+    package_data={"biolm.server": ["data/*.json"]},
     test_suite="tests",
     tests_require=test_requirements,
-    url="https://github.com/BioLM/py-biolm",
+    url="https://github.com/BioLM/biolm-sdk",
     version=_read_version(),
     zip_safe=False,
 )

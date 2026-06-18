@@ -15,5 +15,5 @@ This removes credentials from ``~/.biolmai/credentials``.
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:logout
+.. click:: biolm.cli:logout
    :prog: biolmai logout
