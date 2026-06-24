@@ -57,16 +57,15 @@ else:
 # --- API URL ---
 
 if _api_url_override:
-    BIOLM_BASE_API_URL = _api_url_override
+    BIOLM_BASE_API_URL = _ensure_scheme(_api_url_override)
 elif _domain_override or _local:
     BIOLM_BASE_DOMAIN = _ensure_scheme(BIOLM_BASE_DOMAIN)
     BIOLM_BASE_API_URL = f"{BIOLM_BASE_DOMAIN.rstrip('/')}/api/v3"
 else:
     BIOLM_BASE_API_URL = "https://biolm.ai/api/v3"
 
-# If only API URL is set, derive domain for UI/catalog endpoints
-if _api_url_override and not _domain_override and not _local:
-    BIOLM_BASE_DOMAIN = _ensure_scheme(_strip_api_suffix(_api_url_override))
+# BIOLM_BASE_API_URL overrides model inference only; platform domain stays on biolm.ai
+# unless BIOLM_BASE_DOMAIN is explicitly set (hybrid: login on platform, models on proxy).
 
 # Legacy aliases (deprecated)
 BIOLMAI_BASE_DOMAIN = BIOLM_BASE_DOMAIN
@@ -131,10 +130,21 @@ BIOLM_SERVER_CONFIG_PATH = os.path.join(
 
 
 def get_base_domain() -> str:
-    """Return the site root URL used for UI/catalog endpoints."""
+    """Platform site root (OAuth, auth, hosted platform APIs)."""
+    return BIOLM_BASE_DOMAIN.rstrip("/")
+
+
+def get_model_catalog_base() -> str:
+    """Site root for model catalog/list endpoints.
+
+    When BIOLM_BASE_API_URL is set (e.g. biolm server proxy), catalog listing
+    follows the model API host. Platform auth still uses get_base_domain().
+    """
+    if _api_url_override:
+        return _ensure_scheme(_strip_api_suffix(BIOLM_BASE_API_URL)).rstrip("/")
     return BIOLM_BASE_DOMAIN.rstrip("/")
 
 
 def get_base_api_url() -> str:
-    """Return the v3 API base URL."""
+    """Return the v3 model API base URL."""
     return BIOLM_BASE_API_URL.rstrip("/")

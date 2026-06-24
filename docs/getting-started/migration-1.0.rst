@@ -40,6 +40,11 @@ Canonical names use the ``BIOLM_`` prefix. Legacy ``BIOLMAI_*`` names still work
 | ``BIOLM_THREADS``    | ``BIOLMAI_THREADS``  |
 +----------------------+----------------------+
 
+``BIOLM_BASE_API_URL`` overrides **model inference and model list/catalog** only.
+``BIOLM_BASE_DOMAIN`` controls the **platform** (OAuth, auth, hosted UI). For the
+common hybrid workflow—login on ``biolm.ai``, run models through ``biolm server``—set
+only ``BIOLM_BASE_API_URL``.
+
 Credentials path
 ----------------
 
@@ -49,3 +54,12 @@ Local server
 ------------
 
 See :doc:`../cli/server` and :doc:`../server/oss-integration`.
+
+Terminal colors
+---------------
+
+The CLI auto-detects dark vs light terminals. If text is hard to read:
+
+- ``export BIOLM_CLI_THEME=dark`` or ``light``
+- ``biolm --color ...`` to force color on
+- ``biolm --no-color ...`` or ``NO_COLOR=1`` for plain output

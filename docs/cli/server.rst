@@ -19,9 +19,10 @@ Start the server
 
     # optional
     biolm server start --host 0.0.0.0 --port 8787 --auth token
+    biolm server start --modal-env qa --detach
 
-On start, the server prints ``BIOLM_BASE_API_URL`` and ``BIOLM_BASE_DOMAIN`` exports
-for pointing the CLI/SDK at the local proxy.
+On start, the server prints ``BIOLM_BASE_API_URL`` for pointing model inference at
+the local proxy.
 
 Point the CLI/SDK at the server
 -------------------------------
@@ -29,9 +30,24 @@ Point the CLI/SDK at the server
 .. code-block:: bash
 
     export BIOLM_BASE_API_URL=http://127.0.0.1:8787/api/v3
-    export BIOLM_BASE_DOMAIN=http://127.0.0.1:8787
+    biolm login
     biolm model list
     biolm model run esm2-8m encode -i sequences.json
+
+``biolm login`` and platform APIs use ``biolm.ai`` by default. Only
+``BIOLM_BASE_API_URL`` needs to change for local model inference.
+
+Terminal appearance
+-------------------
+
+The CLI auto-detects dark vs light terminal backgrounds. If colors are hard
+to read, try:
+
+.. code-block:: bash
+
+    export BIOLM_CLI_THEME=dark    # or light
+    biolm --no-color model list    # plain output
+    export NO_COLOR=1              # disable color globally
 
 Environment variables
 ---------------------
@@ -49,6 +65,12 @@ Server configuration:
 - ``BIOLM_SERVER_TOKEN`` — required when auth is ``token``
 - ``BIOLM_SERVER_MODELS`` — comma-separated slugs (config fallback)
 - ``BIOLM_SERVER_REFRESH_SECONDS`` — registry rescan interval (default ``60``)
+- ``BIOLM_SERVER_MODAL_ENV`` — Modal environment to scan (default ``main`` for production)
+
+Or pass ``--modal-env`` to ``biolm server start`` / ``biolm server status``.
+
+``biolm server status`` lists up to 10 discovered deployments by default; use
+``--limit 0`` to show all.
 
 Auth
 ----
@@ -62,6 +84,16 @@ Token mode:
     export BIOLM_SERVER_AUTH=token
     export BIOLM_SERVER_TOKEN=your-secret
     biolm server start --auth token
+
+Stop the server:
+
+.. code-block:: bash
+
+    biolm server stop
+    biolm server stop --port 8787
+    biolm server stop --force
+
+Detached mode writes logs to ``~/.biolm/server.log``.
 
 Clients send ``Authorization: Token your-secret``.
 

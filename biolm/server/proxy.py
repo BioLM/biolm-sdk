@@ -88,7 +88,7 @@ class ModelProxy:
         )
 
     async def forward_get(self, entry_base_url: str, path: str) -> Response:
-        url = f"{entry_base_url.rstrip('/')}/{path.lstrip('/')}"
+        url = f"{entry_base_url.rstrip('/')}/{path.lstrip('/')}" if path else entry_base_url
         try:
             resp = await self._client.get(url)
         except httpx.RequestError as exc:

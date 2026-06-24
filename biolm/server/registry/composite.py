@@ -45,15 +45,31 @@ class CompositeRegistry:
         self._entries = merged
 
     async def _check_health(self, client: httpx.AsyncClient, entry: ModelEntry) -> ModelEntry:
-        probe_url = f"{entry.base_url.rstrip('/')}/schema/{entry.slug}/encode/"
-        try:
-            resp = await client.get(probe_url)
-            if resp.status_code == 404:
-                probe_url = f"{entry.base_url.rstrip('/')}/schema/{entry.slug}/predict/"
-                resp = await client.get(probe_url)
-            status = ModelStatus.READY if resp.status_code == 200 else ModelStatus.UNREACHABLE
-        except Exception:
-            status = ModelStatus.UNREACHABLE
+        base = entry.base_url.rstrip("/")
+        actions = entry.actions or ["encode", "predict", "generate", "inference"]
+        status = ModelStatus.UNREACHABLE
+
+        for action in actions:
+            probe_url = f"{base}/{entry.slug}/{action}"
+            try:
+                resp = await client.head(probe_url)
+                if resp.status_code in (200, 405):
+                    status = ModelStatus.READY
+                    break
+            except Exception:
+                continue
+
+        if status != ModelStatus.READY:
+            for action in ("encode", "predict"):
+                probe_url = f"{base}/schema/{entry.slug}/{action}/"
+                try:
+                    resp = await client.get(probe_url)
+                    if resp.status_code == 200:
+                        status = ModelStatus.READY
+                        break
+                except Exception:
+                    continue
+
         return ModelEntry(
             slug=entry.slug,
             base_url=entry.base_url,

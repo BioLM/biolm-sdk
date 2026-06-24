@@ -25,7 +25,8 @@ def test_biolm_local_sets_domain_and_api_url(monkeypatch):
     assert const.BIOLM_BASE_API_URL == "http://localhost:8000/api/v3"
 
 
-def test_api_url_derives_domain(monkeypatch):
+def test_api_url_hybrid_keeps_platform_domain(monkeypatch):
+    """Model API can point at local proxy while platform stays on biolm.ai."""
     for key in (
         "BIOLM_BASE_DOMAIN",
         "BIOLMAI_BASE_DOMAIN",
@@ -38,7 +39,9 @@ def test_api_url_derives_domain(monkeypatch):
     monkeypatch.setenv("BIOLM_BASE_API_URL", "http://127.0.0.1:8787/api/v3")
     const = _reload_const()
     assert const.BIOLM_BASE_API_URL == "http://127.0.0.1:8787/api/v3"
-    assert const.BIOLM_BASE_DOMAIN == "http://127.0.0.1:8787"
+    assert const.BIOLM_BASE_DOMAIN == "https://biolm.ai"
+    assert const.get_model_catalog_base() == "http://127.0.0.1:8787"
+    assert const.OAUTH_AUTHORIZE_URL == "https://biolm.ai/o/authorize/"
 
 
 def test_legacy_biolmai_domain_warns(monkeypatch):

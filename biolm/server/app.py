@@ -7,7 +7,12 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional
 
 from biolm.server.auth import AuthBackend, build_auth_backend
-from biolm.server.catalog import get_catalog_model, list_catalog_models, resolve_exposed_models
+from biolm.server.catalog import (
+    get_catalog_model,
+    list_catalog_models,
+    platform_schema_url,
+    resolve_exposed_models,
+)
 from biolm.server.proxy import ModelProxy
 from biolm.server.registry import CompositeRegistry, ConfigRegistry, ModalRegistry
 from biolm.server.routes.platform import not_supported
@@ -37,7 +42,7 @@ def create_app(settings: Optional[ServerSettings] = None):
         slugs=settings.configured_slugs(),
         config_path=settings.config_path,
     )
-    modal_registry = ModalRegistry()
+    modal_registry = ModalRegistry(environment_name=settings.modal_environment)
     registry = CompositeRegistry(config_registry, modal_registry, health_check=settings.health_check)
     proxy = ModelProxy()
     auth_backend: AuthBackend = build_auth_backend(settings.auth_mode, settings.server_token)
@@ -82,9 +87,13 @@ def create_app(settings: Optional[ServerSettings] = None):
         entries = registry.list()
         return {
             "status": "ok",
-            "models": [e.to_dict() for e in entries],
+            "host": settings.host,
+            "port": settings.port,
+            "modal_environment": settings.modal_environment,
             "modal_configured": ModalRegistry.modal_credentials_present(),
             "auth_mode": settings.auth_mode,
+            "model_count": len(entries),
+            "deployments": [e.to_dict() for e in entries],
         }
 
     @app.get("/api/ui/community-api-models/")
@@ -111,7 +120,7 @@ def create_app(settings: Optional[ServerSettings] = None):
         entry = registry.get(model)
         if not entry:
             return JSONResponse(status_code=404, content={"detail": f"Model '{model}' not deployed on this server."})
-        return await proxy.forward_get(entry.base_url, f"schema/{model}/{action}/")
+        return await proxy.forward_get(platform_schema_url(model, action), "")
 
     @app.post("/api/v3/{model}/{action}/")
     async def model_action(model: str, action: str, body: Dict[str, Any]):
@@ -132,7 +141,7 @@ def create_app(settings: Optional[ServerSettings] = None):
 
     @app.get("/api/v3/catalog/")
     async def full_catalog():
-        """Full OSS catalog (all deployable models)."""
+        """Full official catalog from the BioLM platform."""
         return list_catalog_models()
 
     return app

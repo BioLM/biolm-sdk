@@ -17,12 +17,15 @@ flowchart LR
 
 ## Deploy naming conventions
 
-`biolm server` scans the configured Modal workspace for deployments matching:
+`biolm server` scans the configured Modal environment (``BIOLM_SERVER_MODAL_ENV``,
+default ``main``) for deployed apps.
 
 | Convention | Value | Example |
 |------------|-------|---------|
-| App name prefix | `biolm-{slug}` | `biolm-esm2-8m` |
-| Label (preferred) | `biolm.model={slug}` | `biolm.model=esm2-8m` |
+| App name (production) | `{slug}` | `esm2-8m` |
+| App name prefix (OSS) | `biolm-{slug}` | `biolm-esm2-8m` |
+| Shared gateway app | `biolm-gateway` | routes all models via one web endpoint |
+| Label (optional OSS) | `biolm.model={slug}` | `biolm.model=esm2-8m` |
 | Version label (optional) | `biolm.version={semver}` | `biolm.version=1.0.0` |
 
 The scanner resolves each deployment to a **v3 API base URL** (including `/api/v3` if applicable).
@@ -139,6 +142,15 @@ Client sends: `Authorization: Token {BIOLM_SERVER_TOKEN}`
 4. One **golden path** reference: `esm2-8m` + `encode` end-to-end (deploy, schema, infer)
 5. Modal API calls for listing deployed apps by label (for scanner implementation)
 
+Production BioLM uses Modal environment ``main`` with per-model apps (``esm2-8m``,
+``esmfold``, …) and a shared ``biolm-gateway`` web endpoint that routes
+``/api/v3/{model}/{action}`` to backends. Set ``BIOLM_SERVER_MODAL_ENV=main`` when
+scanning production.
+
+Only apps whose slug appears in the **official BioLM catalog** on ``biolm.ai``
+(``/api/ui/community-api-models/``) are registered. JSON schemas are always fetched
+from the platform (``biolm.ai/api/v3/schema/...``), not from Modal deployments.
+
 ## Example client setup
 
 ```bash
@@ -147,9 +159,9 @@ export MODAL_TOKEN_ID=...
 export MODAL_TOKEN_SECRET=...
 biolm server start
 
-# separate terminal
+# separate terminal — hybrid: login on platform, models on proxy
 export BIOLM_BASE_API_URL=http://127.0.0.1:8787/api/v3
-export BIOLM_BASE_DOMAIN=http://127.0.0.1:8787
+biolm login
 biolm model list
 biolm model run esm2-8m encode -i seq.json
 ```

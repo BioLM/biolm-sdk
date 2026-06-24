@@ -15,6 +15,7 @@ class ServerSettings:
     refresh_seconds: int = 60
     models_env: str = ""
     config_path: str = ""
+    modal_environment: str = "main"
     health_check: bool = True
 
     @classmethod
@@ -30,6 +31,7 @@ class ServerSettings:
                 "BIOLM_SERVER_CONFIG_PATH",
                 os.path.join(os.path.expanduser("~"), ".biolm", "server.yaml"),
             ),
+            modal_environment=os.environ.get("BIOLM_SERVER_MODAL_ENV", "main"),
         )
         for key, val in overrides.items():
             if val is not None and hasattr(defaults, key):

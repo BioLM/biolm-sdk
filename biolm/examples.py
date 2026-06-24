@@ -6,7 +6,7 @@ from synchronicity import Synchronizer
 
 import httpx
 from biolm.core.http import BioLMApiClient, HttpClient, CredentialsProvider, DEFAULT_TIMEOUT
-from biolm.core.const import get_base_domain
+from biolm.core.const import get_model_catalog_base
 
 log = logging.getLogger("biolm_util")
 
@@ -31,9 +31,9 @@ class ExampleGenerator:
         
         Args:
             api_key: Optional API key for authentication.
-            base_url: Optional base URL (defaults to BIOLM_BASE_DOMAIN).
+            base_url: Optional base URL for model catalog (defaults to model API host).
         """
-        self.base_url = base_url or get_base_domain()
+        self.base_url = base_url or get_model_catalog_base()
         self.api_key = api_key
         self._headers = CredentialsProvider.get_auth_headers(api_key)
         self._http_client = HttpClient(

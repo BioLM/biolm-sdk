@@ -9,6 +9,7 @@ from biolm.server.settings import ServerSettings
 def app():
     pytest.importorskip("fastapi")
     from biolm.server.app import create_app
+    from biolm.server.registry.modal import ModalRegistry
 
     settings = ServerSettings.from_env(
         host="127.0.0.1",
@@ -17,8 +18,14 @@ def app():
         models_env="esm2-8m",
         config_path="/nonexistent/server.yaml",
         refresh_seconds=3600,
+        health_check=False,
     )
-    return create_app(settings)
+
+    async def _noop_modal_refresh(self):
+        self._entries = {}
+
+    with patch.object(ModalRegistry, "refresh", _noop_modal_refresh):
+        yield create_app(settings)
 
 
 @pytest.fixture
@@ -34,6 +41,8 @@ def test_health(client):
     data = resp.json()
     assert data["status"] == "ok"
     assert data["auth_mode"] == "none"
+    assert data["modal_environment"] == "main"
+    assert "deployments" in data
 
 
 def test_platform_route_returns_501(client):
@@ -76,3 +85,17 @@ def test_proxy_forwards_post(client):
         )
     assert resp.status_code == 200
     assert mock_req.called
+
+
+def test_schema_fetches_from_platform(client):
+    mock_response = AsyncMock()
+    mock_response.status_code = 200
+    mock_response.content = b'{"type": "object"}'
+    mock_response.headers = {"content-type": "application/json"}
+
+    with patch("biolm.server.proxy.httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
+        mock_get.return_value = mock_response
+        resp = client.get("/api/v3/schema/esm2-8m/encode/")
+    assert resp.status_code == 200
+    called_url = mock_get.call_args[0][0]
+    assert "biolm.ai/api/v3/schema/esm2-8m/encode/" in called_url
