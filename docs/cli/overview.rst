@@ -19,7 +19,7 @@ Documentation Structure
 
 **How to update CLI documentation:**
 
-1. **Command reference (auto-generated):** Edit docstrings and help text in ``biolmai/cli.py``. The ``sphinx-click`` extension will pull documentation from the Click command definitions.
+1. **Command reference (auto-generated):** Edit docstrings and help text in ``biolm/cli.py``. The ``sphinx-click`` extension will pull documentation from the Click command definitions.
 
 2. **Usage guides (manually written):** Edit the files in ``docs/cli/usage/`` to add examples, explanations, and tutorials.
 

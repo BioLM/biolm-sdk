@@ -1,4 +1,4 @@
-"""Console script for biolmai."""
+"""Console script for biolm."""
 from __future__ import annotations
 
 import os
@@ -333,7 +333,7 @@ class RichGroup(click.Group):
 
 @click.command()
 def main(args=None):
-    """Console script for biolmai."""
+    """Console script for biolm."""
     click.echo("Replace this message by putting your code into " "biolm.cli.main")
     click.echo("See click documentation at https://click.palletsprojects.com/")
     return 0
@@ -444,13 +444,13 @@ def login(client_id, scope):
     .. code-block:: bash
 
         # Login with default client ID
-        biolmai login
+        biolm login
 
         # Login with custom client ID
-        biolmai login --client-id your-client-id
+        biolm login --client-id your-client-id
 
         # Login with custom scope (supported: read, write, introspection)
-        biolmai login --scope "read write"
+        biolm login --scope "read write"
     """
     # Check if credentials already exist and are valid
     if are_credentials_valid():
@@ -517,7 +517,7 @@ def logout():
     """Logout and remove saved credentials.
     
     Removes the saved authentication credentials from ``~/.biolmai/credentials``.
-    After logout, you will need to run ``biolmai login`` again to authenticate.
+    After logout, you will need to run ``biolm login`` again to authenticate.
     """
     try:
         os.remove(ACCESS_TOK_PATH)
@@ -1082,19 +1082,19 @@ def list(filter, sort, format, output, fields, view):
     .. code-block:: bash
 
         # List all models
-        biolmai model list
+        biolm model list
 
         # Filter for encoder models
-        biolmai model list --filter encoder=true
+        biolm model list --filter encoder=true
 
         # Sort by model name
-        biolmai model list --sort model_name
+        biolm model list --sort model_name
 
         # Output as JSON
-        biolmai model list --format json --output models.json
+        biolm model list --format json --output models.json
 
         # Compact view
-        biolmai model list --view compact
+        biolm model list --view compact
     """
     try:
         with console.status("[brand]Fetching models...[/brand]"):
@@ -1427,13 +1427,13 @@ def show(model_name, format, output, include_schemas, include_code_examples):
     .. code-block:: bash
 
         # Show model details
-        biolmai model show esm2-8m
+        biolm model show esm2-8m
 
         # Include schemas
-        biolmai model show esmfold --include-schemas
+        biolm model show esmfold --include-schemas
 
         # Output as JSON
-        biolmai model show esm2-8m --format json --output model.json
+        biolm model show esm2-8m --format json --output model.json
     """
     try:
         with console.status("[brand]Fetching model information...[/brand]"):
@@ -1703,16 +1703,16 @@ def run(model_name, action, input, output, format, input_format, type, params, b
     .. code-block:: bash
 
         # Run model with inline input
-        echo '{"sequence": "ACDEFGHIKLMNPQRSTVWY"}' | biolmai model run esm2-8m encode -i - --format json
+        echo '{"sequence": "ACDEFGHIKLMNPQRSTVWY"}' | biolm model run esm2-8m encode -i - --format json
 
         # Run model with FASTA file
-        biolmai model run esmfold predict -i sequences.fasta -o results.json
+        biolm model run esmfold predict -i sequences.fasta -o results.json
 
         # Run with parameters
-        biolmai model run esm2-8m encode -i seq.fasta --params '{"normalize": true}'
+        biolm model run esm2-8m encode -i seq.fasta --params '{"normalize": true}'
 
         # Run with progress bar
-        biolmai model run esmfold predict -i large.fasta --progress
+        biolm model run esmfold predict -i large.fasta --progress
     """
     # Initialize items variable for error reporting
     items = None
@@ -2239,10 +2239,10 @@ def show(protocol_source):
     .. code-block:: bash
 
         # Show protocol from YAML file
-        biolmai protocol show protocol.yaml
+        biolm protocol show protocol.yaml
 
         # Show protocol from platform by ID
-        biolmai protocol show abc123
+        biolm protocol show abc123
     """
     from biolm.protocols import Protocol
     import os
@@ -2519,19 +2519,19 @@ def init(filename, output, example, list_examples, force, interactive):
     .. code-block:: bash
 
         # Create a blank protocol
-        biolmai protocol init
+        biolm protocol init
 
         # Create with custom filename
-        biolmai protocol init my_protocol.yaml
+        biolm protocol init my_protocol.yaml
 
         # Create from example
-        biolmai protocol init --example antibody_design
+        biolm protocol init --example antibody_design
 
         # List available examples
-        biolmai protocol init --list-examples
+        biolm protocol init --list-examples
 
         # Interactive mode
-        biolmai protocol init --interactive
+        biolm protocol init --interactive
     """
     from biolm.protocols import Protocol
     
@@ -2682,13 +2682,13 @@ def log(results, outputs, account, workspace, protocol_slug, dry_run, mlflow_uri
     .. code-block:: bash
 
         # Log results with outputs config from protocol file
-        biolmai protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody
+        biolm protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody
 
         # Dry run to see what would be logged
-        biolmai protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody --dry-run
+        biolm protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody --dry-run
 
         # Use custom MLflow URI
-        biolmai protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody --mlflow-uri http://localhost:5001
+        biolm protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody --mlflow-uri http://localhost:5001
     """
     try:
         from biolm.protocols_mlflow import (
@@ -2978,16 +2978,16 @@ def list(experiment, format, output, mlflow_uri, all_runs):
     .. code-block:: bash
 
         # List all datasets
-        biolmai dataset list
+        biolm dataset list
 
         # List datasets in specific experiment
-        biolmai dataset list --experiment my-datasets
+        biolm dataset list --experiment my-datasets
 
         # Output as JSON
-        biolmai dataset list --format json --output datasets.json
+        biolm dataset list --format json --output datasets.json
 
         # List all runs (for debugging - shows runs without dataset tag)
-        biolmai dataset list --all-runs
+        biolm dataset list --all-runs
     """
     try:
         # Check MLflow availability
@@ -3150,10 +3150,10 @@ def show(dataset_id, experiment, format, output, mlflow_uri):
     .. code-block:: bash
 
         # Show dataset details
-        biolmai dataset show my-dataset-123
+        biolm dataset show my-dataset-123
 
         # Output as JSON
-        biolmai dataset show my-dataset-123 --format json --output dataset.json
+        biolm dataset show my-dataset-123 --format json --output dataset.json
     """
     try:
         # Check MLflow availability
@@ -3367,13 +3367,13 @@ def upload(dataset_id, file_path, experiment, name, recursive, mlflow_uri):
     .. code-block:: bash
 
         # Upload a single file
-        biolmai dataset upload my-dataset-123 data.csv
+        biolm dataset upload my-dataset-123 data.csv
 
         # Upload a directory
-        biolmai dataset upload my-dataset-123 ./data --recursive
+        biolm dataset upload my-dataset-123 ./data --recursive
 
         # Upload with a custom name
-        biolmai dataset upload my-dataset-123 data.csv --name "Training Data"
+        biolm dataset upload my-dataset-123 data.csv --name "Training Data"
     """
     try:
         # Check MLflow availability
@@ -3468,13 +3468,13 @@ def download(dataset_id, output_path, experiment, artifact_path, mlflow_uri):
     .. code-block:: bash
 
         # Download all artifacts to current directory
-        biolmai dataset download my-dataset-123
+        biolm dataset download my-dataset-123
 
         # Download to specific directory
-        biolmai dataset download my-dataset-123 ./downloads
+        biolm dataset download my-dataset-123 ./downloads
 
         # Download specific artifact
-        biolmai dataset download my-dataset-123 ./downloads --artifact-path model.pkl
+        biolm dataset download my-dataset-123 ./downloads --artifact-path model.pkl
     """
     try:
         # Check MLflow availability

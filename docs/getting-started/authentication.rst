@@ -54,7 +54,7 @@ For Python
 CLI authentication
 ------------------
 
-Alternatively, with the :code:`biolmai` package installed, in your Terminal run :code:`biolmai login`.
+Alternatively, with the :code:`biolm-sdk` package installed, in your Terminal run :code:`biolm login`.
 This uses OAuth 2.0 to authenticate via your browser.
 
 OAuth Login
@@ -65,24 +65,24 @@ It checks for existing credentials first, and only opens a browser if credential
 
 .. code-block:: shell
 
-    $ biolmai login
+    $ biolm login
 
     Starting OAuth login...
     A browser window will open for authorization.
     Opened browser for authorization...
     Waiting for authorization...
     
-    Login succeeded! Credentials saved to ~/.biolmai/credentials
+    Login succeeded! Credentials saved to ~/.biolm/credentials
 
 If you already have valid credentials, the command will inform you:
 
 .. code-block:: shell
 
-    $ biolmai login
+    $ biolm login
 
     Valid credentials found. You are already logged in.
-    Credentials location: ~/.biolmai/credentials
-    Run `biolmai status` to view your authentication status.
+    Credentials location: ~/.biolm/credentials
+    Run `biolm status` to view your authentication status.
 
 Login Options
 ^^^^^^^^^^^^^
@@ -92,14 +92,14 @@ You can specify a custom OAuth client ID and scope:
 .. code-block:: shell
 
     # Specify a custom OAuth client ID
-    $ biolmai login --client-id YOUR_CLIENT_ID
+    $ biolm login --client-id YOUR_CLIENT_ID
 
     # Or set it via environment variable
     $ export BIOLMAI_OAUTH_CLIENT_ID=YOUR_CLIENT_ID
-    $ biolmai login
+    $ biolm login
 
     # Specify custom scope (supported: read, write, introspection)
-    $ biolmai login --scope "read write"
+    $ biolm login --scope "read write"
 
 OAuth Configuration
 ^^^^^^^^^^^^^^^^^^^
@@ -126,7 +126,7 @@ proceed by clicking "Advanced" and then "Proceed to 127.0.0.1" (or similar).
    the CLI will fall back to HTTP and display a warning. Install it with:
    :code:`pip install cryptography`
 
-Credentials are saved to :code:`~/.biolmai/credentials` in JSON format with:
+Credentials are saved to :code:`~/.biolm/credentials` in JSON format with:
 
 - :code:`access`: Access token
 - :code:`refresh`: Refresh token

@@ -82,7 +82,7 @@ Everything else — batching, caching, deduplication, DuckDB storage, parallel e
 
 ## 3. Layer 0 — API Client
 
-**File**: [`biolmai/core/http.py`](biolmai/core/http.py)
+**File**: [`biolm/core/http.py`](biolm/core/http.py)
 
 The foundation is an async HTTP client that handles all BioLM API communication:
 
@@ -117,7 +117,7 @@ The pipeline **never calls BioLM directly** — it always goes through `BioLMApi
 
 ## 4. Layer 1 — DuckDB DataStore
 
-**File**: [`biolmai/pipeline/datastore_duckdb.py`](biolmai/pipeline/datastore_duckdb.py)
+**File**: [`biolm/pipeline/datastore_duckdb.py`](biolm/pipeline/datastore_duckdb.py)
 
 The datastore is the single source of truth for all pipeline data. It was chosen over alternatives for specific reasons:
 
@@ -281,7 +281,7 @@ self.conn.unregister('_pred_df')
 
 ## 5. Layer 2 — Stage Abstractions
 
-**File**: [`biolmai/pipeline/base.py`](biolmai/pipeline/base.py)
+**File**: [`biolm/pipeline/base.py`](biolm/pipeline/base.py)
 
 ### `Stage` — The Core Contract
 
@@ -373,7 +373,7 @@ No threading complexity. No locks. Just `asyncio.gather()` + DuckDB.
 
 ## 6. Layer 3 — WorkingSet Transport
 
-**File**: [`biolmai/pipeline/base.py:91`](biolmai/pipeline/base.py)
+**File**: [`biolm/pipeline/base.py:91`](biolm/pipeline/base.py)
 
 ```python
 @dataclass(frozen=True)
@@ -422,7 +422,7 @@ def get_final_data(self) -> pd.DataFrame:
 
 ## 7. Layer 4 — PredictionStage and Extraction
 
-**File**: [`biolmai/pipeline/data.py`](biolmai/pipeline/data.py)
+**File**: [`biolm/pipeline/data.py`](biolm/pipeline/data.py)
 
 ### The Extraction Model
 
@@ -540,7 +540,7 @@ Results stream into DuckDB as batches complete — memory holds at most `max_con
 
 ## 8. Layer 5 — Filters
 
-**File**: [`biolmai/pipeline/filters.py`](biolmai/pipeline/filters.py)
+**File**: [`biolm/pipeline/filters.py`](biolm/pipeline/filters.py)
 
 ### Two Execution Paths
 
@@ -623,7 +623,7 @@ The `INNER JOIN` with `ws_table` (the current working set) ensures "top 20 by Tm
 
 ## 9. Layer 6 — Generation
 
-**File**: [`biolmai/pipeline/generative.py`](biolmai/pipeline/generative.py)
+**File**: [`biolm/pipeline/generative.py`](biolm/pipeline/generative.py)
 
 ### Two Generation Backends
 
@@ -714,7 +714,7 @@ all_structs = pipeline.context.get_structures_for_ws(working_set, "esmfold")
 
 ## 10. Layer 7 — Pipeline Definition Persistence
 
-**File**: [`biolmai/pipeline/pipeline_def.py`](biolmai/pipeline/pipeline_def.py)
+**File**: [`biolm/pipeline/pipeline_def.py`](biolm/pipeline/pipeline_def.py)
 
 ### The Problem It Solves
 
@@ -903,7 +903,7 @@ The resume check uses `stage_id = f"{run_id}_{stage_name}"` as the lookup key. I
 
 ## 11. Layer 8 — Multi-Column Inputs and Context
 
-**File**: [`biolmai/pipeline/base.py`](biolmai/pipeline/base.py), [`biolmai/pipeline/data.py`](biolmai/pipeline/data.py)
+**File**: [`biolm/pipeline/base.py`](biolm/pipeline/base.py), [`biolm/pipeline/data.py`](biolm/pipeline/data.py)
 
 ### InputSchema — Antibodies and Multi-Chain Proteins
 
@@ -1105,17 +1105,17 @@ Both support `resume=True` on `run()` — `from_db` simply reconstructs the stag
 
 | File | Role |
 |------|------|
-| [`biolmai/core/http.py`](biolmai/core/http.py) | `BioLMApiClient` — rate-limited async HTTP to biolm.ai |
-| [`biolmai/pipeline/base.py`](biolmai/pipeline/base.py) | `BasePipeline`, `Stage`, `WorkingSet`, `InputSchema`, `PipelineContext`, `StageResult` |
-| [`biolmai/pipeline/data.py`](biolmai/pipeline/data.py) | `DataPipeline`, `PredictionStage`, `FilterStage`, `ClusteringStage`, `ExtractionSpec`, `EmbeddingSpec` |
-| [`biolmai/pipeline/generative.py`](biolmai/pipeline/generative.py) | `GenerativePipeline`, `GenerationStage`, `DirectGenerationConfig`, `RemaskingConfig` |
-| [`biolmai/pipeline/datastore_duckdb.py`](biolmai/pipeline/datastore_duckdb.py) | `DuckDBDataStore` — all persistence, caching, dedup, materialization |
-| [`biolmai/pipeline/filters.py`](biolmai/pipeline/filters.py) | `BaseFilter`, all filter classes, `to_sql()` for SQL fast path |
-| [`biolmai/pipeline/pipeline_def.py`](biolmai/pipeline/pipeline_def.py) | `stage_from_spec()`, `filter_from_spec()`, `pipeline_from_definition()`, `_pipeline_def_hash()` |
-| [`biolmai/pipeline/mlm_remasking.py`](biolmai/pipeline/mlm_remasking.py) | `MLMRemasker`, `RemaskingConfig` — iterative masked-LM variant generation |
-| [`biolmai/pipeline/clustering.py`](biolmai/pipeline/clustering.py) | `SequenceClusterer`, `DiversityAnalyzer` |
-| [`biolmai/pipeline/visualization.py`](biolmai/pipeline/visualization.py) | `PipelinePlotter` — funnel, PCA/UMAP, distributions |
-| [`biolmai/pipeline/README.md`](biolmai/pipeline/README.md) | Module-level reference: all classes, all params |
+| [`biolm/core/http.py`](biolm/core/http.py) | `BioLMApiClient` — rate-limited async HTTP to biolm.ai |
+| [`biolm/pipeline/base.py`](biolm/pipeline/base.py) | `BasePipeline`, `Stage`, `WorkingSet`, `InputSchema`, `PipelineContext`, `StageResult` |
+| [`biolm/pipeline/data.py`](biolm/pipeline/data.py) | `DataPipeline`, `PredictionStage`, `FilterStage`, `ClusteringStage`, `ExtractionSpec`, `EmbeddingSpec` |
+| [`biolm/pipeline/generative.py`](biolm/pipeline/generative.py) | `GenerativePipeline`, `GenerationStage`, `DirectGenerationConfig`, `RemaskingConfig` |
+| [`biolm/pipeline/datastore_duckdb.py`](biolm/pipeline/datastore_duckdb.py) | `DuckDBDataStore` — all persistence, caching, dedup, materialization |
+| [`biolm/pipeline/filters.py`](biolm/pipeline/filters.py) | `BaseFilter`, all filter classes, `to_sql()` for SQL fast path |
+| [`biolm/pipeline/pipeline_def.py`](biolm/pipeline/pipeline_def.py) | `stage_from_spec()`, `filter_from_spec()`, `pipeline_from_definition()`, `_pipeline_def_hash()` |
+| [`biolm/pipeline/mlm_remasking.py`](biolm/pipeline/mlm_remasking.py) | `MLMRemasker`, `RemaskingConfig` — iterative masked-LM variant generation |
+| [`biolm/pipeline/clustering.py`](biolm/pipeline/clustering.py) | `SequenceClusterer`, `DiversityAnalyzer` |
+| [`biolm/pipeline/visualization.py`](biolm/pipeline/visualization.py) | `PipelinePlotter` — funnel, PCA/UMAP, distributions |
+| [`biolm/pipeline/README.md`](biolm/pipeline/README.md) | Module-level reference: all classes, all params |
 
 ---
 

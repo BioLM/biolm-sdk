@@ -89,7 +89,7 @@ For schema access, custom error handling, and manual batching:
 
 .. note::
 
-   **Normal use:** Prefer :meth:`~biolmai.core.http.BioLMApi.encode` (e.g. ``model.encode(items=...)``) for encoding; ``_batch_call_autoschema_or_manual`` is for advanced cases when you need to control batches explicitly.
+   **Normal use:** Prefer :meth:`~biolm.core.http.BioLMApi.encode` (e.g. ``model.encode(items=...)``) for encoding; ``_batch_call_autoschema_or_manual`` is for advanced cases when you need to control batches explicitly.
 
 .. tip::
 

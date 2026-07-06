@@ -1,6 +1,6 @@
-========
-BioLM AI
-========
+=========
+biolm-sdk
+=========
 
 
 .. image:: https://img.shields.io/pypi/v/biolm-sdk.svg
@@ -9,22 +9,29 @@ BioLM AI
 .. image:: https://github.com/BioLM/biolm-sdk/actions/workflows/ci.yml/badge.svg
         :target: https://github.com/BioLM/biolm-sdk/actions/workflows/ci.yml
 
-.. image:: https://readthedocs.org/projects/biolm-ai/badge/?version=latest
-        :target: https://biolm-ai.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
+.. image:: https://img.shields.io/badge/docs-docs.biolm.ai-blue
+        :target: https://docs.biolm.ai
 
 
 
 
-Python client and SDK for `BioLM <https://biolm.ai>`_
+Python SDK and CLI for `BioLM <https://biolm.ai>`_ and `biolm-hub <https://github.com/BioLM/biolm-hub>`_.
 
-Install the package:
+* Repository: https://github.com/BioLM/biolm-sdk
+* PyPI: https://pypi.org/project/biolm-sdk/
+
+Install
+=======
 
 .. code-block:: bash
 
     pip install biolm-sdk
+    pip install "biolm-sdk[pipeline]"   # optional pipeline extras
 
-Open-source models (biolm-hub):
+Import as ``biolm`` in Python. The legacy ``biolmai`` PyPI package is deprecated; see the migration guide in the repository docs.
+
+Open-source models (biolm-hub)
+================================
 
 .. code-block:: bash
 
@@ -35,22 +42,17 @@ Open-source models (biolm-hub):
 
 See ``docs/cli/hub.rst``.
 
-Basic usage:
+Basic usage
+===========
 
 .. code-block:: python
 
     from biolm import biolm
 
-    # Encode a single sequence
     result = biolm(entity="esm2-8m", action="encode", type="sequence", items="MSILVTRPSPAGEEL")
 
-    # Predict a batch of sequences
-    result = biolm(entity="esmfold", action="predict", type="sequence", items=["SEQ1", "SEQ2"])
-
-    # Write results to disk
-    biolm(entity="esmfold", action="predict", type="sequence", items=["SEQ1", "SEQ2"], output='disk', file_path="results.jsonl")
-
-Asynchronous usage:
+Asynchronous usage
+==================
 
 .. code-block:: python
 
@@ -64,43 +66,15 @@ Asynchronous usage:
 
     asyncio.run(main())
 
-Overview
-========
-
-The BioLM Python client provides a high-level, user-friendly interface for interacting with the BioLM API. It supports both synchronous and asynchronous usage, automatic batching, flexible error handling, and efficient processing of biological data.
-
-Main features:
-
-- High-level BioLM constructor for quick requests
-- Sync and async interfaces
-- Automatic or custom rate limiting/throttling
-- Schema-based batch size detection
-- Flexible input formats (single key + list, or list of dicts)
-- Low memory usage via generators
-- Flexible error handling (raise, continue, or stop on error)
-- Universal HTTP client for both sync and async
-
 Features
 ========
 
-- **High-level constructor**: Instantly run an API call with a single line.
-- **Sync and async**: Use `BioLM` for sync, or `BioLMApiClient` for async.
-- **Flexible rate limiting**: Use API throttle, disable, or set your own (e.g., '1000/second').
-- **Schema-based batching**: Automatically queries API for max batch size.
-- **Flexible input**: Accepts a single key and list, or list of dicts, or list of lists for advanced batching.
-- **Low memory**: Uses generators for validation and batching.
-- **Error handling**: Raise HTTPX errors, continue on error, or stop on first error.
-- **Disk output**: Write results as JSONL to disk.
-- **Universal HTTP client**: Efficient for both sync and async.
-- **Direct access to schema and batching**: Use `BioLMApi` for advanced workflows, including `.schema()`, `.call()`, and `._batch_call_autoschema_or_manual()`.
-
-**Example endpoints and actions:**
-
-- `esm2-8m/encode`: Embedding for protein sequences.
-- `esmfold/predict`: Structure prediction for protein sequences.
-- `progen2-oas/generate`: Sequence generation from a context string.
-- `dnabert2/predict`: Masked prediction for protein sequences.
-- `ablang2/encode`: Embeddings for paired-chain antibodies.
+- High-level ``biolm()`` constructor for quick API calls
+- Sync and async interfaces with automatic batching
+- ``biolm hub set`` for local biolm-hub gateways
+- Optional pipeline framework with DuckDB-backed caching
+- CLI: ``biolm login``, ``biolm model``, ``biolm protocol``, and more
 
 * Free software: Apache Software License 2.0
 * Documentation: https://docs.biolm.ai
+* Issues: https://github.com/BioLM/biolm-sdk/issues

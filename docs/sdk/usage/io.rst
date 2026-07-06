@@ -2,7 +2,7 @@
 Format I/O (FASTA, CSV, JSON, PDB)
 **************************
 
-The ``biolmai.io`` module provides utilities for converting between file formats and BioLM API JSON structures. This guide covers common usage patterns and best practices.
+The ``biolm.io`` module provides utilities for converting between file formats and BioLM API JSON structures. This guide covers common usage patterns and best practices.
 
 FASTA Format
 ~~~~~~~~~~~~
@@ -268,5 +268,5 @@ Best Practices
 See Also
 --------
 
-- :doc:`../api-reference/index` for ``biolmai.io`` API details
+- :doc:`../api-reference/index` for ``biolm.io`` API details
 - :ref:`disk-output` in :doc:`usage` for writing API results to disk

@@ -1,4 +1,4 @@
-``biolmai workspace``
+``biolm workspace``
 =====================
 
 Manage workspaces.
@@ -10,14 +10,14 @@ List, show, create, or delete workspaces.
 
 .. code-block:: bash
 
-   biolmai workspace list
-   biolmai workspace show WORKSPACE_ID
-   biolmai workspace create NAME
-   biolmai workspace delete WORKSPACE_ID
+   biolm workspace list
+   biolm workspace show WORKSPACE_ID
+   biolm workspace create NAME
+   biolm workspace delete WORKSPACE_ID
 
 Command Reference
 -----------------
 
 .. click:: biolm.cli:workspace
-   :prog: biolmai workspace
+   :prog: biolm workspace
    :show-nested:
