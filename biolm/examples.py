@@ -44,12 +44,19 @@ class ExampleGenerator:
     
     async def fetch_community_models(self) -> List[Dict[str, Any]]:
         """
-        Fetch list of available models from community-api-models endpoint.
-        
-        Returns:
-            List of model dictionaries with metadata.
+        Fetch list of available models.
+
+        Uses biolm-hub OpenAPI when in hub mode, otherwise the platform
+        community-api-models endpoint.
         """
-        # Try both possible endpoint locations
+        from biolm.core.const import get_base_api_url, is_hub_mode
+
+        if is_hub_mode():
+            from biolm.hub.discovery import list_models_from_openapi
+
+            return list_models_from_openapi(get_base_api_url())
+
+        # Platform catalog endpoints
         endpoints = [
             f"{self.base_url}/api/ui/community-api-models/",
             f"{self.base_url}/ui/community-api-models/",

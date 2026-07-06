@@ -24,14 +24,16 @@ Install the package:
 
     pip install biolm
 
-Local server (proxy for Modal-deployed models):
+Open-source models (biolm-hub):
 
 .. code-block:: bash
 
-    pip install biolm[server]
-    biolm server start
+    # In biolm-hub: bh serve
+    biolm hub set
+    biolm model list
+    biolm model run esm2-8m encode -i seq.json
 
-See ``docs/cli/server.rst`` and ``docs/server/oss-integration.md``.
+See ``docs/cli/hub.rst``.
 
 Basic usage:
 

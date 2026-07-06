@@ -495,6 +495,9 @@ class HttpClient:
         # Create transport with HTTP/2 enabled
         self._transport = AsyncHTTPTransport(http2=http2)
 
+    def _hub_style_paths(self) -> bool:
+        return self._base_url.rstrip("/").endswith("/api/v1")
+
     async def get_async_client(self) -> httpx.AsyncClient:
         """Get or create a shared httpx.AsyncClient instance from the factory."""
         return await _shared_client_factory.get_or_create_client(
@@ -540,9 +543,9 @@ class HttpClient:
     async def post(self, endpoint: str, payload: dict, extra_headers: Optional[dict] = None) -> httpx.Response:
         """POST with optional *extra_headers* added just for this request."""
         client = await self.get_async_client()
-        # Remove leading slash, ensure trailing slash
+        # Remove leading slash; biolm-hub v1 routes omit trailing slashes.
         endpoint = endpoint.lstrip("/")
-        if not endpoint.endswith("/"):
+        if not self._hub_style_paths() and not endpoint.endswith("/"):
             endpoint += "/"
 
         headers = None
@@ -987,6 +990,8 @@ class BioLMApiClient:
 
         endpoint = f"{self.model_name}/{func}/"
         endpoint = endpoint.lstrip("/")
+        if self.base_url.rstrip("/").endswith("/api/v1"):
+            endpoint = endpoint.rstrip("/")
         payload = {'items': items} if func != 'lookup' else {'query': items}
         if params:
             payload['params'] = params

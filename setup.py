@@ -63,7 +63,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    description="BioLM Python client and local server",
+    description="BioLM Python client for the hosted platform and biolm-hub",
     entry_points={
         "console_scripts": [
             "biolm=biolm.cli_entry:cli",
@@ -90,11 +90,6 @@ setup(
             "duckdb>=0.9.0,<2",
             "pyarrow>=10.0.0",
         ],
-        "server": [
-            "fastapi>=0.100.0",
-            "uvicorn[standard]>=0.23.0",
-            "modal>=0.64.0",
-        ],
     },
     license="Apache Software License 2.0",
     long_description=readme + "\n\n" + history,
@@ -102,7 +97,7 @@ setup(
     keywords=["biolm", "biolmai", "bioai", "bio-ai", "bio-lm", "bio-llm"],
     name="biolm",
     packages=find_packages(include=["biolm", "biolm.*", "biolmai", "biolmai.*"]),
-    package_data={"biolm.server": ["data/*.json"]},
+    package_data={"biolm.hub": ["data/*.json"]},
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/BioLM/biolm-sdk",

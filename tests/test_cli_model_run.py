@@ -83,6 +83,25 @@ class TestModelRun:
         mock_model.predict.assert_called_once()
     
     @patch('biolm.cli.Model')
+    def test_run_with_api_items_envelope(self, mock_model_class, tmp_path, mock_model):
+        """Test JSON files using API request envelope format."""
+        mock_model_class.return_value = mock_model
+
+        json_file = tmp_path / "envelope.json"
+        json_file.write_text('{"items": [{"sequence": "ACDEFGHIKLMNPQRSTVWY"}]}')
+
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'model', 'run', 'esm2-8m', 'encode',
+            '--input', str(json_file),
+            '--output', '-'
+        ])
+
+        assert result.exit_code == 0
+        call_args = mock_model.encode.call_args
+        assert call_args[1]['items'] == [{"sequence": "ACDEFGHIKLMNPQRSTVWY"}]
+
+    @patch('biolm.cli.Model')
     def test_run_with_json(self, mock_model_class, sample_json_file, mock_model):
         """Test running with JSON input."""
         mock_model_class.return_value = mock_model
@@ -251,7 +270,7 @@ class TestModelRun:
         assert 'Invalid JSON' in result.output or 'Error' in result.output
     
     @patch('biolm.cli.Model')
-    @patch('biolmai.core.http.BioLMApiClient')
+    @patch('biolm.core.http.BioLMApiClient')
     def test_run_with_batch_size(self, mock_client_class, mock_model_class, sample_fasta_file, mock_model):
         """Test running with batch size detection."""
         mock_model_class.return_value = mock_model

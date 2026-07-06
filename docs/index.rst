@@ -35,7 +35,7 @@ If you're writing or updating documentation, see the :doc:`authoring-guide` for 
    cli/login
    cli/logout
    cli/status
-   cli/server
+   cli/hub
    cli/workspace
    cli/model
    cli/protocol

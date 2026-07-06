@@ -47,6 +47,15 @@ _local = _env_bool("BIOLM_LOCAL", "BIOLMAI_LOCAL")
 _domain_override = _env("BIOLM_BASE_DOMAIN", "BIOLMAI_BASE_DOMAIN")
 _api_url_override = _env("BIOLM_BASE_API_URL", "BIOLMAI_BASE_API_URL")
 
+_config_hub_api_url = ""
+if not _api_url_override:
+    try:
+        from biolm.hub.config import read_hub_api_url
+
+        _config_hub_api_url = read_hub_api_url() or ""
+    except Exception:
+        _config_hub_api_url = ""
+
 if _domain_override:
     BIOLM_BASE_DOMAIN = _ensure_scheme(_domain_override)
 elif _local:
@@ -56,22 +65,28 @@ else:
 
 # --- API URL ---
 
+_PLATFORM_API_URL = "https://biolm.ai/api/v3"
+
 if _api_url_override:
     BIOLM_BASE_API_URL = _ensure_scheme(_api_url_override)
+elif _config_hub_api_url:
+    BIOLM_BASE_API_URL = _config_hub_api_url
 elif _domain_override or _local:
     BIOLM_BASE_DOMAIN = _ensure_scheme(BIOLM_BASE_DOMAIN)
-    BIOLM_BASE_API_URL = f"{BIOLM_BASE_DOMAIN.rstrip('/')}/api/v3"
+    BIOLM_BASE_API_URL = f"{BIOLM_BASE_DOMAIN.rstrip('/')}/api/v1"
 else:
-    BIOLM_BASE_API_URL = "https://biolm.ai/api/v3"
+    BIOLM_BASE_API_URL = _PLATFORM_API_URL
 
 # BIOLM_BASE_API_URL overrides model inference only; platform domain stays on biolm.ai
-# unless BIOLM_BASE_DOMAIN is explicitly set (hybrid: login on platform, models on proxy).
+# unless BIOLM_BASE_DOMAIN is explicitly set (hybrid: login on platform, models on hub).
 
 # Legacy aliases (deprecated)
 BIOLMAI_BASE_DOMAIN = BIOLM_BASE_DOMAIN
 BIOLMAI_BASE_API_URL = BIOLM_BASE_API_URL
 
 USER_BIOLM_DIR = os.path.join(os.path.expanduser("~"), ".biolmai")
+BIOLM_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".biolm")
+BIOLM_CONFIG_PATH = os.path.join(BIOLM_CONFIG_DIR, "config.yaml")
 ACCESS_TOK_PATH = os.path.join(USER_BIOLM_DIR, "credentials")
 GEN_TOKEN_URL = f"{BIOLM_BASE_DOMAIN}/ui/accounts/user-api-tokens/"
 
@@ -116,17 +131,21 @@ else:
     OAUTH_INTROSPECT_URL = f"{BIOLM_BASE_DOMAIN}/o/introspect/"
 OAUTH_REDIRECT_URI = "http://localhost:8765/callback"
 
-# --- Server defaults ---
 
-BIOLM_SERVER_HOST = os.environ.get("BIOLM_SERVER_HOST", "127.0.0.1")
-BIOLM_SERVER_PORT = int(os.environ.get("BIOLM_SERVER_PORT", "8787"))
-BIOLM_SERVER_TOKEN = os.environ.get("BIOLM_SERVER_TOKEN", "")
-BIOLM_SERVER_AUTH = os.environ.get("BIOLM_SERVER_AUTH", "none")
-BIOLM_SERVER_MODELS = os.environ.get("BIOLM_SERVER_MODELS", "")
-BIOLM_SERVER_REFRESH_SECONDS = int(os.environ.get("BIOLM_SERVER_REFRESH_SECONDS", "60"))
-BIOLM_SERVER_CONFIG_PATH = os.path.join(
-    os.path.expanduser("~"), ".biolm", "server.yaml"
-)
+def is_hub_mode() -> bool:
+    """True when model inference targets a biolm-hub gateway (/api/v1)."""
+    return BIOLM_BASE_API_URL.rstrip("/").endswith("/api/v1")
+
+
+def get_model_api_source() -> str:
+    """Describe where the active model API URL comes from."""
+    if _api_url_override:
+        return "environment"
+    if _config_hub_api_url:
+        return "hub config"
+    if _local or _domain_override:
+        return "local override"
+    return "platform"
 
 
 def get_base_domain() -> str:
@@ -137,14 +156,14 @@ def get_base_domain() -> str:
 def get_model_catalog_base() -> str:
     """Site root for model catalog/list endpoints.
 
-    When BIOLM_BASE_API_URL is set (e.g. biolm server proxy), catalog listing
-    follows the model API host. Platform auth still uses get_base_domain().
+    When BIOLM_BASE_API_URL points at a hub or custom host, catalog listing
+    follows that host. Platform auth still uses get_base_domain().
     """
-    if _api_url_override:
+    if BIOLM_BASE_API_URL.rstrip("/") != _PLATFORM_API_URL.rstrip("/"):
         return _ensure_scheme(_strip_api_suffix(BIOLM_BASE_API_URL)).rstrip("/")
     return BIOLM_BASE_DOMAIN.rstrip("/")
 
 
 def get_base_api_url() -> str:
-    """Return the v3 model API base URL."""
+    """Return the model API base URL."""
     return BIOLM_BASE_API_URL.rstrip("/")

@@ -1,7 +1,8 @@
 Migration to biolm 1.0
 ======================
 
-biolm 1.0 renames the package from ``biolmai`` to ``biolm`` and adds ``biolm server``.
+biolm 1.0 renames the package from ``biolmai`` to ``biolm`` and adds ``biolm hub``
+for connecting to `biolm-hub <https://github.com/BioLM/biolm-hub>`_ gateways.
 
 Install
 -------
@@ -9,7 +10,6 @@ Install
 .. code-block:: bash
 
     pip install biolm
-    pip install biolm[server]   # local Modal proxy
     pip install biolm[pipeline] # pipeline features
 
 Package and CLI
@@ -42,18 +42,18 @@ Canonical names use the ``BIOLM_`` prefix. Legacy ``BIOLMAI_*`` names still work
 
 ``BIOLM_BASE_API_URL`` overrides **model inference and model list/catalog** only.
 ``BIOLM_BASE_DOMAIN`` controls the **platform** (OAuth, auth, hosted UI). For the
-common hybrid workflow—login on ``biolm.ai``, run models through ``biolm server``—set
-only ``BIOLM_BASE_API_URL``.
+common hybrid workflow—login on ``biolm.ai``, run models through ``bh serve``—use
+``biolm hub set`` or set ``BIOLM_BASE_API_URL``.
 
 Credentials path
 ----------------
 
 Credentials remain at ``~/.biolmai/credentials`` for backward compatibility.
 
-Local server
-------------
+biolm-hub
+---------
 
-See :doc:`../cli/server` and :doc:`../server/oss-integration`.
+See :doc:`../cli/hub`. Run ``bh serve`` in the biolm-hub repo, then ``biolm hub set``.
 
 Terminal colors
 ---------------

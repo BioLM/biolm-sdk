@@ -18,8 +18,10 @@ Optional extras:
 
 .. code-block:: console
 
-    $ pip install 'biolm[server]'    # local Modal proxy (biolm server)
     $ pip install 'biolm[pipeline]'  # pipeline features
+
+For open-source models, install and run `biolm-hub <https://github.com/BioLM/biolm-hub>`_,
+then connect with ``biolm hub set``. See :doc:`../cli/hub`.
 
 The ``biolmai`` package name is deprecated; use ``biolm``. See :doc:`migration-1.0`.
 

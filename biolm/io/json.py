@@ -81,6 +81,19 @@ def load_json(file_path: Union[str, Path, IO]) -> List[Dict[str, Any]]:
         
         # Handle different JSON structures
         if isinstance(data, dict):
+            # API request envelope: {"items": [...]} or {"query": [...]}
+            for key in ("items", "query"):
+                if key in data and isinstance(data[key], list):
+                    envelope_items = data[key]
+                    if not envelope_items:
+                        raise ValueError(f"JSON {key} array is empty")
+                    for i, item in enumerate(envelope_items):
+                        if not isinstance(item, dict):
+                            raise ValueError(
+                                f"Item {i} in JSON {key} array is not a dictionary, "
+                                f"got {type(item).__name__}"
+                            )
+                    return envelope_items
             # Single object - wrap in list
             return [data]
         elif isinstance(data, list):

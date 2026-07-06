@@ -1,4 +1,4 @@
-"""Official BioLM catalog (hosted on platform) and registry merge."""
+"""Platform and bundled OSS model catalog (not hub route discovery)."""
 from __future__ import annotations
 
 import json
@@ -10,7 +10,6 @@ from typing import Any, Dict, List, Optional, Set
 import httpx
 
 from biolm.core.const import get_base_domain
-from biolm.server.registry.base import ModelEntry, ModelStatus
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ _catalog_cache: Optional[tuple[float, List[Dict[str, Any]]]] = None
 def _load_bundled_catalog() -> List[Dict[str, Any]]:
     """Offline fallback when platform catalog is unreachable."""
     try:
-        data_path = resources.files("biolm.server.data").joinpath("catalog.json")
+        data_path = resources.files("biolm.hub.data").joinpath("catalog.json")
         with data_path.open(encoding="utf-8") as f:
             data = json.load(f)
         if isinstance(data, list):
@@ -88,40 +87,6 @@ def catalog_by_slug() -> Dict[str, Dict[str, Any]]:
         for m in fetch_official_catalog()
         if m.get("model_slug") or m.get("slug")
     }
-
-
-def platform_schema_url(model: str, action: str) -> str:
-    """Schema URL on the BioLM platform (always hosted on biolm.ai)."""
-    base = get_base_domain().rstrip("/")
-    return f"{base}/api/v3/schema/{model}/{action}/"
-
-
-def resolve_exposed_models(registry_entries: List[ModelEntry]) -> List[Dict[str, Any]]:
-    """Merge registry deployments with official catalog metadata."""
-    catalog = catalog_by_slug()
-    exposed: List[Dict[str, Any]] = []
-    for entry in registry_entries:
-        meta = dict(catalog.get(entry.slug, {}))
-        meta.setdefault("model_slug", entry.slug)
-        meta.setdefault("slug", entry.slug)
-        meta.setdefault("model_name", entry.slug)
-        meta.setdefault("name", entry.slug)
-        if entry.actions:
-            meta["actions"] = entry.actions
-        elif "actions" not in meta:
-            actions = []
-            if meta.get("encoder"):
-                actions.append("encode")
-            if meta.get("predictor"):
-                actions.append("predict")
-            if meta.get("generator"):
-                actions.append("generate")
-            meta["actions"] = actions
-        meta["deployment_status"] = entry.status.value
-        meta["deployment_source"] = entry.source
-        meta["deployment_url"] = entry.base_url
-        exposed.append(meta)
-    return exposed
 
 
 def get_catalog_model(slug: str) -> Optional[Dict[str, Any]]:

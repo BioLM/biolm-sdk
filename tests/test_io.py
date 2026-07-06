@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from biolm.io import load_csv, load_fasta, load_pdb, to_csv, to_fasta, to_pdb
+from biolm.io import load_csv, load_fasta, load_json, load_pdb, to_csv, to_fasta, to_pdb
 
 
 class TestLoadFasta:
@@ -481,6 +481,42 @@ class TestToPdb:
         assert len(result) == len(original)
         # Compare content (may have whitespace differences)
         assert "ATOM" in result[0]["pdb"]
+
+
+class TestLoadJson:
+    """Tests for load_json function."""
+
+    def test_load_array(self, tmp_path):
+        json_file = tmp_path / "array.json"
+        json_file.write_text('[{"sequence": "ACDEF"}, {"sequence": "GHIKL"}]')
+
+        result = load_json(json_file)
+
+        assert result == [{"sequence": "ACDEF"}, {"sequence": "GHIKL"}]
+
+    def test_load_single_object(self, tmp_path):
+        json_file = tmp_path / "single.json"
+        json_file.write_text('{"sequence": "ACDEF"}')
+
+        result = load_json(json_file)
+
+        assert result == [{"sequence": "ACDEF"}]
+
+    def test_load_api_items_envelope(self, tmp_path):
+        json_file = tmp_path / "envelope.json"
+        json_file.write_text('{"items": [{"sequence": "ACDEF"}]}')
+
+        result = load_json(json_file)
+
+        assert result == [{"sequence": "ACDEF"}]
+
+    def test_load_api_query_envelope(self, tmp_path):
+        json_file = tmp_path / "query.json"
+        json_file.write_text('{"query": [{"id": "seq1"}]}')
+
+        result = load_json(json_file)
+
+        assert result == [{"id": "seq1"}]
 
 
 class TestIntegration:

@@ -8,6 +8,7 @@ on:
       - 'docs/**'
       - 'biolm/**'
       - 'Makefile'
+      - 'scripts/generate_docs_manifest.py'
       - '.github/workflows/docs.yml'
   workflow_dispatch:  # Allow manual triggering
 
@@ -43,10 +44,8 @@ jobs:
           pip install -r requirements_docs.txt
           pip install -e .
 
-      - name: Build documentation (iframe mode)
-        run: |
-          # Build docs in iframe mode (no header/footer, for embedding)
-          make docs-iframe
+      - name: Build documentation (JSON export)
+        run: make docs-publish
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -54,7 +53,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/_build/html
+          path: docs/_build/publish
 
   deploy:
     environment:

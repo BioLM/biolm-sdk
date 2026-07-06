@@ -30,6 +30,8 @@ from biolm.core.const import (
     BIOLM_BASE_API_URL,
     BIOLM_BASE_DOMAIN,
     get_model_catalog_base,
+    get_model_api_source,
+    is_hub_mode,
 )
 from biolm.examples import get_example, list_models, get_model_details
 from biolm.io import load_fasta, load_csv, load_pdb, load_json, to_fasta, to_csv, to_pdb, to_json
@@ -243,8 +245,8 @@ class RichGroup(click.Group):
             # Determine section based on command name/type
             if name in ['login', 'logout', 'status', 'version']:
                 section = 'Authentication'
-            elif name == 'server':
-                section = 'Server'
+            elif name == 'hub':
+                section = 'Hub'
             elif name == 'workspace':
                 section = 'Workspaces'
             elif name == 'model':
@@ -300,7 +302,7 @@ class RichGroup(click.Group):
             console.print()
         
         # Write command sections in order with boxes
-        section_order = ['Authentication', 'Server', 'Workspaces', 'Models', 'Protocols', 'Datasets', 'Commands']
+        section_order = ['Authentication', 'Hub', 'Workspaces', 'Models', 'Protocols', 'Datasets', 'Commands']
         for section in section_order:
             if section in commands_by_section:
                 # Create box content
@@ -393,7 +395,10 @@ def display_env_vars_table():
 
     table.add_row("Credentials Path", str(ACCESS_TOK_PATH))
     table.add_row("Model API URL", BIOLM_BASE_API_URL)
+    table.add_row("Model API source", get_model_api_source())
     table.add_row("Platform Domain", BIOLM_BASE_DOMAIN)
+    if is_hub_mode():
+        table.add_row("Hub mode", "[success]yes[/success]")
     catalog_base = _client_catalog_base()
     if catalog_base.rstrip("/") != BIOLM_BASE_DOMAIN.rstrip("/"):
         table.add_row("Model Catalog Host", catalog_base)
@@ -526,245 +531,108 @@ def logout():
 
 
 @cli.group(cls=RichGroup)
-def server():
-    """Run and manage the local biolm server proxy."""
+def hub():
+    """Connect to a local or remote biolm-hub gateway (bh serve)."""
     pass
 
 
-@server.command("start")
-@click.option("--host", default=None, help="Bind host (default: BIOLM_SERVER_HOST or 127.0.0.1)")
-@click.option("--port", default=None, type=int, help="Bind port (default: BIOLM_SERVER_PORT or 8787)")
-@click.option(
-    "--auth",
-    type=click.Choice(["none", "token"]),
-    default=None,
-    help="Server auth mode (default: BIOLM_SERVER_AUTH or none)",
-)
-@click.option(
-    "--refresh-seconds",
-    default=None,
-    type=int,
-    help="Registry refresh interval (default: BIOLM_SERVER_REFRESH_SECONDS or 60)",
-)
-@click.option(
-    "--modal-env",
-    default=None,
-    help="Modal environment for this server (default: BIOLM_SERVER_MODAL_ENV or main)",
-)
-@click.option(
-    "--detach",
-    "-d",
-    is_flag=True,
-    help="Run the server in the background",
-)
-def server_start(host, port, auth, refresh_seconds, modal_env, detach):
-    """Start the local biolm server proxy for Modal-deployed models."""
-    try:
-        from biolm.server.runner import SERVER_LOG_PATH, run_server_foreground, start_detached_server
-        from biolm.server.settings import ServerSettings
-    except ImportError:
+@hub.command("set")
+@click.argument("url", required=False, default="http://127.0.0.1:8000")
+def hub_set(url):
+    """Point model inference at a running bh serve or deployed hub gateway.
+
+    Saves ``hub_api_url`` to ``~/.biolm/config.yaml``. Platform login and
+    protocols still use biolm.ai unless ``BIOLM_BASE_DOMAIN`` is set.
+    """
+    from biolm.hub.config import hub_origin, normalize_hub_url, write_hub_api_url
+    from biolm.hub.discovery import fetch_hub_status
+
+    api_url = normalize_hub_url(url)
+    with console.status(f"[brand]Connecting to {api_url}...[/brand]"):
+        status = fetch_hub_status(api_url)
+
+    if not status.get("healthy"):
         console.print(Panel(
-            "[error]Server dependencies not installed.[/error]\n\n"
-            "Install with: [brand]pip install biolm[server][/brand]",
-            title="[error]Missing Dependencies[/error]",
+            f"[error]Could not reach biolm-hub at {api_url}.[/error]\n\n"
+            f"{status.get('message') or 'Start bh serve in the biolm-hub repo, then retry.'}",
+            title="[error]Hub Unavailable[/error]",
             border_style="error",
             box=box.ROUNDED,
         ))
         raise click.Abort()
 
-    settings = ServerSettings.from_env(
-        host=host,
-        port=port,
-        auth_mode=auth,
-        refresh_seconds=refresh_seconds,
-        modal_environment=modal_env,
-    )
-    try:
-        settings.validate()
-    except ValueError as exc:
-        console.print(f"[error]{exc}[/error]")
-        raise click.Abort()
-
-    if detach:
-        try:
-            pid = start_detached_server(settings)
-        except RuntimeError as exc:
-            console.print(f"[error]{exc}[/error]")
-            raise click.Abort()
-        console.print(Panel(
-            f"[success]biolm server started in background[/success]\n\n"
-            f"URL: [brand]{settings.base_url}[/brand]\n"
-            f"API: [brand]{settings.api_url}[/brand]\n"
-            f"Auth: {settings.auth_mode}\n"
-            f"Modal env: {settings.modal_environment}\n"
-            f"PID: {pid}\n"
-            f"Logs: [brand]{SERVER_LOG_PATH}[/brand]\n\n"
-            f"Point model inference at this server:\n"
-            f"  export BIOLM_BASE_API_URL={settings.api_url}\n\n"
-            f"Stop with: [brand]biolm server stop[/brand]",
-            title="[brand]biolm server[/brand]",
-            border_style="brand",
-            box=box.ROUNDED,
-        ))
-        return
-
+    config_file = write_hub_api_url(api_url)
+    origin = hub_origin(api_url)
     console.print(Panel(
-        f"[success]Starting biolm server[/success]\n\n"
-        f"URL: [brand]{settings.base_url}[/brand]\n"
-        f"API: [brand]{settings.api_url}[/brand]\n"
-        f"Auth: {settings.auth_mode}\n"
-        f"Modal env: {settings.modal_environment}\n\n"
-        f"Point model inference at this server:\n"
-        f"  export BIOLM_BASE_API_URL={settings.api_url}\n\n"
-        f"Press [brand]Ctrl+C[/brand] to stop, or use [brand]biolm server stop[/brand] from another terminal.",
-        title="[brand]biolm server[/brand]",
-        border_style="brand",
+        f"[success]Connected to biolm-hub[/success]\n\n"
+        f"API: [brand]{api_url}[/brand]\n"
+        f"Catalog: [brand]{origin}/catalog[/brand]\n"
+        f"Variants: {status.get('slug_count', 0)} "
+        f"({status.get('route_count', 0)} routes)\n"
+        f"Config: {config_file}\n\n"
+        f"Run [brand]biolm model list[/brand] or "
+        f"[brand]biolm model run esm2-8m encode -i seq.json[/brand]",
+        title="[brand]biolm hub[/brand]",
+        border_style="success",
         box=box.ROUNDED,
     ))
-    run_server_foreground(settings)
 
 
-@server.command("stop")
-@click.option("--host", default=None, help="Server host (default: BIOLM_SERVER_HOST or 127.0.0.1)")
-@click.option("--port", default=None, type=int, help="Server port (default: BIOLM_SERVER_PORT or 8787)")
-@click.option("--force", is_flag=True, help="Send SIGKILL instead of SIGTERM")
-def server_stop(host, port, force):
-    """Stop a running biolm server."""
-    from biolm.server.process import stop_server
-    from biolm.server.settings import ServerSettings
+@hub.command("status")
+def hub_status():
+    """Show saved hub connection and live gateway health."""
+    from biolm.hub.config import config_path, hub_origin, read_hub_api_url
+    from biolm.hub.discovery import fetch_hub_status
 
-    settings = ServerSettings.from_env(host=host, port=port)
-    pid = stop_server(settings.host, settings.port, force=force)
-    if not pid:
-        console.print(
-            f"[text.muted]No biolm server running at {settings.base_url}.[/text.muted]\n"
-            f"[text.muted]Run [brand]biolm server start[/brand] to start the local proxy.[/text.muted]"
-        )
-        return
-
-    verb = "Stopped" if not force else "Killed"
-    console.print(f"[success]{verb} biolm server[/success] (pid {pid}, {settings.base_url})")
-
-
-@server.command("status")
-@click.option(
-    "--modal-env",
-    default=None,
-    help="Modal environment to preview when the proxy is not running",
-)
-@click.option(
-    "--limit",
-    default=10,
-    show_default=True,
-    type=int,
-    help="Max deployments to list (0 = show all)",
-)
-def server_status(modal_env, limit):
-    """Show biolm server configuration, local proxy state, and deployments."""
-    from biolm.server.process import fetch_server_health, get_server_runtime_status
-    from biolm.server.registry import CompositeRegistry, ConfigRegistry, ModalRegistry
-    from biolm.server.settings import ServerSettings
-
-    settings = ServerSettings.from_env(modal_environment=modal_env)
-    runtime = get_server_runtime_status(settings.host, settings.port)
-    live_health = (
-        fetch_server_health(settings.host, settings.port) if runtime.running else None
-    )
-
-    auth_mode = settings.auth_mode
-    modal_environment = settings.modal_environment
-    deployment_rows = []
-    registry_source = "preview"
-
-    if live_health:
-        auth_mode = live_health.get("auth_mode", auth_mode)
-        modal_environment = live_health.get("modal_environment", modal_environment)
-        registry_source = "live"
-        deployment_rows = sorted(
-            live_health.get("deployments", []),
-            key=lambda row: row.get("slug", ""),
-        )
-        if modal_env and modal_env != modal_environment:
-            console.print(
-                f"[text.muted]Proxy is running with Modal env [brand]{modal_environment}[/brand]; "
-                f"ignoring --modal-env {modal_env}.[/text.muted]\n"
-            )
-    else:
-        config_registry = ConfigRegistry(
-            slugs=settings.configured_slugs(),
-            config_path=settings.config_path,
-        )
-        modal_registry = ModalRegistry(environment_name=modal_environment)
-        registry = CompositeRegistry(config_registry, modal_registry, health_check=False)
-
-        import asyncio
-        asyncio.run(registry.refresh())
-
-        deployment_rows = [
-            entry.to_dict() for entry in sorted(registry.list(), key=lambda e: e.slug)
-        ]
-
-    table = Table(title="[brand]biolm server status[/brand]", box=box.ROUNDED)
+    saved = read_hub_api_url()
+    table = Table(title="[brand]biolm hub status[/brand]", box=box.ROUNDED)
     table.add_column("Setting", style="brand")
     table.add_column("Value", style="text")
-    if runtime.running:
-        pid_text = str(runtime.pid) if runtime.pid else "[text.muted]unknown[/text.muted]"
-        table.add_row("Local proxy", f"[success]running[/success] (pid {pid_text})")
-    else:
-        table.add_row("Local proxy", "[text.muted]not running[/text.muted]")
-    table.add_row("URL", runtime.url)
-    table.add_row("Host", settings.host)
-    table.add_row("Port", str(settings.port))
-    table.add_row("Auth mode", auth_mode)
-    table.add_row(
-        "Modal credentials",
-        "yes" if ModalRegistry.modal_credentials_present() else "no",
-    )
-    table.add_row("Modal environment", modal_environment)
-    table.add_row("Config path", settings.config_path)
-    table.add_row("Models (env)", settings.models_env or "[text.muted]not set[/text.muted]")
+    table.add_row("Config path", str(config_path()))
+    table.add_row("Saved hub API URL", saved or "[text.muted]not set[/text.muted]")
+    table.add_row("Active model API URL", BIOLM_BASE_API_URL)
+    table.add_row("Active source", get_model_api_source())
     console.print(table)
 
-    if registry_source == "live":
-        console.print()
-    else:
+    if not saved and not is_hub_mode():
         console.print(
-            "\n[text.muted]Deployments below are a Modal preview for this environment. "
-            "Start the proxy with [brand]biolm server start --modal-env {env}[/brand].[/text.muted]\n".format(
-                env=modal_environment
-            )
+            "\n[text.muted]No hub configured. Run [brand]biolm hub set[/brand] "
+            "after starting [brand]bh serve[/brand].[/text.muted]"
         )
-
-    total = len(deployment_rows)
-    if not deployment_rows:
-        console.print("[text.muted]No models in registry. Set BIOLM_SERVER_MODELS or ~/.biolm/server.yaml[/text.muted]")
         return
 
-    shown = deployment_rows if limit == 0 else deployment_rows[: max(limit, 0)]
-    if registry_source == "live":
-        title = "Loaded deployments (live server)"
-    else:
-        title = "Discovered deployments (Modal preview)"
-    if limit > 0 and total > limit:
-        title = f"{title} — showing {len(shown)} of {total}"
+    probe_url = saved or BIOLM_BASE_API_URL
+    with console.status("[brand]Probing hub...[/brand]"):
+        status = fetch_hub_status(probe_url)
 
-    mtable = Table(title=title, box=box.ROUNDED)
-    mtable.add_column("Slug", style="brand")
-    mtable.add_column("Status")
-    mtable.add_column("Source")
-    mtable.add_column("URL", style="text.muted")
-    for row in shown:
-        mtable.add_row(
-            row.get("slug", ""),
-            row.get("status", "unknown"),
-            row.get("source", ""),
-            row.get("base_url", ""),
-        )
-    console.print(mtable)
-    if limit > 0 and total > limit:
+    console.print()
+    if status.get("healthy"):
+        origin = hub_origin(probe_url)
         console.print(
-            f"\n[text.muted]Use [brand]--limit 0[/brand] to list all {total} deployments.[/text.muted]"
+            f"[success]Hub is reachable[/success] — "
+            f"{status.get('slug_count', 0)} variants, "
+            f"{status.get('route_count', 0)} routes\n"
+            f"Catalog: [brand]{origin}/catalog[/brand]"
         )
+    else:
+        console.print(
+            f"[error]Hub not reachable[/error]: "
+            f"{status.get('message') or 'unknown error'}"
+        )
+
+
+@hub.command("unset")
+def hub_unset():
+    """Stop using a saved hub gateway; revert to the hosted platform API."""
+    from biolm.hub.config import clear_hub_config
+
+    if clear_hub_config():
+        console.print(
+            "[success]Removed hub configuration.[/success]\n"
+            "[text.muted]Model API will use biolm.ai unless BIOLM_BASE_API_URL is set.[/text.muted]"
+        )
+    else:
+        console.print("[text.muted]No hub configuration to remove.[/text.muted]")
 
 
 @cli.group(cls=RichGroup)
@@ -1499,20 +1367,18 @@ def list(filter, sort, format, output, fields, view):
 def catalog(format, output):
     """List the full OSS model catalog (all deployable models).
 
-    Unlike ``model list``, this shows every model in the bundled OSS catalog,
-    not only models deployed on the current server.
+    When connected to biolm-hub, lists all gateway routes from OpenAPI.
+    Otherwise fetches the hosted platform catalog.
     """
-    try:
-        from biolm.server.catalog import list_catalog_models
+    if is_hub_mode():
+        from biolm.hub.discovery import list_models_from_openapi
+        from biolm.core.const import get_base_api_url
+
+        models = list_models_from_openapi(get_base_api_url())
+    else:
+        from biolm.hub.catalog import list_catalog_models
+
         models = list_catalog_models()
-    except ImportError:
-        console.print(Panel(
-            "[error]Catalog unavailable. Install biolm[server] or use hosted platform.[/error]",
-            title="[error]Error[/error]",
-            border_style="error",
-            box=box.ROUNDED,
-        ))
-        sys.exit(1)
 
     if format == 'json':
         payload = json.dumps(models, indent=2, default=str)

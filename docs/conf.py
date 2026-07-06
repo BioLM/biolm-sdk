@@ -23,9 +23,21 @@ iframe_mode = os.environ.get('IFRAME_MODE', '0') == '1'
 # relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #
-# Add parent directory to sys.path so Sphinx can import biolmai
+# Add parent directory to sys.path so Sphinx can import biolm
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+
+
+def _sphinx_builder_name():
+    """Return the Sphinx builder from the current invocation, if present."""
+    argv = sys.argv
+    for i, arg in enumerate(argv):
+        if arg in ("-b", "--builder", "-M") and i + 1 < len(argv):
+            return argv[i + 1]
+        if arg.startswith("-b") and len(arg) > 2:
+            return arg[2:]
+    return None
+
 
 # -- General configuration ---------------------------------------------
 
@@ -49,6 +61,17 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx_click",
 ]
+
+# These extensions hook HTML page rendering and break ``sphinx-build -b json``.
+_JSON_INCOMPATIBLE_EXTENSIONS = (
+    "sphinxext.opengraph",
+    "sphinx_reredirects",
+    "sphinx_new_tab_link",
+)
+if _sphinx_builder_name() == "json":
+    extensions = [
+        ext for ext in extensions if ext not in _JSON_INCOMPATIBLE_EXTENSIONS
+    ]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

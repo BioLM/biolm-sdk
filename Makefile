@@ -1,4 +1,4 @@
-.PHONY: clean clean-build clean-pyc clean-test coverage dist docs docs-iframe help install lint lint/flake8
+.PHONY: clean clean-build clean-pyc clean-test coverage dist docs docs-iframe docs-json docs-publish help install lint lint/flake8
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -109,6 +109,33 @@ docs-iframe: ## generate docs in iframe mode (no header, for embedding)
 	sphinx-apidoc -o docs/api-reference biolm
 	$(MAKE) -C docs clean
 	IFRAME_MODE=1 $(MAKE) -C docs html
+
+docs-json: ## generate Sphinx JSON export for embedding in the main website
+	mkdir -p docs/_static docs/api-reference
+	rm -f docs/api-reference/modules.rst docs/api-reference/biolmai.rst docs/api-reference/biolmai.*.rst
+	sphinx-apidoc -o docs/api-reference biolm
+	$(MAKE) -C docs clean
+	$(MAKE) -C docs json
+	python scripts/generate_docs_manifest.py --build-dir docs/_build/json --docs-dir docs
+
+docs-publish: ## build lean JSON export for GitHub Pages deployment
+	mkdir -p docs/_static docs/api-reference
+	rm -f docs/api-reference/modules.rst docs/api-reference/biolmai.rst docs/api-reference/biolmai.*.rst
+	sphinx-apidoc -o docs/api-reference biolm
+	$(MAKE) -C docs clean
+	$(MAKE) -C docs json
+	python scripts/generate_docs_manifest.py --build-dir docs/_build/json --docs-dir docs
+	rm -rf docs/_build/publish
+	mkdir -p docs/_build/publish
+	cp docs/_build/json/manifest.json docs/_build/publish/manifest.json
+	find docs/_build/json -name '*.fjson' \
+		! -path 'docs/_build/json/_*/*' \
+		! -path 'docs/_build/json/.doctrees/*' | \
+	while read -r src; do \
+		rel="$${src#docs/_build/json/}"; \
+		mkdir -p "docs/_build/publish/$$(dirname "$$rel")"; \
+		cp "$$src" "docs/_build/publish/$$rel"; \
+	done
 
 servedocs: docs ## compile the docs watching for changes
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
