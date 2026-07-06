@@ -36,7 +36,7 @@ class MLflowNotAvailableError(Exception):
 
     def __init__(self):
         super().__init__(
-            "MLflow is not installed. Install it with: pip install biolmai[mlflow]"
+            "MLflow is not installed. Install it with: pip install biolm-sdk[mlflow]"
         )
 
 

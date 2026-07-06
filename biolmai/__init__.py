@@ -3,7 +3,7 @@ import warnings
 
 warnings.warn(
     "The biolmai package has been renamed to biolm. "
-    "Please use `import biolm` and `pip install biolm`. "
+    "Please use `import biolm` and `pip install biolm-sdk`. "
     "Support for `import biolmai` will be removed in a future release.",
     DeprecationWarning,
     stacklevel=2,

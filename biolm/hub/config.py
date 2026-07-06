@@ -1,4 +1,4 @@
-"""Persisted configuration for pointing py-biolm at a biolm-hub gateway."""
+"""Persisted configuration for pointing biolm-sdk at a biolm-hub gateway."""
 from __future__ import annotations
 
 from pathlib import Path

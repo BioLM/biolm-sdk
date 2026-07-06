@@ -2698,7 +2698,7 @@ def log(results, outputs, account, workspace, protocol_slug, dry_run, mlflow_uri
     except ImportError:
         console.print(Panel(
             "[error]MLflow logging functionality is not available.[/error]\n\n"
-            "Install MLflow support with: [brand]pip install biolmai[mlflow][/brand]",
+            "Install MLflow support with: [brand]pip install biolm-sdk[mlflow][/brand]",
             title="[error]MLflow Not Available[/error]",
             border_style="error",
             box=box.ROUNDED,
@@ -2997,7 +2997,7 @@ def list(experiment, format, output, mlflow_uri, all_runs):
         except MLflowNotAvailableError:
             console.print(Panel(
                 "[error]MLflow logging functionality is not available.[/error]\n\n"
-                "Install MLflow support with: [brand]pip install biolmai[mlflow][/brand]",
+                "Install MLflow support with: [brand]pip install biolm-sdk[mlflow][/brand]",
                 title="[error]MLflow Not Available[/error]",
                 border_style="error",
                 box=box.ROUNDED,
@@ -3163,7 +3163,7 @@ def show(dataset_id, experiment, format, output, mlflow_uri):
         except MLflowNotAvailableError:
             console.print(Panel(
                 "[error]MLflow logging functionality is not available.[/error]\n\n"
-                "Install MLflow support with: [brand]pip install biolmai[mlflow][/brand]",
+                "Install MLflow support with: [brand]pip install biolm-sdk[mlflow][/brand]",
                 title="[error]MLflow Not Available[/error]",
                 border_style="error",
                 box=box.ROUNDED,
@@ -3383,7 +3383,7 @@ def upload(dataset_id, file_path, experiment, name, recursive, mlflow_uri):
         except MLflowNotAvailableError:
             console.print(Panel(
                 "[error]MLflow logging functionality is not available.[/error]\n\n"
-                "Install MLflow support with: [brand]pip install biolmai[mlflow][/brand]",
+                "Install MLflow support with: [brand]pip install biolm-sdk[mlflow][/brand]",
                 title="[error]MLflow Not Available[/error]",
                 border_style="error",
                 box=box.ROUNDED,
@@ -3484,7 +3484,7 @@ def download(dataset_id, output_path, experiment, artifact_path, mlflow_uri):
         except MLflowNotAvailableError:
             console.print(Panel(
                 "[error]MLflow logging functionality is not available.[/error]\n\n"
-                "Install MLflow support with: [brand]pip install biolmai[mlflow][/brand]",
+                "Install MLflow support with: [brand]pip install biolm-sdk[mlflow][/brand]",
                 title="[error]MLflow Not Available[/error]",
                 border_style="error",
                 box=box.ROUNDED,

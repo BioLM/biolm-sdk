@@ -2,36 +2,37 @@ name: CI
 
 on:
   push:
-    branches: [ '*' ]
+    branches: ['*']
+    tags: ['v*']
   pull_request:
-    branches: [ '*' ]
+    branches: ['*']
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    environment: Preview
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
       fail-fast: false
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    
+
     - name: Upgrade pip, setuptools, typing-extensions
       run: |
         python -m pip install --upgrade 'pip<25' setuptools typing-extensions
-    
+
     - name: Install tox and tox-travis
       run: |
         python -m pip install tox tox-travis
-    
+
     - name: Run tox
       env:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
@@ -42,7 +43,7 @@ jobs:
       run: |
         TOX_ENV=py$(echo "${{ matrix.python-version }}" | tr -d '.')
         tox -e $TOX_ENV
-    
+
     - name: Clean pip cache debug log
       if: always()
       run: |
@@ -50,28 +51,27 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
-    environment: Preview
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
-    
+
     - name: Install system dependencies for docs
       run: |
         sudo apt-get update && sudo apt-get install -y font-manager fonts-roboto fonts-noto || true
-    
+
     - name: Upgrade pip, setuptools, typing-extensions
       run: |
         python -m pip install --upgrade 'pip<25' setuptools typing-extensions
-    
+
     - name: Install tox
       run: |
         python -m pip install tox
-    
+
     - name: Build docs
       env:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
@@ -82,39 +82,57 @@ jobs:
       run: |
         tox -e build_docs
 
-  deploy:
-    needs: [test, docs]
+  publish-testpypi:
+    if: github.repository == 'BioLM/biolm-sdk' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    environment: Production
-    if: github.ref == 'refs/heads/production' && github.repository == 'BioLM/py-biolm'
-    
+    environment: testpypi
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python 3.10
+
+    - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.11'
         cache: 'pip'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements_dev.txt
-    
-    - name: Build distribution
+
+    - name: Build and publish to TestPyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
       run: |
         make dist
-    
-    - name: Check distribution with twine
+        python -m twine check dist/*
+        make testrelease
+
+  publish-pypi:
+    needs: [test, docs]
+    if: github.repository == 'BioLM/biolm-sdk' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
       run: |
-        pip install twine
-        twine check dist/*
-    
-    - name: Publish to PyPI
+        python -m pip install --upgrade pip
+        pip install -r requirements_dev.txt
+
+    - name: Build and publish to PyPI
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
       run: |
+        make dist
+        python -m twine check dist/*
         make release
-

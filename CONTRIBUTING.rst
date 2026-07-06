@@ -15,7 +15,7 @@ Types of Contributions
 Report Bugs
 ~~~~~~~~~~~
 
-Report bugs at https://github.com/BioLM/py-biolm/issues.
+Report bugs at https://github.com/BioLM/biolm-sdk/issues.
 
 If you are reporting a bug, please include:
 
@@ -45,7 +45,7 @@ articles, and such.
 Submit Feedback
 ~~~~~~~~~~~~~~~
 
-The best way to send feedback is to file an issue at https://github.com/BioLM/py-biolm/issues.
+The best way to send feedback is to file an issue at https://github.com/BioLM/biolm-sdk/issues.
 
 If you are proposing a feature:
 
@@ -57,17 +57,17 @@ If you are proposing a feature:
 Get Started!
 ------------
 
-Ready to contribute? Here's how to set up `biolmai` for local development.
+Ready to contribute? Here's how to set up `biolm-sdk` for local development.
 
-1. Fork the `biolmai` repo on GitHub.
+1. Fork the `biolm-sdk` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/biolmai.git
+    $ git clone git@github.com:your_name_here/biolm-sdk.git
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 
-    $ mkvirtualenv biolmai
-    $ cd biolmai/
+    $ mkvirtualenv biolm-sdk
+    $ cd biolm-sdk/
     $ python setup.py develop
 
 4. Create a branch for local development::
@@ -102,8 +102,8 @@ Before you submit a pull request, check that it meets these guidelines:
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
    feature to the list in README.rst.
-3. The pull request should work for Python 3.5, 3.6, 3.7 and 3.8, and for PyPy. Check
-   https://travis-ci.com/BioLM/py-biolm/pull_requests
+3. The pull request should work for Python 3.8 through 3.13. Check
+   https://github.com/BioLM/biolm-sdk/actions
    and make sure that the tests pass for all supported Python versions.
 
 Tips
@@ -125,4 +125,4 @@ $ bump2version patch # possible: major / minor / patch
 $ git push
 $ git push --tags
 
-Travis will then deploy to PyPI if tests pass.
+GitHub Actions publishes to PyPI when a ``v*`` tag is pushed (if CI passes).

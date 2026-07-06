@@ -54,8 +54,8 @@ build-backend = "setuptools.build_meta"
 asyncio_default_fixture_loop_scope = "function"
 
 [project]
-name = "biolm"
-version = "1.0.0"
+name = "biolm-sdk"
+version = "0.0.1"
 description = "BioLM Python client for the hosted platform and biolm-hub"
 authors = [
     { name="BioLM", email="support@biolm.ai" }
@@ -98,6 +98,12 @@ dependencies = [
     "jsonschema>=4.0,<5",
 ]
 scripts = { biolm = "biolm.cli_entry:cli", biolmai = "biolm.cli_entry:cli" }
+
+[project.urls]
+Homepage = "https://github.com/BioLM/biolm-sdk"
+Documentation = "https://docs.biolm.ai"
+Repository = "https://github.com/BioLM/biolm-sdk"
+Issues = "https://github.com/BioLM/biolm-sdk/issues"
 
 [project.entry-points."mlflow.request_header_provider"]
 biolm = "biolm.core.seqflow_auth:BiolmRequestHeaderProvider"

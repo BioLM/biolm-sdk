@@ -28,8 +28,8 @@ Full docs: [`biolmai/pipeline/README.md`](biolmai/pipeline/README.md) · archite
 First, set up the Python environment using `pyenv`:
 ```shell
 pyenv install 3.11.5
-pyenv virtualenv 3.11.5 py-biolm
-pyenv activate py-biolm
+pyenv virtualenv 3.11.5 biolm-sdk
+pyenv activate biolm-sdk
 ```
 
 Then, install the development dependencies:
