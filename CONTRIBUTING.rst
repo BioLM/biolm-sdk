@@ -79,7 +79,7 @@ Ready to contribute? Here's how to set up `biolm-sdk` for local development.
 5. When you're done making changes, check that your changes pass flake8 and the
    tests, including testing other Python versions with tox::
 
-    $ flake8 biolmai tests
+    $ flake8 biolm tests
     $ python setup.py test or pytest
     $ tox
 
@@ -111,7 +111,7 @@ Tips
 
 To run a subset of tests::
 
-$ pytest tests.test_biolmai
+$ pytest tests
 
 
 Deploying

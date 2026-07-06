@@ -10,5 +10,5 @@ Main CLI Commands
 -----------------
 
 .. click:: biolm.cli:cli
-   :prog: biolmai
+   :prog: biolm
    :show-nested:

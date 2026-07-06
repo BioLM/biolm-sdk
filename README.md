@@ -1,15 +1,46 @@
-# Python SDK for BioLM API
+# biolm-sdk
+
+Python SDK and CLI for the [BioLM](https://biolm.ai) platform and [biolm-hub](https://github.com/BioLM/biolm-hub) gateways.
+
+- **PyPI:** [`biolm-sdk`](https://pypi.org/project/biolm-sdk/)
+- **Repository:** [BioLM/biolm-sdk](https://github.com/BioLM/biolm-sdk)
+- **Docs:** [docs.biolm.ai](https://docs.biolm.ai) · [GitHub Pages JSON export](https://biolm.github.io/biolm-sdk/)
+
+## Install
+
+```shell
+pip install biolm-sdk
+pip install "biolm-sdk[pipeline]"  # optional pipeline framework
+```
+
+Import in Python as `biolm`:
+
+```python
+from biolm import biolm
+from biolm.core.http import BioLMApiClient
+```
+
+The legacy `biolmai` PyPI package and CLI alias remain available but are deprecated. See [migration guide](docs/getting-started/migration-1.0.rst).
+
+## Quick start
+
+```shell
+biolm login
+biolm model list
+biolm model run esm2-8m encode -i sequences.json
+```
+
+Open-source models via biolm-hub:
+
+```shell
+# In biolm-hub repo: bh serve
+biolm hub set
+biolm model list
+```
 
 ## Pipeline framework (optional)
 
-`biolmai` ships an optional declarative pipeline system for protein-engineering
-workflows: chain `add_prediction` / `add_filter` / `add_clustering` calls,
-get DuckDB-backed caching, resumability, branched DAG execution, and a
-`WorkingSet` transport that scales to ~1M sequences as 28 MB of integers.
-
-```shell
-pip install 'biolmai[pipeline]'
-```
+`biolm-sdk` includes an optional declarative pipeline system for protein-engineering workflows: chain `add_prediction` / `add_filter` / `add_clustering` calls, get DuckDB-backed caching, resumability, branched DAG execution, and a `WorkingSet` transport that scales to large sequence sets.
 
 ```python
 from biolm.pipeline import DataPipeline, ThresholdFilter
@@ -21,42 +52,33 @@ pipeline.run()
 df = pipeline.get_final_data()
 ```
 
-Full docs: [`biolmai/pipeline/README.md`](biolmai/pipeline/README.md) · architecture: [`biolmai/pipeline/PIPELINE_VISION_AND_ARCHITECTURE.md`](biolmai/pipeline/PIPELINE_VISION_AND_ARCHITECTURE.md).
+Full docs: [`biolm/pipeline/README.md`](biolm/pipeline/README.md) · architecture: [`biolm/pipeline/PIPELINE_VISION_AND_ARCHITECTURE.md`](biolm/pipeline/PIPELINE_VISION_AND_ARCHITECTURE.md).
 
 ## Development
 
-First, set up the Python environment using `pyenv`:
+Clone the repo and install in editable mode:
+
 ```shell
+git clone git@github.com:BioLM/biolm-sdk.git
+cd biolm-sdk
 pyenv install 3.11.5
 pyenv virtualenv 3.11.5 biolm-sdk
 pyenv activate biolm-sdk
-```
-
-Then, install the development dependencies:
-```shell
 pip install -r requirements_dev.txt
-```
-
-Finally, run the Makefile to complete the setup:
-```shell
 make install
 ```
 
-This installs the biolmai package itself in editable mode. This allows you to make changes to the package and see those changes reflected without needing to reinstall the package:
-It runs the command: `pip install -e .`. The -e flag stands for "editable mode". This is a useful setup for development as it means any changes you make to the package code will be immediately available in your environment, without needing to reinstall the package each time you make a change.
+Set your API token (canonical name `BIOLM_TOKEN`; `BIOLMAI_TOKEN` still works):
 
-
-## Set the `BIOLMAI_TOKEN` environment variable
-Set the token in your shell to authenticate your requests to the BioLM API:
 ```shell
-export BIOLMAI_TOKEN=<your_token>
+export BIOLM_TOKEN=<your_token>
+biolm status
 ```
-The token can be obtained from your BioLM account: [Get your BioLM API token](https://biolm.ai/ui/accounts/user-api-tokens/).
-Run `biolmai status` to verify that the token is set correctly.
 
-## Run tests with a specific seed
-Use this command to run the automated tests:
+Run tests:
+
 ```shell
 RS=118 make test
 ```
-The `RS` environment variable sets the seed for any random operations in the tests, ensuring consistent results.
+
+See [CONTRIBUTING.rst](CONTRIBUTING.rst) for pull request guidelines.

@@ -1,5 +1,5 @@
 ===================================
-Welcome to BioLM Python Client Docs
+Welcome to biolm-sdk Documentation
 ===================================
 
 .. include:: getting-started/quickstart.rst

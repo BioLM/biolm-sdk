@@ -1,7 +1,7 @@
 About Protocols
 ===============
 
-A protocol defines a workflow for the BioLM server: inputs, tasks (model or gather), and optional MLflow outputs. Validate with the Python client (e.g. ``biolmai protocol validate``).
+A protocol defines a workflow for the BioLM server: inputs, tasks (model or gather), and optional MLflow outputs. Validate with the Python client (e.g. ``biolm protocol validate``).
 
 **Minimal example:**
 

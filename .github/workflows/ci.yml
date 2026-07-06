@@ -38,7 +38,7 @@ jobs:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
         BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
         BIOLMAI_TOKEN: ${{ secrets.BIOLMAI_TOKEN }}
-        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS }}
+        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
         RS: ${{ secrets.RS || '12345679' }}
       run: |
         TOX_ENV=py$(echo "${{ matrix.python-version }}" | tr -d '.')
@@ -77,7 +77,7 @@ jobs:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
         BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
         BIOLMAI_TOKEN: ${{ secrets.BIOLMAI_TOKEN }}
-        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS }}
+        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
         RS: ${{ secrets.RS || '12345679' }}
       run: |
         tox -e build_docs
