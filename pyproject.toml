@@ -99,6 +99,12 @@ dependencies = [
 ]
 scripts = { biolm = "biolm.cli_entry:cli", biolmai = "biolm.cli_entry:cli" }
 
+[project.urls]
+Homepage = "https://github.com/BioLM/biolm-sdk"
+Documentation = "https://docs.biolm.ai"
+Repository = "https://github.com/BioLM/biolm-sdk"
+Issues = "https://github.com/BioLM/biolm-sdk/issues"
+
 [project.entry-points."mlflow.request_header_provider"]
 biolm = "biolm.core.seqflow_auth:BiolmRequestHeaderProvider"
 unused = "biolm.core.seqflow_auth:BiolmaiRequestHeaderProvider"

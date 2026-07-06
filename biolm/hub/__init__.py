@@ -1,4 +1,4 @@
-"""biolm-hub integration: connect py-biolm to a running bh serve / gateway."""
+"""biolm-hub integration: connect biolm-sdk to a running bh serve / gateway."""
 
 from biolm.hub.config import (
     clear_hub_config,

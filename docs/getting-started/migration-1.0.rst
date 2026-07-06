@@ -1,29 +1,35 @@
-Migration to biolm 1.0
-======================
+Migration to biolm-sdk 1.0
+==========================
 
-biolm 1.0 renames the package from ``biolmai`` to ``biolm`` and adds ``biolm hub``
-for connecting to `biolm-hub <https://github.com/BioLM/biolm-hub>`_ gateways.
+biolm-sdk 1.0 is the new home for the BioLM Python client. Install with
+``pip install biolm-sdk``; import and use ``biolm`` in code.
 
 Install
 -------
 
 .. code-block:: bash
 
-    pip install biolm
-    pip install biolm[pipeline] # pipeline features
+    pip install biolm-sdk
+    pip install "biolm-sdk[pipeline]"  # pipeline features
 
 Package and CLI
 ---------------
 
-+------------------+---------------------------+
-| Before           | After                     |
-+==================+===========================+
-| ``pip install biolmai`` | ``pip install biolm`` |
-| ``biolmai`` CLI  | ``biolm`` CLI (primary)   |
-| ``import biolmai`` | ``import biolm``        |
-+------------------+---------------------------+
++-------------------------+-----------------------------+
+| Before                  | After                       |
++=========================+=============================+
+| ``pip install biolmai`` | ``pip install biolm-sdk``   |
+| ``biolmai`` CLI         | ``biolm`` CLI (primary)     |
+| ``import biolmai``      | ``import biolm``            |
++-------------------------+-----------------------------+
 
 The ``biolmai`` import and CLI still work but emit deprecation warnings.
+
+Repository
+----------
+
+The SDK lives at `biolm-sdk <https://github.com/BioLM/biolm-sdk>`_ on GitHub.
+PyPI package name: ``biolm-sdk``.
 
 Environment variables
 ---------------------

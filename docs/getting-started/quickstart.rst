@@ -8,7 +8,7 @@ Install the package:
 
 .. code-block:: bash
 
-    pip install biolmai
+    pip install biolm-sdk
 
 Basic usage (one-off calls with ``biolm()``). These calls are synchronous (blocking) but use an async backend internally, so you get concurrent batch performance without writing async code.
 

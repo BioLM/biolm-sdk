@@ -18,7 +18,7 @@ Deploy and serve models from the `biolm-hub` repository:
     bh deploy esm2
     bh serve
 
-Connect py-biolm
+Connect biolm-sdk
 ----------------
 
 .. code-block:: bash

@@ -2,8 +2,7 @@ name: Deploy Documentation
 
 on:
   push:
-    # Deploy only from production, like RTD and the PyPi package
-    branches: [ production ]
+    branches: [ main ]
     paths:
       - 'docs/**'
       - 'biolm/**'

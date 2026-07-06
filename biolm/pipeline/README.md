@@ -13,7 +13,7 @@ The pipeline system provides a declarative interface over the BioLM API. Define 
 ## Installation
 
 ```bash
-pip install biolm[pipeline]
+pip install "biolm-sdk[pipeline]"
 ```
 
 ```bash

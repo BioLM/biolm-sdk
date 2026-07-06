@@ -8,12 +8,12 @@ from setuptools import find_packages, setup
 
 
 def _read_version():
-    init_py = os.path.join(os.path.dirname(__file__), "biolmai", "__init__.py")
+    init_py = os.path.join(os.path.dirname(__file__), "biolm", "__init__.py")
     with open(init_py, encoding="utf-8") as f:
         for line in f:
             if line.startswith("__version__"):
                 return line.split("=", 1)[1].strip().strip("'\"")
-    raise RuntimeError("Could not find __version__ in biolmai/__init__.py")
+    raise RuntimeError("Could not find __version__ in biolm/__init__.py")
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -95,7 +95,7 @@ setup(
     long_description=readme + "\n\n" + history,
     include_package_data=True,
     keywords=["biolm", "biolmai", "bioai", "bio-ai", "bio-lm", "bio-llm"],
-    name="biolm",
+    name="biolm-sdk",
     packages=find_packages(include=["biolm", "biolm.*", "biolmai", "biolmai.*"]),
     package_data={"biolm.hub": ["data/*.json"]},
     test_suite="tests",

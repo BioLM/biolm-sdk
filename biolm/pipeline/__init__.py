@@ -5,7 +5,7 @@ A comprehensive pipeline framework for biological sequence generation, predictio
 
 Requires optional dependencies — install with::
 
-    pip install biolm[pipeline]
+    pip install "biolm-sdk[pipeline]"
 """
 
 # Detect missing optional dependencies BEFORE importing anything that pulls

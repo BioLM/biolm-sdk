@@ -2,9 +2,9 @@
 
 Reference code for rendering Sphinx ``-b json`` output in the main BioLM Next.js site.
 
-## Build and publish (py-biolm)
+## Build and publish (biolm-sdk)
 
-CI on the ``production`` branch runs ``make docs-publish`` and deploys to GitHub Pages.
+CI on the ``main`` branch runs ``make docs-publish`` and deploys to GitHub Pages.
 
 Local build:
 

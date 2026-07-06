@@ -3,11 +3,11 @@ BioLM AI
 ========
 
 
-.. image:: https://img.shields.io/pypi/v/biolm.svg
-        :target: https://pypi.python.org/pypi/biolm
+.. image:: https://img.shields.io/pypi/v/biolm-sdk.svg
+        :target: https://pypi.org/project/biolm-sdk
 
-.. image:: https://api.travis-ci.com/BioLM/py-biolm.svg?branch=production
-        :target: https://travis-ci.org/github/BioLM/py-biolm
+.. image:: https://github.com/BioLM/biolm-sdk/actions/workflows/ci.yml/badge.svg
+        :target: https://github.com/BioLM/biolm-sdk/actions/workflows/ci.yml
 
 .. image:: https://readthedocs.org/projects/biolm-ai/badge/?version=latest
         :target: https://biolm-ai.readthedocs.io/en/latest/?version=latest
@@ -22,7 +22,7 @@ Install the package:
 
 .. code-block:: bash
 
-    pip install biolm
+    pip install biolm-sdk
 
 Open-source models (biolm-hub):
 
