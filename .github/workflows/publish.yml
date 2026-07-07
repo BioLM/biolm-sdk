@@ -17,6 +17,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.repository == 'BioLM/biolm-sdk'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,7 +39,7 @@ jobs:
         run: make dist
 
       - name: Check distribution with twine
-        run: twine check dist/*
+        run: python -m twine check dist/*
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -51,11 +52,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     if: >-
-      (github.event_name == 'workflow_dispatch' &&
-       (github.event.inputs.repository == 'testpypi' || github.event.inputs.repository == '')) ||
-      (github.event_name == 'release' && contains(github.event.release.tag_name, 'rc'))
-    environment:
-      name: testpypi
+      github.repository == 'BioLM/biolm-sdk' && (
+        (github.event_name == 'workflow_dispatch' &&
+         (github.event.inputs.repository == 'testpypi' || github.event.inputs.repository == '')) ||
+        (github.event_name == 'release' && contains(github.event.release.tag_name, 'rc'))
+      )
+    environment: testpypi
+    permissions:
+      id-token: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -64,19 +68,21 @@ jobs:
           path: dist/
 
       - name: Publish package to TestPyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.TESTPYPI_API_TOKEN }}
-        run: twine upload --repository testpypi dist/*
+        uses: pypa/gh-action-pypi-publish@release/v2
+        with:
+          repository-url: https://test.pypi.org/legacy/
 
   publish-pypi:
     runs-on: ubuntu-latest
     needs: build
     if: >-
-      (github.event_name == 'release' && !contains(github.event.release.tag_name, 'rc')) ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.repository == 'pypi')
-    environment:
-      name: pypi
+      github.repository == 'BioLM/biolm-sdk' && (
+        (github.event_name == 'release' && !contains(github.event.release.tag_name, 'rc')) ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.repository == 'pypi')
+      )
+    environment: pypi
+    permissions:
+      id-token: write
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -85,7 +91,4 @@ jobs:
           path: dist/
 
       - name: Publish package to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: twine upload dist/*
+        uses: pypa/gh-action-pypi-publish@release/v2

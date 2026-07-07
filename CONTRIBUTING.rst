@@ -117,16 +117,11 @@ $ pytest tests
 Deploying
 ---------
 
-Releases are automated from ``main`` using `Conventional Commits`_ and
-`python-semantic-release`. See ``VERSIONING.md`` for full details.
+See ``VERSIONING.md`` for the full release workflow.
 
-1. Merge changes to ``main`` with commit messages like ``feat: ...``,
-   ``fix: ...``, or a squash-merge PR title such as ``PD-52 feat: ...``.
-2. CI on ``main`` runs tests, then bumps ``biolmai/__version__``, tags
-   (e.g. ``v0.5.0``), and creates a GitHub Release.
-3. Publishing to PyPI runs when that GitHub Release is published
-   (``.github/workflows/publish.yml``).
+Production releases use **python-semantic-release** on ``main``: merge with a
+conventional commit (``feat:``, ``fix:``, or ``BREAKING:``), CI bumps the
+version and creates a GitHub Release, then the **Publish to PyPI** workflow
+uploads the package.
 
-Do not run ``bump2version`` or hand-edit ``__version__`` for production releases.
-
-.. _Conventional Commits: https://www.conventionalcommits.org/
+Do **not** hand-edit ``biolm/__init__.py`` version for production releases.

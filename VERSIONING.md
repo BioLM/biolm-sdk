@@ -6,19 +6,19 @@ This project uses **[python-semantic-release](https://python-semantic-release.re
 
 **Key principles:**
 
-- **Production versions**: CI bumps `biolmai/__version__` and creates a Git tag (e.g. `v0.5.0`) on `main`
+- **Production versions**: CI bumps `biolm/__version__` and creates a Git tag (e.g. `v0.5.0`) on `main`
 - **PyPI publish**: Triggered when a GitHub Release is published (see `.github/workflows/publish.yml`)
 - **Non-conventional commits**: Ignored for versioning (no CI failure)
-- **TestPyPI**: Use `-rc` suffixes manually when needed (e.g. `0.5.0-rc.1`)
+- **TestPyPI**: Use `-rc` suffixes manually when needed (e.g. `0.5.0-rc.1`), or `workflow_dispatch` on the Publish workflow
 
 ## How It Works
 
-1. **Commit with conventional format** (e.g. `feat:`, `fix:`, `BREAKING:`) or squash-merge a PR whose title includes them (e.g. `PD-52 feat: ...`)
+1. **Commit with conventional format** (e.g. `feat:`, `fix:`, `BREAKING:`) or squash-merge a PR whose title includes them (e.g. `PD-60 feat: ...`)
 2. **Push to `main`**
 3. **CI runs python-semantic-release** which:
    - Analyzes commit messages since the last tag
    - Determines version bump (major/minor/patch)
-   - Updates `biolmai/__init__.py` and `pyproject.toml` (`project.version`)
+   - Updates `biolm/__init__.py` and `pyproject.toml` (`project.version`)
    - Creates git tag (e.g. `v0.5.0`)
    - Opens a GitHub Release
    - Commits the version bump with `[skip ci]` to avoid loops
@@ -30,18 +30,18 @@ This project uses **[python-semantic-release](https://python-semantic-release.re
 |------------|--------------|---------|
 | `feat: ...` | **Minor** (0.4.0 → 0.5.0) | `feat: add protocol batch API` |
 | `fix: ...` | **Patch** (0.4.0 → 0.4.1) | `fix: resolve auth timeout` |
-| `BREAKING: ...` | **Major** (0.4.0 → 1.0.0) | `BREAKING: change CLI entry point` |
-| Other / no prefix | **None** | `update readme`, `PD-52 wip` |
+| `BREAKING: ...` | **Major** (0.4.0 → 1.0.0) | `BREAKING: rename package to biolm-sdk` |
+| Other / no prefix | **None** | `update readme`, `PD-60 wip` |
 
-Ticket prefixes are fine when combined with a conventional type: `PD-52 feat: add versioning` or `feat(PD-52): add versioning`.
+Ticket prefixes are fine when combined with a conventional type: `PD-60 feat: add versioning` or `feat(PD-60): add versioning`.
 
 ## What NOT to Do
 
-**Do not manually edit `__version__` in `biolmai/__init__.py` for production releases.** That causes mismatches with git tags and PyPI.
+**Do not manually edit `__version__` in `biolm/__init__.py` for production releases.** That causes mismatches with git tags and PyPI.
 
 ```bash
 # BAD — do not do this for production
-vim biolmai/__init__.py  # hand-edit __version__
+vim biolm/__init__.py  # hand-edit __version__
 ```
 
 ## Correct Workflow
@@ -55,7 +55,7 @@ vim biolmai/__init__.py  # hand-edit __version__
 
 ### Docs on GitHub Pages
 
-Docs still deploy from the **`production`** branch (`.github/workflows/docs.yml`). After a release on `main`, merge `main` → `production` when documentation should go live.
+Docs deploy from **`main`** on push (`.github/workflows/docs.yml`).
 
 ### Local testing
 
@@ -70,24 +70,18 @@ pytest -q tests/
 
 For pre-release uploads without conflicting with the next production version:
 
-```bash
-# Bump to RC locally (do not tag for production)
-# Edit biolmai/__init__.py to e.g. 0.5.0-rc.1 only for a TestPyPI trial
-make dist
-make testrelease
-```
-
-Or use **workflow_dispatch** on the Publish workflow (TestPyPI) after configuring `TESTPYPI_API_TOKEN`.
+- Use **workflow_dispatch** on the Publish workflow (TestPyPI) after configuring trusted publishing on TestPyPI, or
+- Publish an `-rc` GitHub Release (routes to TestPyPI per `publish.yml`).
 
 ## Configuration
 
-See `[tool.semantic_release]` in `pyproject.toml`. The canonical version lives in `biolmai/__init__.py` (also written to `pyproject.toml` by CI). `setup.py` reads `__init__.py`; `docs/conf.py` imports `biolmai`.
+See `[tool.semantic_release]` in `pyproject.toml`. The canonical version lives in `biolm/__init__.py` (also written to `pyproject.toml` by CI). `setup.py` reads `__init__.py`; `docs/conf.py` imports `biolm`.
 
 ## Troubleshooting
 
 ```bash
 # Current package version
-python -c "import biolmai; print(biolmai.__version__)"
+python -c "import biolm; print(biolm.__version__)"
 
 # Latest tag
 git describe --tags --abbrev=0
