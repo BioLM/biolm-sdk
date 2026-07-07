@@ -44,6 +44,9 @@ jobs:
           pip install -e .
 
       - name: Build documentation (JSON export)
+        env:
+          # Prevent docs build from failing if an org/repo env sets BIOLM_THREADS too high.
+          BIOLM_THREADS: "8"
         run: make docs-publish
 
       - name: Setup Pages
