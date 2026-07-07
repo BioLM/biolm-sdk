@@ -146,13 +146,25 @@ class ProtocolRun:
             raise ProtocolRunError(f"Protocol run {self.run_id} was cancelled.")
 
     def results(self) -> Dict[str, Any]:
-        return self._client._get(f"runs/{self.run_id}/results/")
+        # Run "detail" endpoint (not the progress endpoint)
+        return self._client._get(f"runs/{self.run_id}/")
+
+    def cancel(self) -> Dict[str, Any]:
+        """Cancel this run (idempotent; may error if already terminal)."""
+        url = self._client._url(f"runs/{self.run_id}/")
+        with httpx.Client(timeout=_DEFAULT_TIMEOUT) as http:
+            resp = http.delete(url, headers=self._client._headers())
+        if not resp.is_success:
+            raise ProtocolRunError(f"DELETE {url} returned {resp.status_code}: {resp.text[:500]}")
+        self.status = "cancelled"
+        return resp.json()
 
     def download(
         self,
         output_dir: Union[str, Path] = ".",
         file_type: str = "csv",
-    ) -> str:
+        overwrite: bool = False,
+    ) -> Path:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         url = self._client._url(f"runs/{self.run_id}/download/?file_type={file_type}")
@@ -162,8 +174,39 @@ class ProtocolRun:
             raise ProtocolRunError(f"GET {url} returned {resp.status_code}: {resp.text[:500]}")
 
         fname = output_dir / f"{self.run_id}_results.{file_type}.zip"
+        if fname.exists() and not overwrite:
+            raise FileExistsError(f"Refusing to overwrite existing file: {fname}")
         fname.write_bytes(resp.content)
-        return str(fname)
+        return fname
+
+    def download_files(
+        self,
+        *,
+        output_dir: Union[str, Path] = ".",
+        file_type: str = "csv",
+        overwrite: bool = False,
+    ) -> Path:
+        """Compatibility alias for :meth:`download`."""
+        return self.download(output_dir=output_dir, file_type=file_type, overwrite=overwrite)
+
+    def to_dataframe(self, *, output_dir: Union[str, Path] = ".", overwrite: bool = False):
+        """Download CSV zip and return a pandas DataFrame."""
+        try:
+            import pandas as pd
+        except Exception as exc:  # pragma: no cover
+            raise ImportError(
+                "pandas is required for ProtocolRun.to_dataframe(). "
+                "Install it with: pip install pandas"
+            ) from exc
+
+        zip_path = self.download(output_dir=output_dir, file_type="csv", overwrite=overwrite)
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            csv_names = [n for n in zf.namelist() if n.lower().endswith(".csv")]
+            if not csv_names:
+                raise ProtocolRunError("No CSV file found in results zip.")
+            with zf.open(csv_names[0], "r") as f:
+                data = f.read()
+        return pd.read_csv(io.BytesIO(data))
 
 
 class ProtocolClient:
@@ -247,6 +290,19 @@ class ProtocolClient:
             data = self._post(f"{slug}/runs/", json_body=body)
         return ProtocolRun(data, client=self)
 
+    def get_run(self, run_id: str) -> ProtocolRun:
+        """Reconnect to an existing run by ID."""
+        data = self._get(f"runs/{run_id}/")
+        return ProtocolRun(
+            {
+                "run_id": data["run_id"],
+                "protocol_slug": data.get("protocol_slug", ""),
+                "protocol_version": data.get("protocol_version", 1),
+                "status": data.get("status", "unknown"),
+            },
+            client=self,
+        )
+
     def run_and_wait(
         self,
         slug: str,
@@ -257,5 +313,6 @@ class ProtocolClient:
     ) -> Dict[str, Any]:
         run = self.submit(slug, inputs, run_name=run_name)
         run.wait(timeout=timeout, show_progress=show_progress)
-        return run.results().get("results", {})
+        detail = run.results()
+        return detail.get("results", {})
 
