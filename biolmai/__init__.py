@@ -1,6 +1,10 @@
 """Deprecated compatibility shim — use `import biolm` instead."""
 import warnings
 
+from biolmai._shim import install_shim
+
+install_shim()
+
 warnings.warn(
     "The biolmai package has been renamed to biolm. "
     "Please use `import biolm` and `pip install biolm-sdk`. "
