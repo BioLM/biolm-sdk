@@ -140,7 +140,9 @@ def mock_model_schema_generate():
 @pytest.mark.asyncio
 async def test_fetch_community_models_success(mock_community_models_response):
     """Test successful fetching of community models."""
-    with patch('biolmai.examples.httpx.AsyncClient') as mock_client:
+    with patch("biolm.core.const.is_hub_mode", return_value=False), patch(
+        "biolmai.examples.httpx.AsyncClient"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = mock_community_models_response
@@ -163,7 +165,9 @@ async def test_fetch_community_models_success(mock_community_models_response):
 @pytest.mark.asyncio
 async def test_fetch_community_models_empty():
     """Test handling of empty response."""
-    with patch('biolmai.examples.httpx.AsyncClient') as mock_client:
+    with patch("biolm.core.const.is_hub_mode", return_value=False), patch(
+        "biolmai.examples.httpx.AsyncClient"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = []
