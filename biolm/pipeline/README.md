@@ -17,7 +17,7 @@ pip install "biolm-sdk[pipeline]"
 ```
 
 ```bash
-export BIOLMAI_TOKEN="your-token-here"
+export BIOLM_TOKEN="your-token-here"
 # Get tokens at https://biolm.ai/ui/accounts/user-api-tokens/
 ```
 

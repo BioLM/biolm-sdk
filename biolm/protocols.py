@@ -565,7 +565,9 @@ tasks:
                 raise FileNotFoundError(f"Protocol '{protocol_id}' not found")
             elif resp.status_code == 401:
                 await http_client.close()
-                raise PermissionError("Authentication required. Please run 'biolm login' or set BIOLMAI_TOKEN")
+                raise PermissionError(
+                    "Authentication required. Please run 'biolm login' or set BIOLM_TOKEN"
+                )
             elif resp.status_code >= 400:
                 error_text = resp.text
                 try:

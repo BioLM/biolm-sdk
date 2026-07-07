@@ -18,7 +18,7 @@ API actions used (only 4 public actions exist: score, predict, generate, encode)
 
 Usage
 -----
-    export BIOLMAI_TOKEN=<your_token>
+    export BIOLM_TOKEN=<your_token>
     python scripts/pipeline_antibody_full.py
 """
 
@@ -38,9 +38,9 @@ from biolm.pipeline.data import ExtractionSpec
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    raise RuntimeError("Set BIOLMAI_TOKEN env var before running")
+    raise RuntimeError("Set BIOLM_TOKEN env var before running")
 
 # Default: bundled test fixture (Fab with H + L chains from PDB 2FJG)
 _HERE = Path(__file__).parent.parent

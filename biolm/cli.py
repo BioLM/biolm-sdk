@@ -29,6 +29,7 @@ from biolm.core.const import (
     ACCESS_TOK_PATH,
     BIOLM_BASE_API_URL,
     BIOLM_BASE_DOMAIN,
+    get_env_api_token,
     get_model_catalog_base,
     get_model_api_source,
     is_hub_mode,
@@ -385,13 +386,15 @@ def display_env_vars_table():
     table.add_column("Setting", style="brand", no_wrap=True)
     table.add_column("Value", style="text")
 
-    for env_name in ("BIOLM_TOKEN", "BIOLMAI_TOKEN", "BIOLM_TOKEN"):
-        env_var_tok = os.environ.get(env_name, "")
-        if env_var_tok:
-            masked = f"{env_var_tok[:6]}••••••••" if len(env_var_tok) >= 6 else "••••••••"
-            table.add_row(env_name, masked)
+    api_token = get_env_api_token()
+    if api_token:
+        masked = f"{api_token[:6]}••••••••" if len(api_token) >= 6 else "••••••••"
+        if os.environ.get("BIOLM_TOKEN"):
+            table.add_row("BIOLM_TOKEN", masked)
         else:
-            table.add_row(env_name, "[text.muted]Not set[/text.muted]")
+            table.add_row("BIOLMAI_TOKEN", f"{masked} [text.muted](deprecated)[/text.muted]")
+    else:
+        table.add_row("BIOLM_TOKEN", "[text.muted]Not set[/text.muted]")
 
     table.add_row("Credentials Path", str(ACCESS_TOK_PATH))
     table.add_row("Model API URL", BIOLM_BASE_API_URL)

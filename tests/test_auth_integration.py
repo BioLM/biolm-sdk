@@ -1,11 +1,11 @@
 """Integration tests for different authentication methods.
 
 These tests make real API requests using:
-- BIOLMAI_TOKEN (API token auth) - standard CI path
+- BIOLM_TOKEN (API token auth) - standard CI path
 - Access/refresh tokens from credentials file (Cookie auth) - obtained via BIOLM_USER/BIOLM_PASSWORD
   at /api/auth/token/ (username+password)
 
-Note: There is no endpoint that exchanges BIOLMAI_TOKEN for access/refresh tokens. They are
+Note: There is no endpoint that exchanges BIOLM_TOKEN for access/refresh tokens. They are
 separate auth mechanisms. Access/refresh tokens come from username/password or OAuth only.
 
 OAuth (browser PKCE flow) cannot be automated in CI since it requires user interaction.

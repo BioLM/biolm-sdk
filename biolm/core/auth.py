@@ -26,6 +26,7 @@ from biolm.core.const import (
     OAUTH_REDIRECT_URI,
     OAUTH_TOKEN_URL,
     USER_BIOLM_DIR,
+    get_env_api_token,
 )
 
 
@@ -120,9 +121,14 @@ def refresh_access_token(refresh):
 
 
 def get_auth_status():
-    environ_token = os.environ.get("BIOLMAI_TOKEN") or os.environ.get("BIOLM_TOKEN")
+    environ_token = get_env_api_token()
     if environ_token:
-        msg = "Environment variable BIOLMAI_TOKEN/BIOLM_TOKEN detected. Validating token..."
+        msg = "Environment variable BIOLM_TOKEN detected. Validating token..."
+        if not os.environ.get("BIOLM_TOKEN") and os.environ.get("BIOLMAI_TOKEN"):
+            msg = (
+                "Environment variable BIOLMAI_TOKEN detected (deprecated; use BIOLM_TOKEN). "
+                "Validating token..."
+            )
         click.echo(msg)
         validate_user_auth(api_token=environ_token)
     elif os.path.exists(ACCESS_TOK_PATH):
@@ -199,8 +205,8 @@ def get_auth_status():
     else:
         msg = (
             f"No {BIOLMAI_BASE_DOMAIN} credentials found. Please "
-            f"set the environment variable BIOLMAI_TOKEN (or BIOLM_TOKEN) to a token from "
-            f"{GEN_TOKEN_URL}, or login by running `biolmai login`."
+            f"set the environment variable BIOLM_TOKEN to a token from "
+            f"{GEN_TOKEN_URL}, or login by running `biolm login`."
         )
         click.echo(msg)
 
@@ -214,7 +220,7 @@ def generate_access_token(uname, password):
     will have a shorter TTL, more like hours. Meaning, this method will
     require periodically re-logging in, due to the token expiration time. For a
     more permanent auth method for the API, use an API token by setting the
-    BIOLMAI_TOKEN environment variable.
+    BIOLM_TOKEN environment variable.
     """
     url = f"{BIOLMAI_BASE_DOMAIN}/api/auth/token/"
     try:
@@ -276,9 +282,9 @@ def get_api_token():
 
 def get_user_auth_header():
     """Returns a dict with the appropriate Authorization header, either using
-    an API token from BIOLMAI_TOKEN or BIOLM_TOKEN environment variable, or by
-    reading the credentials file at ~/.biolmai/credentials next."""
-    api_token = os.environ.get("BIOLMAI_TOKEN") or os.environ.get("BIOLM_TOKEN")
+    an API token from BIOLM_TOKEN environment variable, or by reading the
+    credentials file at ~/.biolmai/credentials next."""
+    api_token = get_env_api_token()
     if api_token:
         headers = {"Authorization": f"Token {api_token}"}
     elif os.path.exists(ACCESS_TOK_PATH):
