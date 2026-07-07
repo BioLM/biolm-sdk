@@ -2,7 +2,18 @@
 
 """The setup script."""
 
+import os
+
 from setuptools import find_packages, setup
+
+
+def _read_version():
+    init_py = os.path.join(os.path.dirname(__file__), "biolm", "__init__.py")
+    with open(init_py, encoding="utf-8") as f:
+        for line in f:
+            if line.startswith("__version__"):
+                return line.split("=", 1)[1].strip().strip("'\"")
+    raise RuntimeError("Could not find __version__ in biolm/__init__.py")
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -90,6 +101,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/BioLM/biolm-sdk",
-    version="0.0.1",
+    version=_read_version(),
     zip_safe=False,
 )

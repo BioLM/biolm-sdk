@@ -117,12 +117,11 @@ $ pytest tests
 Deploying
 ---------
 
-A reminder for the maintainers on how to deploy.
-Make sure all your changes are committed (including an entry in HISTORY.rst).
-Then run::
+See ``VERSIONING.md`` for the full release workflow.
 
-$ bump2version patch # possible: major / minor / patch
-$ git push
-$ git push --tags
+Production releases use **python-semantic-release** on ``main``: merge with a
+conventional commit (``feat:``, ``fix:``, or ``BREAKING:``), CI bumps the
+version and creates a GitHub Release, then the **Publish to PyPI** workflow
+uploads the package.
 
-GitHub Actions publishes to PyPI when a ``v*`` tag is pushed (if CI passes).
+Do **not** hand-edit ``biolm/__init__.py`` version for production releases.
