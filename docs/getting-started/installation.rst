@@ -8,13 +8,22 @@ Installation
 Stable release
 --------------
 
-To install BioLM AI, run this command in your terminal:
+To install BioLM SDK, run this command in your terminal:
 
 .. code-block:: console
 
-    $ pip install biolmai
+    $ pip install biolm-sdk
 
-This is the preferred method to install BioLM AI, as it will always install the most recent stable release.
+Optional extras:
+
+.. code-block:: console
+
+    $ pip install "biolm-sdk[pipeline]"  # pipeline features
+
+For open-source models, install and run `biolm-hub <https://github.com/BioLM/biolm-hub>`_,
+then connect with ``biolm hub set``. See :doc:`../cli/hub`.
+
+The ``biolmai`` package name is deprecated; use ``biolm-sdk``. See :doc:`migration-1.0`.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.
@@ -26,26 +35,26 @@ you through the process.
 From sources
 ------------
 
-The sources for BioLM AI can be downloaded from the `GitHub repo`_.
+The sources for biolm-sdk can be downloaded from the `GitHub repo`_.
 
 You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/BioLM/py-biolm
+    $ git clone git@github.com:BioLM/biolm-sdk.git
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl -OJL https://github.com/BioLM/py-biolm/tarball/production
+    $ curl -OJL https://github.com/BioLM/biolm-sdk/tarball/main
 
 Once you have a copy of the source, you can install it with:
 
 .. code-block:: console
 
-    $ python setup.py install
+    $ pip install -e .
 
 
-.. _GitHub repo: https://github.com/BioLM/py-biolm
-.. _tarball: https://github.com/BioLM/py-biolm/tarball/production
+.. _GitHub repo: https://github.com/BioLM/biolm-sdk
+.. _tarball: https://github.com/BioLM/biolm-sdk/tarball/main

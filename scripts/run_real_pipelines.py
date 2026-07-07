@@ -2,7 +2,7 @@
 Real-API integration tests for the pipeline system.
 
 NO MOCKS — every API call hits the live BioLM endpoints.
-Requires BIOLMAI_TOKEN in environment.
+Requires BIOLM_TOKEN in environment.
 
 Avoids structure prediction models (esmfold, alphafold2) to keep costs down.
 Uses fast property models: temberture-regression, biolmsol.
@@ -25,10 +25,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from biolmai.pipeline.base import PipelineContext, WorkingSet
-from biolmai.pipeline.data import DataPipeline
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import (
+from biolm.pipeline.base import PipelineContext, WorkingSet
+from biolm.pipeline.data import DataPipeline
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import (
     CustomFilter,
     RankingFilter,
     SequenceLengthFilter,
@@ -37,9 +37,9 @@ from biolmai.pipeline.filters import (
 )
 
 # ---------------------------------------------------------------------------
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    print("ERROR: BIOLMAI_TOKEN not set.")
+    print("ERROR: BIOLM_TOKEN not set.")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------

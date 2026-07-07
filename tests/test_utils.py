@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from biolmai.pipeline.utils import (
+from biolm.pipeline.utils import (
     compute_hamming_distance,
     compute_sequence_identity,
     deduplicate_sequences,

@@ -1,4 +1,4 @@
-``biolmai model``
+``biolm model``
 =================
 
 Work with BioLM models.
@@ -15,43 +15,43 @@ List all available models:
 
 .. code-block:: bash
 
-   biolmai model list
+   biolm model list
 
 Filter models by capabilities:
 
 .. code-block:: bash
 
-   biolmai model list --filter encoder=true
-   biolmai model list --sort model_name
-   biolmai model list --format json --output models.json
+   biolm model list --filter encoder=true
+   biolm model list --sort model_name
+   biolm model list --format json --output models.json
 
 Show details for a specific model:
 
 .. code-block:: bash
 
-   biolmai model show esm2-8m
-   biolmai model show esmfold --include-schemas
+   biolm model show esm2-8m
+   biolm model show esmfold --include-schemas
 
 Run a model:
 
 .. code-block:: bash
 
-   biolmai model run esm2-8m encode -i sequences.fasta -o embeddings.json
-   biolmai model run esmfold predict -i data.csv --params '{"temperature": 0.7}'
-   biolmai model run esm2-8m encode -i large.fasta --progress
+   biolm model run esm2-8m encode -i sequences.fasta -o embeddings.json
+   biolm model run esmfold predict -i data.csv --params '{"temperature": 0.7}'
+   biolm model run esm2-8m encode -i large.fasta --progress
 
 Generate SDK usage examples:
 
 .. code-block:: bash
 
-   biolmai model example
-   biolmai model example esm2-8m
-   biolmai model example esm2-8m --action encode
-   biolmai model example esm2-8m --output example.py
+   biolm model example
+   biolm model example esm2-8m
+   biolm model example esm2-8m --action encode
+   biolm model example esm2-8m --output example.py
 
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:model
-   :prog: biolmai model
+.. click:: biolm.cli:model
+   :prog: biolm model
    :show-nested:

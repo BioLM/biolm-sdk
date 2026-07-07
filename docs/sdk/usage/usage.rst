@@ -11,7 +11,7 @@ One-off calls (function)
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
 
     # ESM2-8M: encode a single sequence
     result = biolm(entity="esm2-8m", action="encode", type="sequence", items="MSILVTRPSPAGEEL")
@@ -42,7 +42,7 @@ Bind to a model once, then call encode, predict, or generate as needed.
 
 .. code-block:: python
 
-    from biolmai import Model
+    from biolm import Model
 
     # One model, multiple operations
     model = Model("esm2-8m")
@@ -61,7 +61,7 @@ For schema access, custom error handling, and manual batching:
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApi
+    from biolm.core.http import BioLMApi
 
     # Use BioLMApi for more control, e.g. batching, error handling, schema access
     model = BioLMApi("esm2-8m", raise_httpx=False)
@@ -89,7 +89,7 @@ For schema access, custom error handling, and manual batching:
 
 .. note::
 
-   **Normal use:** Prefer :meth:`~biolmai.core.http.BioLMApi.encode` (e.g. ``model.encode(items=...)``) for encoding; ``_batch_call_autoschema_or_manual`` is for advanced cases when you need to control batches explicitly.
+   **Normal use:** Prefer :meth:`~biolm.core.http.BioLMApi.encode` (e.g. ``model.encode(items=...)``) for encoding; ``_batch_call_autoschema_or_manual`` is for advanced cases when you need to control batches explicitly.
 
 .. tip::
 
@@ -102,7 +102,7 @@ Only **BioLMApiClient** exposes async methods; you must await them (e.g. ``await
 
 .. code-block:: python
 
-    from biolmai.core.http import BioLMApiClient
+    from biolm.core.http import BioLMApiClient
     import asyncio
 
     async def main():

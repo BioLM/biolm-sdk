@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock
 
 import numpy as np
 
-from biolmai.pipeline.mlm_remasking import (
+from biolm.pipeline.mlm_remasking import (
     AGGRESSIVE_CONFIG,
     CONSERVATIVE_CONFIG,
     MODERATE_CONFIG,
@@ -510,11 +510,11 @@ class TestAbodyBuilder3PldDT(unittest.TestCase):
         """
         # Import internal helper directly — this is the source surface the fix
         # relies on.  If _extract_with_spec regresses, this test will fail.
-        from biolmai.pipeline.data import ExtractionSpec, _ResolvedExtraction
+        from biolm.pipeline.data import ExtractionSpec, _ResolvedExtraction
 
         PredictionStage_extract = None
         try:
-            from biolmai.pipeline.data import PredictionStage
+            from biolm.pipeline.data import PredictionStage
             PredictionStage_extract = PredictionStage._extract_with_spec
         except ImportError:
             self.skipTest("PredictionStage not importable")
@@ -530,7 +530,7 @@ class TestAbodyBuilder3PldDT(unittest.TestCase):
 
     def test_abodybuilder3_plddt_reduction_mean_flat_list(self):
         """_extract_with_spec mean reduction also works on flat pLDDT list."""
-        from biolmai.pipeline.data import PredictionStage, _ResolvedExtraction
+        from biolm.pipeline.data import PredictionStage, _ResolvedExtraction
 
         spec = _ResolvedExtraction(response_key="plddt", column="abb3_plddt", reduction="mean")
         result = {"plddt": [80.0, 90.0, 85.0]}
@@ -545,7 +545,7 @@ class TestAbodyBuilder3PldDT(unittest.TestCase):
         If the caller forgets to specify reduction='mean', arrays must NOT be
         silently collapsed — this was the pre-fix behaviour that caused wrong results.
         """
-        from biolmai.pipeline.data import PredictionStage, _ResolvedExtraction
+        from biolm.pipeline.data import PredictionStage, _ResolvedExtraction
 
         spec = _ResolvedExtraction(response_key="plddt", column="abb3_plddt", reduction=None)
         result = {"plddt": [[80.0, 90.0, 85.0]]}

@@ -1,5 +1,5 @@
 ===================================
-Welcome to BioLM Python Client Docs
+Welcome to biolm-sdk Documentation
 ===================================
 
 .. include:: getting-started/quickstart.rst
@@ -24,6 +24,7 @@ If you're writing or updating documentation, see the :doc:`authoring-guide` for 
    getting-started/authentication
    getting-started/quickstart
    getting-started/concepts
+   getting-started/migration-1.0
    tutorials_use_cases/notebooks
 
 .. toctree::
@@ -34,6 +35,7 @@ If you're writing or updating documentation, see the :doc:`authoring-guide` for 
    cli/login
    cli/logout
    cli/status
+   cli/hub
    cli/workspace
    cli/model
    cli/protocol

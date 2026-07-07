@@ -2,47 +2,46 @@ name: CI
 
 on:
   push:
-    branches: [ '*' ]
+    branches: ['*']
   pull_request:
-    branches: [ '*' ]
+    branches: ['*']
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    environment: Preview
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
       fail-fast: false
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
-    
+
     - name: Upgrade pip, setuptools, typing-extensions
       run: |
         python -m pip install --upgrade 'pip<25' setuptools typing-extensions
-    
+
     - name: Install tox and tox-travis
       run: |
         python -m pip install tox tox-travis
-    
+
     - name: Run tox
       env:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
         BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
-        BIOLMAI_TOKEN: ${{ secrets.BIOLMAI_TOKEN }}
-        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS }}
+        BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
+        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
         RS: ${{ secrets.RS || '12345679' }}
       run: |
         TOX_ENV=py$(echo "${{ matrix.python-version }}" | tr -d '.')
         tox -e $TOX_ENV
-    
+
     - name: Clean pip cache debug log
       if: always()
       run: |
@@ -50,34 +49,33 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
-    environment: Preview
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
-    
+
     - name: Install system dependencies for docs
       run: |
         sudo apt-get update && sudo apt-get install -y font-manager fonts-roboto fonts-noto || true
-    
+
     - name: Upgrade pip, setuptools, typing-extensions
       run: |
         python -m pip install --upgrade 'pip<25' setuptools typing-extensions
-    
+
     - name: Install tox
       run: |
         python -m pip install tox
-    
+
     - name: Build docs
       env:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
         BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
-        BIOLMAI_TOKEN: ${{ secrets.BIOLMAI_TOKEN }}
-        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS }}
+        BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
+        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
         RS: ${{ secrets.RS || '12345679' }}
       run: |
         tox -e build_docs
@@ -88,7 +86,7 @@ jobs:
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
-      github.repository == 'BioLM/py-biolm' &&
+      github.repository == 'BioLM/biolm-sdk' &&
       !contains(github.event.head_commit.message, '[skip ci]')
     permissions:
       contents: write
@@ -117,4 +115,3 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: semantic-release version
-

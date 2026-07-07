@@ -8,12 +8,12 @@ from setuptools import find_packages, setup
 
 
 def _read_version():
-    init_py = os.path.join(os.path.dirname(__file__), "biolmai", "__init__.py")
+    init_py = os.path.join(os.path.dirname(__file__), "biolm", "__init__.py")
     with open(init_py, encoding="utf-8") as f:
         for line in f:
             if line.startswith("__version__"):
                 return line.split("=", 1)[1].strip().strip("'\"")
-    raise RuntimeError("Could not find __version__ in biolmai/__init__.py")
+    raise RuntimeError("Could not find __version__ in biolm/__init__.py")
 
 with open("README.rst") as readme_file:
     readme = readme_file.read()
@@ -26,7 +26,7 @@ requirements = [
     "requests",
     "httpx>=0.23.0",
     "httpcore",
-    "h2",  # Required for HTTP/2 support
+    "h2",
     "synchronicity>=0.5.0; python_version >= '3.9'",
     "synchronicity<0.5.0; python_version < '3.9'",
     "typing_extensions; python_version < '3.9'",
@@ -39,7 +39,7 @@ requirements = [
     "nest_asyncio",
     "rich>=13.0.0",
     "pyyaml>=5.0",
-    "jsonschema<=4.26.0"
+    "jsonschema<=4.26.0",
 ]
 
 test_requirements = [
@@ -51,7 +51,7 @@ setup(
     author_email="support@biolm.ai",
     python_requires=">=3.8",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
@@ -63,13 +63,15 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    description="BioLM Python client",
+    description="BioLM Python client for the hosted platform and biolm-hub",
     entry_points={
         "console_scripts": [
-            "biolmai=biolmai.cli_entry:cli",
+            "biolm=biolm.cli_entry:cli",
+            "biolmai=biolm.cli_entry:cli",
         ],
-        'mlflow.request_header_provider': [
-            'unused=biolmai.core.seqflow_auth:BiolmaiRequestHeaderProvider',
+        "mlflow.request_header_provider": [
+            "biolm=biolm.core.seqflow_auth:BiolmRequestHeaderProvider",
+            "unused=biolm.core.seqflow_auth:BiolmaiRequestHeaderProvider",
         ],
     },
     install_requires=requirements,
@@ -92,12 +94,13 @@ setup(
     license="Apache Software License 2.0",
     long_description=readme + "\n\n" + history,
     include_package_data=True,
-    keywords=["biolmai", "biolm", "bioai", "bio-ai", "bio-lm", "bio-llm", "bio-language-model", "bio-language-models-api", "python-client"],
-    name="biolmai",
-    packages=find_packages(include=["biolmai", "biolmai.*"]),
+    keywords=["biolm", "biolmai", "bioai", "bio-ai", "bio-lm", "bio-llm"],
+    name="biolm-sdk",
+    packages=find_packages(include=["biolm", "biolm.*", "biolmai", "biolmai.*"]),
+    package_data={"biolm.hub": ["data/*.json"]},
     test_suite="tests",
     tests_require=test_requirements,
-    url="https://github.com/BioLM/py-biolm",
+    url="https://github.com/BioLM/biolm-sdk",
     version=_read_version(),
     zip_safe=False,
 )

@@ -8,7 +8,7 @@ from datetime import datetime
 import pytest
 from click.testing import CliRunner
 
-from biolmai.datasets_mlflow import (
+from biolm.datasets_mlflow import (
     MLflowNotAvailableError,
     list_datasets,
     get_dataset,
@@ -18,7 +18,7 @@ from biolmai.datasets_mlflow import (
     _get_mlflow_client,
     _get_or_create_experiment,
 )
-from biolmai.cli import cli
+from biolm.cli import cli
 
 
 class TestMLflowAvailability:
@@ -367,8 +367,8 @@ class TestCLIDatasetCommands:
     """Test CLI dataset commands."""
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.list_datasets")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.list_datasets")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list(self, mock_auth, mock_list_datasets, mock_mlflow_check):
         """Test CLI dataset list command."""
         mock_auth.return_value = True
@@ -390,8 +390,8 @@ class TestCLIDatasetCommands:
         assert "ds-1" in result.output
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.list_datasets")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.list_datasets")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_json(self, mock_auth, mock_list_datasets, mock_mlflow_check):
         """Test CLI dataset list command with JSON output."""
         mock_auth.return_value = True
@@ -414,8 +414,8 @@ class TestCLIDatasetCommands:
         assert len(output_data) == 1
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.list_datasets")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.list_datasets")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_empty(self, mock_auth, mock_list_datasets, mock_mlflow_check):
         """Test CLI dataset list command with no datasets."""
         mock_auth.return_value = True
@@ -428,8 +428,8 @@ class TestCLIDatasetCommands:
         assert "No datasets found" in result.output
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.get_dataset")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.get_dataset")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_show(self, mock_auth, mock_get_dataset, mock_mlflow_check):
         """Test CLI dataset show command."""
         mock_auth.return_value = True
@@ -452,8 +452,8 @@ class TestCLIDatasetCommands:
         assert "ds-1" in result.output
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.get_dataset")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.get_dataset")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_show_not_found(self, mock_auth, mock_get_dataset, mock_mlflow_check):
         """Test CLI dataset show command with non-existent dataset."""
         mock_auth.return_value = True
@@ -466,8 +466,8 @@ class TestCLIDatasetCommands:
         assert "not found" in result.output.lower()
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.upload_dataset")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.upload_dataset")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_upload(self, mock_auth, mock_upload, mock_mlflow_check, tmp_path):
         """Test CLI dataset upload command."""
         mock_auth.return_value = True
@@ -491,8 +491,8 @@ class TestCLIDatasetCommands:
         mock_upload.assert_called_once()
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.download_dataset")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.download_dataset")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_download(self, mock_auth, mock_download, mock_mlflow_check, tmp_path):
         """Test CLI dataset download command."""
         mock_auth.return_value = True
@@ -513,8 +513,8 @@ class TestCLIDatasetCommands:
         mock_download.assert_called_once()
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.download_dataset")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.download_dataset")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_download_not_found(self, mock_auth, mock_download, mock_mlflow_check):
         """Test CLI dataset download command with non-existent dataset."""
         mock_auth.return_value = True
@@ -533,7 +533,7 @@ class TestErrorHandling:
     """Test error handling."""
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_not_authenticated(self, mock_auth, mock_mlflow_check):
         """Test CLI dataset list without authentication (are_credentials_valid returns False)."""
         mock_auth.return_value = False
@@ -545,7 +545,7 @@ class TestErrorHandling:
         assert "Authentication" in result.output or "Not Authenticated" in result.output or "authenticate" in result.output.lower()
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_mlflow_not_available(self, mock_auth, mock_check):
         """Test CLI dataset list without MLflow."""
         mock_auth.return_value = True
@@ -558,8 +558,8 @@ class TestErrorHandling:
         assert "MLflow" in result.output
     
     @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolmai.cli.upload_dataset")
-    @patch("biolmai.cli.are_credentials_valid")
+    @patch("biolm.cli.upload_dataset")
+    @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_upload_file_not_found(self, mock_auth, mock_upload, mock_mlflow_check):
         """Test CLI dataset upload with non-existent file."""
         mock_auth.return_value = True

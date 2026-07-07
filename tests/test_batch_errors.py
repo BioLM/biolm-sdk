@@ -1,7 +1,7 @@
 import pytest
 import sys
 
-from biolmai.core.http import BioLMApiClient
+from biolm.core.http import BioLMApiClient
 
 if sys.version_info < (3, 8):
     from asynctest import CoroutineMock as AsyncMock

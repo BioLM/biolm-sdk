@@ -24,13 +24,13 @@ These files are never listed in a toctree in `index.rst`, so they do not appear 
 |--------|--------|--------|
 | `api-reference/index.rst` | `sdk/api-reference/index.rst` | Both are entry points to the same API reference (both include `api-reference/modules`). Only the SDK one is in the sidebar now. |
 | `tutorials_use_cases/notebooks.rst` | `resources/guides/notebooks.rst` | Same body text (link to jupyter.biolm.ai). First is in toctree; second is orphaned. |
-| `biolmai.io.rst` (root) | `api-reference/biolmai.io.rst` | Identical autodoc content. Only `api-reference/*` is used by the API reference toctree. |
-| `biolmai.core.rst` (root) | `api-reference/biolmai.core.rst` | Same. |
-| `biolmai.core.legacy.rst` (root) | `api-reference/biolmai.core.legacy.rst` | Same. |
+| `biolm.io.rst` (root) | `api-reference/biolm.io.rst` | Identical autodoc content. Only `api-reference/*` is used by the API reference toctree. |
+| `biolm.core.rst` (root) | `api-reference/biolm.core.rst` | Same. |
+| `biolm.core.legacy.rst` (root) | `api-reference/biolm.core.legacy.rst` | Same. |
 
 ## Recommendation
 
 - **Safe to delete** (orphaned duplicates, unused by any toctree):  
-  `docs/biolmai.io.rst`, `docs/biolmai.core.rst`, `docs/biolmai.core.legacy.rst`, `docs/resources/guides/notebooks.rst`.
+  `docs/biolm.io.rst`, `docs/biolm.core.rst`, `docs/biolm.core.legacy.rst`, `docs/resources/guides/notebooks.rst`.
 - **Keep but be aware**: `api-reference/index.rst` is still the target of `:doc:\`api-reference/index\`` from several sdk docs; leave it in place or update those links to `sdk/api-reference/index` and then you could remove `api-reference/index.rst` if you want a single entry point.
 - **cli/usage and cli/overview**: Add them to a toctree (e.g. under CLI with `:maxdepth: 2`) if you want them in the sidebar; otherwise they remain authoring/usage-only.

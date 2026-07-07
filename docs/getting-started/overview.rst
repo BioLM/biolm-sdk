@@ -2,7 +2,7 @@
 Overview
 ========================
 
-The BioLM Python client provides a high-level, user-friendly interface for interacting with the BioLM API. It supports both synchronous and asynchronous usage, automatic batching, flexible error handling, and efficient processing of biological data.
+The BioLM Python SDK (``biolm-sdk``) provides a high-level, user-friendly interface for interacting with the BioLM API and biolm-hub gateways.
 
 Main features:
 

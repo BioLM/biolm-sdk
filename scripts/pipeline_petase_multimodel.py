@@ -18,7 +18,7 @@ Scoring:
   - biolmsol (solubility)
   - esmc-300m (log-probability)
 
-Requires BIOLMAI_TOKEN.
+Requires BIOLM_TOKEN.
 
 Run:
     python scripts/pipeline_petase_multimodel.py
@@ -32,24 +32,24 @@ from pathlib import Path
 
 import pandas as pd
 
-from biolmai.client import BioLMApiClient
-from biolmai.pipeline.data import DataPipeline, EmbeddingSpec
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import (
+from biolm.client import BioLMApiClient
+from biolm.pipeline.data import DataPipeline, EmbeddingSpec
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import (
     RankingFilter,
     SequenceLengthFilter,
     ThresholdFilter,
     ValidAminoAcidFilter,
 )
-from biolmai.pipeline.generative import (
+from biolm.pipeline.generative import (
     DirectGenerationConfig,
     GenerativePipeline,
 )
-from biolmai.pipeline.mlm_remasking import RemaskingConfig
+from biolm.pipeline.mlm_remasking import RemaskingConfig
 
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    print("ERROR: BIOLMAI_TOKEN not set.")
+    print("ERROR: BIOLM_TOKEN not set.")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------

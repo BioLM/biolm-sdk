@@ -15,7 +15,7 @@ Documentation Structure
   - Resources (``docs/resources/``)
 
 **Auto-Generated Documentation:**
-  - CLI reference (``docs/cli/reference.rst``) - Generated from ``biolmai.cli`` using ``sphinx-click``
+  - CLI reference (``docs/cli/reference.rst``) - Generated from ``biolm.cli`` using ``sphinx-click``
   - API reference (``docs/api-reference/``) - Generated from Python code using ``sphinx-apidoc``
   - Protocol YAML reference - Content in ``docs/protocols/``; full JSON Schema in :doc:`protocols/schema`
 
@@ -30,9 +30,9 @@ CLI Documentation
   - ``docs/cli/usage/*.rst`` - Usage guides for each topic (authenticating, workspaces, models, protocols, datasets)
 
 **Auto-generated:**
-  - ``docs/cli/reference.rst`` - Command reference (uses ``sphinx-click`` directives pointing to ``biolmai.cli``)
+  - ``docs/cli/reference.rst`` - Command reference (uses ``sphinx-click`` directives pointing to ``biolm.cli``)
 
-**Note:** The CLI reference page uses ``.. click::`` directives that pull documentation from the Click command definitions in ``biolmai/cli.py``. To update command documentation, edit the docstrings and help text in the CLI code.
+**Note:** The CLI reference page uses ``.. click::`` directives that pull documentation from the Click command definitions in ``biolm/cli.py``. To update command documentation, edit the docstrings and help text in the CLI code.
 
 SDK Documentation
 ~~~~~~~~~~~~~~~~~
@@ -44,7 +44,7 @@ SDK Documentation
 **Auto-generated:**
   - ``docs/api-reference/`` - API reference (generated from Python docstrings using ``sphinx-apidoc``)
 
-**Note:** The API reference is generated from docstrings in the Python code. To update API documentation, edit docstrings in ``biolmai/*.py`` files.
+**Note:** The API reference is generated from docstrings in the Python code. To update API documentation, edit docstrings in ``biolm/*.py`` files.
 
 Protocol Schema Documentation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

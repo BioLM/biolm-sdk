@@ -11,10 +11,10 @@ from unittest.mock import AsyncMock, patch
 import pandas as pd
 import pytest
 
-from biolmai.pipeline.base import WorkingSet
-from biolmai.pipeline.data import DataPipeline, FilterStage, PipelineAPIAuthError, PredictionStage
-from biolmai.pipeline.datastore import DataStore
-from biolmai.pipeline.filters import ThresholdFilter
+from biolm.pipeline.base import WorkingSet
+from biolm.pipeline.data import DataPipeline, FilterStage, PipelineAPIAuthError, PredictionStage
+from biolm.pipeline.datastore import DataStore
+from biolm.pipeline.filters import ThresholdFilter
 
 
 @pytest.fixture
@@ -443,7 +443,7 @@ class TestBranchedDAG:
 
     def test_get_stage_input_ws_typo_raises(self, tmp_path, datastore):
         """A typoed depends_on must raise instead of silently using the root WS."""
-        from biolmai.pipeline.base import Stage, WorkingSet
+        from biolm.pipeline.base import Stage, WorkingSet
 
         pipeline = DataPipeline(
             sequences=["MKLLIV", "ACDEFG"],
@@ -463,7 +463,7 @@ class TestBranchedDAG:
 
     def test_get_stage_input_ws_intersect(self, tmp_path, datastore):
         """When a stage has multiple deps, _get_stage_input_ws returns their intersection."""
-        from biolmai.pipeline.base import Stage, WorkingSet
+        from biolm.pipeline.base import Stage, WorkingSet
 
         pipeline = DataPipeline(
             sequences=["MKLLIV"],
@@ -539,7 +539,7 @@ class TestDatastoreLifecycle:
     """C2: auto-created datastores close on __del__, user-provided ones do not."""
 
     def test_user_datastore_survives_pipeline_gc(self, tmp_path):
-        from biolmai.pipeline.datastore_duckdb import DuckDBDataStore as DataStore
+        from biolm.pipeline.datastore_duckdb import DuckDBDataStore as DataStore
         ds = DataStore(db_path=tmp_path / "shared.db", data_dir=tmp_path / "shared")
         ds.add_sequence("MKLLIV")
         pipeline = DataPipeline(

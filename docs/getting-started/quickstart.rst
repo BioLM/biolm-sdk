@@ -8,13 +8,13 @@ Install the package:
 
 .. code-block:: bash
 
-    pip install biolmai
+    pip install biolm-sdk
 
 Basic usage (one-off calls with ``biolm()``). These calls are synchronous (blocking) but use an async backend internally, so you get concurrent batch performance without writing async code.
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
 
     # Encode a single sequence
     result = biolm(entity="esm2-8m", action="encode", type="sequence", items="MSILVTRPSPAGEEL")
@@ -37,7 +37,7 @@ Basic usage (one-off calls with ``biolm()``). These calls are synchronous (block
 
 .. code-block:: python
 
-    from biolmai import Model
+    from biolm import Model
 
     model = Model("esm2-8m")
     result = model.encode(type="sequence", items="MSILVTRPSPAGEEL")

@@ -1,0 +1,35 @@
+[
+  {
+    "model_slug": "esm2-8m",
+    "model_name": "ESM2 8M",
+    "slug": "esm2-8m",
+    "name": "ESM2 8M",
+    "encoder": true,
+    "predictor": false,
+    "generator": false,
+    "actions": ["encode"],
+    "description": "Small ESM2 protein language model for embeddings."
+  },
+  {
+    "model_slug": "esmfold",
+    "model_name": "ESMFold",
+    "slug": "esmfold",
+    "name": "ESMFold",
+    "encoder": false,
+    "predictor": true,
+    "generator": false,
+    "actions": ["predict"],
+    "description": "Fast protein structure prediction from sequence."
+  },
+  {
+    "model_slug": "progen2-large",
+    "model_name": "ProGen2 Large",
+    "slug": "progen2-large",
+    "name": "ProGen2 Large",
+    "encoder": false,
+    "predictor": false,
+    "generator": true,
+    "actions": ["generate"],
+    "description": "Protein sequence generation model."
+  }
+]

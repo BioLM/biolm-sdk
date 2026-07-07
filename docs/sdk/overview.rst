@@ -9,7 +9,7 @@ The BioLM Python SDK lets you call BioLM models from Python with minimal setup: 
 
 .. code-block:: python
 
-    from biolmai import biolm
+    from biolm import biolm
 
     # Encode a sequence (e.g. ESM2-8M)
     result = biolm(entity="esm2-8m", action="encode", type="sequence", items="MSILVTRPSPAGEEL")

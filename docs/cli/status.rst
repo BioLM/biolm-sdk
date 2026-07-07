@@ -1,4 +1,4 @@
-``biolmai status``
+``biolm status``
 ==================
 
 Show authentication status.
@@ -8,12 +8,12 @@ Usage
 
 .. code-block:: bash
 
-   biolmai status
+   biolm status
 
 Displays whether you are logged in and where credentials are stored.
 
 Command Reference
 -----------------
 
-.. click:: biolmai.cli:status
-   :prog: biolmai status
+.. click:: biolm.cli:status
+   :prog: biolm status

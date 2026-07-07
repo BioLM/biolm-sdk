@@ -9,7 +9,7 @@ import unittest
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline.filters import RankingFilter
+from biolm.pipeline.filters import RankingFilter
 
 
 class TestRankingFilter(unittest.TestCase):
@@ -144,7 +144,7 @@ class TestResamplingFlag(unittest.TestCase):
 
     def test_resample_true(self):
         """Test with resample=True (default)."""
-        from biolmai.pipeline.filters import DiversitySamplingFilter
+        from biolm.pipeline.filters import DiversitySamplingFilter
 
         filter_obj = DiversitySamplingFilter(
             n_samples=10, method="random", resample=True
@@ -174,7 +174,7 @@ class TestResamplingFlag(unittest.TestCase):
 
     def test_resample_false(self):
         """Test with resample=False."""
-        from biolmai.pipeline.filters import DiversitySamplingFilter
+        from biolm.pipeline.filters import DiversitySamplingFilter
 
         filter_obj = DiversitySamplingFilter(
             n_samples=10, method="random", resample=False, random_seed=42

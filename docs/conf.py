@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# biolmai documentation build configuration file, created by
+# biolm-sdk documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  9 13:47:02 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -23,9 +23,21 @@ iframe_mode = os.environ.get('IFRAME_MODE', '0') == '1'
 # relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
 #
-# Add parent directory to sys.path so Sphinx can import biolmai
+# Add parent directory to sys.path so Sphinx can import biolm
 import sys
 sys.path.insert(0, os.path.abspath('..'))
+
+
+def _sphinx_builder_name():
+    """Return the Sphinx builder from the current invocation, if present."""
+    argv = sys.argv
+    for i, arg in enumerate(argv):
+        if arg in ("-b", "--builder", "-M") and i + 1 < len(argv):
+            return argv[i + 1]
+        if arg.startswith("-b") and len(arg) > 2:
+            return arg[2:]
+    return None
+
 
 # -- General configuration ---------------------------------------------
 
@@ -50,6 +62,17 @@ extensions = [
     "sphinx_click",
 ]
 
+# These extensions hook HTML page rendering and break ``sphinx-build -b json``.
+_JSON_INCOMPATIBLE_EXTENSIONS = (
+    "sphinxext.opengraph",
+    "sphinx_reredirects",
+    "sphinx_new_tab_link",
+)
+if _sphinx_builder_name() == "json":
+    extensions = [
+        ext for ext in extensions if ext not in _JSON_INCOMPATIBLE_EXTENSIONS
+    ]
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -70,7 +93,7 @@ author = "Nikhil Haas"
 # for |version| and |release|, also used in various other places throughout
 # the built documents.
 #
-from biolmai import __version__
+from biolm import __version__
 
 # The short X.Y version.
 version = __version__
@@ -229,7 +252,7 @@ html_theme_options.update({
 # -- Options for HTMLHelp output ---------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "biolmaidoc"
+htmlhelp_basename = "biolmsdkdoc"
 
 
 # -- Options for LaTeX output ------------------------------------------
@@ -253,7 +276,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "biolmai.tex", "BioLM AI Documentation", "Nikhil Haas", "manual"),
+    (master_doc, "biolmsdk.tex", "BioLM AI Documentation", "Nikhil Haas", "manual"),
 ]
 
 
@@ -261,7 +284,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "biolmai", "BioLM AI Documentation", [author], 1)]
+man_pages = [(master_doc, "biolm-sdk", "BioLM AI Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------
@@ -272,10 +295,10 @@ man_pages = [(master_doc, "biolmai", "BioLM AI Documentation", [author], 1)]
 texinfo_documents = [
     (
         master_doc,
-        "biolmai",
+        "biolm-sdk",
         "BioLM AI Documentation",
         author,
-        "biolmai",
+        "biolm-sdk",
         "One line description of project.",
         "Miscellaneous",
     ),

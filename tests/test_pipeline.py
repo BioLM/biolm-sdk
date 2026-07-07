@@ -12,10 +12,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from biolmai.pipeline import DataPipeline, SingleStepPipeline
-from biolmai.pipeline.base import Stage, StageResult, WorkingSet
-from biolmai.pipeline.datastore_duckdb import DuckDBDataStore
-from biolmai.pipeline.filters import SequenceLengthFilter
+from biolm.pipeline import DataPipeline, SingleStepPipeline
+from biolm.pipeline.base import Stage, StageResult, WorkingSet
+from biolm.pipeline.datastore_duckdb import DuckDBDataStore
+from biolm.pipeline.filters import SequenceLengthFilter
 
 
 class MockPredictionStage(Stage):
@@ -383,7 +383,7 @@ class TestPipelineInputFormats(unittest.TestCase):
 
     def test_fasta_input(self):
         """Test FASTA input."""
-        from biolmai.pipeline.utils import write_fasta
+        from biolm.pipeline.utils import write_fasta
 
         sequences = ["MKTAYIAKQRQ", "MKLAVIDSAQ"]
         fasta_path = Path(self.test_dir) / "sequences.fasta"
@@ -430,8 +430,8 @@ class TestPipelineDeduplication(unittest.TestCase):
 
     def test_filter_stage_inherits_streamability(self):
         """FilterStage.requires_complete_data mirrors the wrapped filter."""
-        from biolmai.pipeline.data import FilterStage
-        from biolmai.pipeline.filters import RankingFilter, ThresholdFilter
+        from biolm.pipeline.data import FilterStage
+        from biolm.pipeline.filters import RankingFilter, ThresholdFilter
 
         t_stage = FilterStage(name="t", filter_func=ThresholdFilter("col"))
         r_stage = FilterStage(name="r", filter_func=RankingFilter("col", n=5))
@@ -440,8 +440,8 @@ class TestPipelineDeduplication(unittest.TestCase):
 
     def test_can_stream_to_next(self):
         """_can_stream_to_next() correctly identifies streaming opportunities."""
-        from biolmai.pipeline.data import FilterStage, PredictionStage
-        from biolmai.pipeline.filters import RankingFilter, ThresholdFilter
+        from biolm.pipeline.data import FilterStage, PredictionStage
+        from biolm.pipeline.filters import RankingFilter, ThresholdFilter
 
         ds = DuckDBDataStore(
             db_path=Path(self.test_dir) / "stream.duckdb",

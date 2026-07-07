@@ -16,7 +16,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     CONSERVATIVE_CONFIG,
     MODERATE_CONFIG,
     DataPipeline,
@@ -60,7 +60,7 @@ def example_2_flattened_sampling_params():
     print("Example 2: Flattened Sampling Parameters")
     print("=" * 60)
 
-    from biolmai.pipeline import DataStore
+    from biolm.pipeline import DataStore
 
     store = DataStore("example_sampling.db", "example_sampling_data")
 
@@ -120,7 +120,7 @@ def example_3_ranking_filter():
     print(f"Starting with {len(df)} sequences")
 
     # Top 10 by Tm
-    from biolmai.pipeline.filters import RankingFilter
+    from biolm.pipeline.filters import RankingFilter
 
     filter1 = RankingFilter("tm", n=10, ascending=False)
     df_top10 = filter1(df)
@@ -276,7 +276,7 @@ def example_6_full_pipeline_with_new_features():
 
     # Stage 2: Rank and select top 10 by Tm (depends on predictions)
     print("2. Adding ranking filter...")
-    from biolmai.pipeline.filters import RankingFilter
+    from biolm.pipeline.filters import RankingFilter
 
     pipeline.add_filter(
         RankingFilter("tm", n=10, ascending=False),

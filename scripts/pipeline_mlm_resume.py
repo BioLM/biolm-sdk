@@ -37,7 +37,7 @@ so cache hits are automatic across runs.
 
 Usage
 -----
-    export BIOLMAI_TOKEN=<your_token>
+    export BIOLM_TOKEN=<your_token>
     python scripts/pipeline_mlm_resume.py
 
 Outputs (outputs/mlm_resume/):
@@ -49,21 +49,21 @@ import asyncio
 import os
 from pathlib import Path
 
-from biolmai.pipeline import (
+from biolm.pipeline import (
     DirectGenerationConfig,
     DuckDBDataStore,
     GenerativePipeline,
     ThresholdFilter,
     ValidAminoAcidFilter,
 )
-from biolmai.pipeline.data import DataPipeline, PredictionStage
+from biolm.pipeline.data import DataPipeline, PredictionStage
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    raise RuntimeError("Set BIOLMAI_TOKEN env var before running")
+    raise RuntimeError("Set BIOLM_TOKEN env var before running")
 
 OUTPUT_DIR = Path("outputs/mlm_resume")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

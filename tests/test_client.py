@@ -3,10 +3,10 @@ import logging
 
 import pytest
 
-from biolmai import biolm
-from biolmai.biolmai import BioLM
-from biolmai.core.http import BioLMApi
-from biolmai.models import Model
+from biolm import biolm
+from biolm.client import BioLM
+from biolm.core.http import BioLMApi
+from biolm.models import Model
 
 LOGGER = logging.getLogger(__name__)
 
@@ -349,7 +349,7 @@ def test_disk_output_skip_file_with_invalid_json(tmp_path, model):
 
 def test_disk_output_skip_biolm_wrapper(tmp_path):
     """Test that BioLM high-level wrapper also respects overwrite parameter."""
-    from biolmai.biolmai import BioLM
+    from biolm.client import BioLM
     file_path = tmp_path / "biolm_wrapper.jsonl"
     
     # First, write some data to the file

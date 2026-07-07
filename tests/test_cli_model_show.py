@@ -7,7 +7,7 @@ from unittest.mock import patch, AsyncMock
 import pytest
 from click.testing import CliRunner
 
-from biolmai.cli import cli
+from biolm.cli import cli
 
 
 @pytest.fixture
@@ -32,7 +32,7 @@ def mock_models(mock_model):
 class TestModelShow:
     """Test biolm model show command."""
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     def test_show_model_basic(self, mock_list_models, mock_models):
         """Test basic model show."""
         mock_list_models.return_value = mock_models
@@ -44,7 +44,7 @@ class TestModelShow:
         assert 'ESM2-8M' in result.output
         assert 'esm2-8m' in result.output
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     def test_show_model_not_found(self, mock_list_models):
         """Test showing non-existent model."""
         mock_list_models.return_value = []
@@ -56,7 +56,7 @@ class TestModelShow:
         # CLI may show "not found" or "could not fetch models"
         assert 'not found' in result.output.lower() or 'could not fetch' in result.output.lower()
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     def test_show_model_json_output(self, mock_list_models, mock_models):
         """Test JSON output format."""
         mock_list_models.return_value = mock_models
@@ -69,7 +69,7 @@ class TestModelShow:
         output_data = json.loads(result.output)
         assert 'model_name' in output_data or 'model_slug' in output_data
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     def test_show_model_save_to_file(self, mock_list_models, mock_models):
         """Test saving output to file."""
         mock_list_models.return_value = mock_models
@@ -91,7 +91,7 @@ class TestModelShow:
         finally:
             Path(output_file).unlink()
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     @patch('biolmai.core.http.BioLMApiClient')
     def test_show_model_with_schemas(self, mock_client_class, mock_list_models, mock_models):
         """Test showing model with schemas."""
@@ -109,7 +109,7 @@ class TestModelShow:
         assert result.exit_code == 0
         assert 'ESM2-8M' in result.output
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     def test_show_model_by_name(self, mock_list_models, mock_models):
         """Test finding model by name instead of slug."""
         mock_list_models.return_value = mock_models
@@ -120,7 +120,7 @@ class TestModelShow:
         assert result.exit_code == 0
         assert 'ESM2-8M' in result.output
     
-    @patch('biolmai.cli.list_models')
+    @patch('biolm.cli.list_models')
     def test_show_model_network_error(self, mock_list_models):
         """Test handling network errors."""
         mock_list_models.side_effect = Exception("Network error")

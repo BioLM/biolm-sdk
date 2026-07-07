@@ -1,11 +1,11 @@
 """Integration tests for different authentication methods.
 
 These tests make real API requests using:
-- BIOLMAI_TOKEN (API token auth) - standard CI path
+- BIOLM_TOKEN (API token auth) - standard CI path
 - Access/refresh tokens from credentials file (Cookie auth) - obtained via BIOLM_USER/BIOLM_PASSWORD
   at /api/auth/token/ (username+password)
 
-Note: There is no endpoint that exchanges BIOLMAI_TOKEN for access/refresh tokens. They are
+Note: There is no endpoint that exchanges BIOLM_TOKEN for access/refresh tokens. They are
 separate auth mechanisms. Access/refresh tokens come from username/password or OAuth only.
 
 OAuth (browser PKCE flow) cannot be automated in CI since it requires user interaction.
@@ -19,7 +19,7 @@ from unittest.mock import patch
 
 import pytest
 
-from biolmai.core.auth import generate_access_token
+from biolm.core.auth import generate_access_token
 
 
 def _has_credential_env() -> bool:
@@ -43,7 +43,7 @@ async def test_api_request_with_access_refresh_tokens():
             "Set these in CI secrets or skip this test locally."
         )
 
-    from biolmai.core.http import BioLMApiClient
+    from biolm.core.http import BioLMApiClient
 
     # 1. Obtain access/refresh tokens via username/password
     token_response = generate_access_token(
@@ -141,7 +141,7 @@ def test_credentials_file_auth_headers():
         old_biom_token = os.environ.pop("BIOLM_TOKEN", None)
         try:
             with patch("biolmai.core.http.ACCESS_TOK_PATH", str(cred_path)):
-                from biolmai.core.http import CredentialsProvider
+                from biolm.core.http import CredentialsProvider
 
                 headers = CredentialsProvider.get_auth_headers(api_key=None)
                 # Client uses Cookie for credentials file (legacy and OAuth alike)

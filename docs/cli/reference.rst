@@ -9,6 +9,6 @@ All commands and their options are documented here.
 Main CLI Commands
 -----------------
 
-.. click:: biolmai.cli:cli
-   :prog: biolmai
+.. click:: biolm.cli:cli
+   :prog: biolm
    :show-nested:

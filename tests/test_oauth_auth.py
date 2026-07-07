@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 import requests
 
-from biolmai.core.auth import (
+from biolm.core.auth import (
     _b64url,
     _gen_pkce_pair,
     are_credentials_valid,
@@ -17,7 +17,7 @@ from biolmai.core.auth import (
     parse_credentials_file,
     save_access_refresh_token,
 )
-from biolmai.core.const import ACCESS_TOK_PATH, OAUTH_REDIRECT_URI
+from biolm.core.const import ACCESS_TOK_PATH, OAUTH_REDIRECT_URI
 
 
 class TestPKCEHelpers:
@@ -260,7 +260,7 @@ class TestTokenRefresh:
 
     def test_refresh_without_secret(self):
         """Test that refresh works without client_secret (public client)."""
-        from biolmai.core.seqflow_auth import BiolmaiRequestHeaderProvider
+        from biolm.core.seqflow_auth import BiolmaiRequestHeaderProvider
         
         provider = BiolmaiRequestHeaderProvider()
         

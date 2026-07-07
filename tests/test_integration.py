@@ -2,7 +2,7 @@
 
 import pytest
 
-from biolmai.core.http import BioLMApiClient
+from biolm.core.http import BioLMApiClient
 
 # ---------------------------------------------------------------------------
 # Minimal payload builders (items + optional params) for each model/action.

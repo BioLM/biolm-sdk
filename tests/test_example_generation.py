@@ -4,8 +4,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from typing import Dict, Any
 
-from biolmai.examples import ExampleGenerator, get_example, list_models
-from biolmai.models import Model
+from biolm.examples import ExampleGenerator, get_example, list_models
+from biolm.models import Model
 
 
 # Mock data for testing
@@ -140,7 +140,9 @@ def mock_model_schema_generate():
 @pytest.mark.asyncio
 async def test_fetch_community_models_success(mock_community_models_response):
     """Test successful fetching of community models."""
-    with patch('biolmai.examples.httpx.AsyncClient') as mock_client:
+    with patch("biolm.core.const.is_hub_mode", return_value=False), patch(
+        "biolmai.examples.httpx.AsyncClient"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = mock_community_models_response
@@ -163,7 +165,9 @@ async def test_fetch_community_models_success(mock_community_models_response):
 @pytest.mark.asyncio
 async def test_fetch_community_models_empty():
     """Test handling of empty response."""
-    with patch('biolmai.examples.httpx.AsyncClient') as mock_client:
+    with patch("biolm.core.const.is_hub_mode", return_value=False), patch(
+        "biolmai.examples.httpx.AsyncClient"
+    ) as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = []
@@ -217,7 +221,7 @@ async def test_get_model_schema_not_found():
 
 def test_extract_input_type_sequence(mock_model_schema_encode):
     """Test extraction of input type from schema."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     input_type = generator._extract_input_type(mock_model_schema_encode)
     assert input_type == 'sequence'
@@ -226,7 +230,7 @@ def test_extract_input_type_sequence(mock_model_schema_encode):
 
 def test_extract_input_type_context(mock_model_schema_generate):
     """Test extraction of context input type."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     input_type = generator._extract_input_type(mock_model_schema_generate)
     assert input_type == 'context'
@@ -235,7 +239,7 @@ def test_extract_input_type_context(mock_model_schema_generate):
 
 def test_get_sample_input():
     """Test sample input generation."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     assert generator._get_sample_input('sequence', 'encode') == 'MSILVTRPSPAGEEL'
@@ -248,7 +252,7 @@ def test_get_sample_input():
 
 def test_generate_python_example(mock_model_schema_encode):
     """Test Python example generation."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_python_example(
@@ -258,18 +262,18 @@ def test_generate_python_example(mock_model_schema_encode):
         schema=mock_model_schema_encode
     )
     
-    assert "from biolmai import Model" in example
+    assert "from biolm import Model" in example
     assert "Model(\"esm2-8m\")" in example
     assert "model.encode" in example
     # Should be a single, simple example (not multiple variations)
-    assert example.count("from biolmai import Model") == 1
+    assert example.count("from biolm import Model") == 1
     
     generator.shutdown()
 
 
 def test_generate_markdown_example():
     """Test Markdown example generation."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_markdown_example(
@@ -280,14 +284,14 @@ def test_generate_markdown_example():
     
     assert "## esm2-8m - encode" in example
     assert "```python" in example
-    assert "from biolmai import Model" in example
+    assert "from biolm import Model" in example
     
     generator.shutdown()
 
 
 def test_generate_rst_example():
     """Test RST example generation."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_rst_example(
@@ -298,14 +302,14 @@ def test_generate_rst_example():
     
     assert "esm2-8m - encode" in example
     assert ".. code-block:: python" in example
-    assert "from biolmai import Model" in example
+    assert "from biolm import Model" in example
     
     generator.shutdown()
 
 
 def test_generate_json_example():
     """Test JSON example generation."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_json_example(
@@ -318,7 +322,7 @@ def test_generate_json_example():
     assert data['model'] == 'esm2-8m'
     assert data['action'] == 'encode'
     assert 'code' in data
-    assert 'from biolmai import Model' in data['code']
+    assert 'from biolm import Model' in data['code']
     
     generator.shutdown()
 
@@ -332,7 +336,7 @@ async def test_generate_example_with_schema(mock_model_schema_encode):
         generator = ExampleGenerator()
         example = await generator.generate_example("esm2-8m", "encode", "python")
         
-        assert "from biolmai import Model" in example
+        assert "from biolm import Model" in example
         assert "esm2-8m" in example
         assert "encode" in example
         
@@ -349,7 +353,7 @@ async def test_generate_example_without_schema():
         example = await generator.generate_example("esm2-8m", "encode", "python")
         
         # Should still generate example with defaults
-        assert "from biolmai import Model" in example
+        assert "from biolm import Model" in example
         assert "esm2-8m" in example
         
         await generator.shutdown()
@@ -420,7 +424,7 @@ def test_model_get_examples():
 
 def test_example_with_parameters(mock_model_schema_generate):
     """Test example generation includes parameters when schema has them."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_python_example(
@@ -438,7 +442,7 @@ def test_example_with_parameters(mock_model_schema_generate):
 
 def test_example_formats(mock_model_schema_encode):
     """Test all output formats are valid."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     # Test format methods directly (they're not async)
@@ -473,7 +477,7 @@ def test_example_formats(mock_model_schema_encode):
 
 def test_example_error_handling():
     """Test error handling in example generation."""
-    from biolmai.examples import ExampleGeneratorSync
+    from biolm.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     # Should handle None schema gracefully
@@ -484,7 +488,7 @@ def test_example_error_handling():
         schema=None
     )
     
-    assert "from biolmai import Model" in example
+    assert "from biolm import Model" in example
     assert len(example) > 0
     
     generator.shutdown()

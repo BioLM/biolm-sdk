@@ -2,10 +2,10 @@
 
 import pytest
 
-from biolmai import biolm
-from biolmai.biolmai import BioLM
-from biolmai.core.http import BioLMApi, BioLMApiClient
-from biolmai.models import Model
+from biolm import biolm
+from biolm.client import BioLM
+from biolm.core.http import BioLMApi, BioLMApiClient
+from biolm.models import Model
 
 
 def _gen_dicts(n):
