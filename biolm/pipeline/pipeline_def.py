@@ -178,7 +178,12 @@ def filter_from_spec(spec: dict) -> "BaseFilter":
 
 def _config_from_spec(spec: dict) -> Any:
     """Reconstruct a generation config object from its ``to_spec()`` dict."""
-    from biolm.pipeline.generative import DirectGenerationConfig, SequenceSourceConfig
+    from biolm.pipeline.generative import (
+        DirectGenerationConfig,
+        IterativeMaskingDMSConfig,
+        SaturationMutagenesisConfig,
+        SequenceSourceConfig,
+    )
     from biolm.pipeline.mlm_remasking import RemaskingConfig
 
     ctype = spec.get("type")

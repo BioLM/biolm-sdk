@@ -96,6 +96,7 @@ dependencies = [
     "rich>=13.0.0",
     "pyyaml>=5.0",
     "jsonschema>=4.0,<5",
+    "websockets>=11.0",
 ]
 scripts = { biolm = "biolm.cli_entry:cli", biolmai = "biolm.cli_entry:cli" }
 

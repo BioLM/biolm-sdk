@@ -7,6 +7,13 @@ from biolm.core.http import BioLMApi, BioLMApiClient
 from biolm.client import BioLM
 from biolm.models import Model, predict, encode, generate
 from biolm.protocols import Protocol
+from biolm.finetune import Finetune
+from biolm.protocol_runs import (
+    ProtocolClient,
+    ProtocolRun,
+    ProtocolRunError,
+    ProtocolNotFoundError,
+)
 from biolm.workspaces import Workspace
 from biolm.volumes import Volume
 from biolm.examples import get_example, list_models
@@ -36,8 +43,14 @@ __all__ = [
     'BioLMApiClient',
     'Model',
     'Protocol',
+    'Finetune',
     'Workspace',
     'Volume',
+    'ProtocolClient',
+    'ProtocolRun',
+    'ProtocolRunError',
+    'ProtocolNotFoundError',
+    'run_protocol',
     'predict',
     'encode',
     'generate',
@@ -54,6 +67,27 @@ __all__ = [
 ]
 if _HAS_PIPELINE:
     __all__.append('pipeline')
+
+
+def run_protocol(
+    slug: str,
+    inputs: dict,
+    *,
+    run_name: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
+    timeout: float = 3600.0,
+    show_progress: bool = True,
+) -> dict:
+    """Submit a BioLM protocol run and block until results are ready."""
+    client = ProtocolClient(api_key=api_key, base_url=base_url)
+    return client.run_and_wait(
+        slug,
+        inputs,
+        run_name=run_name,
+        timeout=timeout,
+        show_progress=show_progress,
+    )
 
 
 def biolm(
