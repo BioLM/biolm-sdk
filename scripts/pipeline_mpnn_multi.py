@@ -22,7 +22,7 @@ Generation (all 15 configs fired in parallel):
 
 Usage
 -----
-    export BIOLMAI_TOKEN=<your_token>
+    export BIOLM_TOKEN=<your_token>
     export MPNN_STRUCTURE_PATH=/path/to/protein.pdb
     python scripts/pipeline_mpnn_multi.py
 
@@ -46,9 +46,9 @@ from biolm.pipeline import (
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    raise RuntimeError("Set BIOLMAI_TOKEN env var before running")
+    raise RuntimeError("Set BIOLM_TOKEN env var before running")
 
 STRUCTURE_PATH = os.environ.get("MPNN_STRUCTURE_PATH", "examples/protein.pdb")
 

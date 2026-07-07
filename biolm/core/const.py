@@ -28,6 +28,11 @@ def _env_bool(name: str, *legacy_names: str) -> bool:
     return str(val).lower() in ("true", "1", "yes")
 
 
+def get_env_api_token() -> str:
+    """Return API token from BIOLM_TOKEN, or deprecated BIOLMAI_TOKEN."""
+    return _env("BIOLM_TOKEN", "BIOLMAI_TOKEN")
+
+
 def _ensure_scheme(domain: str) -> str:
     if domain and not domain.startswith(("http://", "https://")):
         return f"http://{domain}"

@@ -2,7 +2,7 @@
 Simple Pipeline Example
 
 This example demonstrates basic usage of the pipeline system.
-All examples make live API calls — requires BIOLMAI_TOKEN in environment.
+All examples make live API calls — requires BIOLM_TOKEN in environment.
 """
 
 import traceback

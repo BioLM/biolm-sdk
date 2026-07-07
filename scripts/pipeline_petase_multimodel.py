@@ -18,7 +18,7 @@ Scoring:
   - biolmsol (solubility)
   - esmc-300m (log-probability)
 
-Requires BIOLMAI_TOKEN.
+Requires BIOLM_TOKEN.
 
 Run:
     python scripts/pipeline_petase_multimodel.py
@@ -47,9 +47,9 @@ from biolm.pipeline.generative import (
 )
 from biolm.pipeline.mlm_remasking import RemaskingConfig
 
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    print("ERROR: BIOLMAI_TOKEN not set.")
+    print("ERROR: BIOLM_TOKEN not set.")
     sys.exit(1)
 
 # ---------------------------------------------------------------------------

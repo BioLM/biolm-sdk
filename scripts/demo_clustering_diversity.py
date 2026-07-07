@@ -8,7 +8,7 @@ Demonstrates:
   5. PCA visualization colored by cluster
 
 Usage:
-    export BIOLMAI_TOKEN=<your_token>
+    export BIOLM_TOKEN=<your_token>
     python scripts/demo_clustering_diversity.py
 """
 
@@ -27,9 +27,9 @@ from biolm.pipeline import (
     ValidAminoAcidFilter,
 )
 
-TOKEN = os.environ.get("BIOLMAI_TOKEN", "")
+TOKEN = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
 if not TOKEN:
-    print("ERROR: BIOLMAI_TOKEN not set.")
+    print("ERROR: BIOLM_TOKEN not set.")
     sys.exit(1)
 
 OUTPUT_DIR = Path("outputs/clustering_demo")

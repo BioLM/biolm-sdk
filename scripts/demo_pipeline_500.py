@@ -1,7 +1,7 @@
 """
 Demo pipeline: real predictions with temberture-regression (Tm) + biolmsol (solubility).
 
-Uses BIOLMAI_TOKEN from the environment for live API calls.
+Uses BIOLM_TOKEN from the environment for live API calls.
 
 Run:
     python scripts/demo_pipeline_500.py
@@ -181,9 +181,9 @@ def build_pipeline(db_path: Path, data_dir: Path, run_id: str, resume: bool = Fa
 
 
 async def main():
-    token = os.environ.get("BIOLMAI_TOKEN", "")
+    token = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or ""
     if not token:
-        raise RuntimeError("BIOLMAI_TOKEN not set — source your .zshrc first")
+        raise RuntimeError("BIOLM_TOKEN not set — source your .zshrc first")
 
     print(f"Running real pipeline on {len(SEQUENCES)} sequences")
     print("Models: temberture-regression (Tm °C) + biolmsol (solubility)")

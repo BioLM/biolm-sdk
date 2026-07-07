@@ -55,7 +55,7 @@ if os.environ.get("DEBUG", '').upper().strip() in ('TRUE', '1'):
         force=True,  # Python 3.8+
     )
 
-from biolm.core.const import BIOLM_BASE_API_URL, ACCESS_TOK_PATH
+from biolm.core.const import BIOLM_BASE_API_URL, ACCESS_TOK_PATH, get_env_api_token
 from biolm.core.utils import is_list_of_lists, batch_iterable
 
 TIMEOUT_MINS = 20  # Match API server's keep-alive/timeout
@@ -455,7 +455,7 @@ class CredentialsProvider:
     def get_auth_headers(api_key: Optional[str] = None) -> Dict[str, str]:
         if api_key:
             return {"Authorization": f"Token {api_key}"}
-        api_token = os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN") or os.environ.get("BIOLM_TOKEN")
+        api_token = get_env_api_token()
         if api_token:
             return {"Authorization": f"Token {api_token}"}
         if os.path.exists(ACCESS_TOK_PATH):

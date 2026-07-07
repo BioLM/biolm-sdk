@@ -37,7 +37,7 @@ jobs:
       env:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
         BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
-        BIOLMAI_TOKEN: ${{ secrets.BIOLMAI_TOKEN }}
+        BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
         BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
         RS: ${{ secrets.RS || '12345679' }}
       run: |
@@ -76,7 +76,7 @@ jobs:
       env:
         BIOLM_USER: ${{ secrets.BIOLM_USER }}
         BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
-        BIOLMAI_TOKEN: ${{ secrets.BIOLMAI_TOKEN }}
+        BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
         BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
         RS: ${{ secrets.RS || '12345679' }}
       run: |

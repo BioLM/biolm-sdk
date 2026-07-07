@@ -67,6 +67,27 @@ def test_hub_config_file_sets_api_url(monkeypatch, tmp_path):
     assert const.get_model_api_source() == "hub config"
 
 
+def test_legacy_biolmai_token_warns(monkeypatch):
+    monkeypatch.delenv("BIOLM_TOKEN", raising=False)
+    monkeypatch.delenv("BIOLMAI_TOKEN", raising=False)
+    monkeypatch.setenv("BIOLMAI_TOKEN", "test-token-abc")
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        from biolm.core.const import get_env_api_token
+
+        token = get_env_api_token()
+    assert token == "test-token-abc"
+    assert any("BIOLMAI_TOKEN" in str(w.message) for w in caught)
+
+
+def test_biolm_token_preferred_over_legacy(monkeypatch):
+    monkeypatch.setenv("BIOLM_TOKEN", "canonical")
+    monkeypatch.setenv("BIOLMAI_TOKEN", "legacy")
+    from biolm.core.const import get_env_api_token
+
+    assert get_env_api_token() == "canonical"
+
+
 def test_legacy_biolmai_domain_warns(monkeypatch):
     for key in (
         "BIOLM_BASE_DOMAIN",
