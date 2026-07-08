@@ -111,12 +111,13 @@ class TestProtocolClient:
 
         mock_cls, mock_http = _patch_httpx_client("get", _mock_response(200, {}))
         with patch("httpx.Client", mock_cls):
-            with pytest.raises(ValueError, match="BIOLMAI_TOKEN"):
+            with pytest.raises(ValueError, match="BIOLM_TOKEN"):
                 client._get("")
 
     def test_token_from_env(self, monkeypatch):
-        """BIOLMAI_TOKEN env var is used in the Authorization header."""
-        monkeypatch.setenv("BIOLMAI_TOKEN", "env-token-123")
+        """BIOLM_TOKEN env var is used in the Authorization header."""
+        monkeypatch.delenv("BIOLMAI_TOKEN", raising=False)
+        monkeypatch.setenv("BIOLM_TOKEN", "env-token-123")
         client = ProtocolClient()
 
         resp = _mock_response(200, {"count": 0, "results": []})
@@ -128,9 +129,25 @@ class TestProtocolClient:
         headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers", {})
         assert headers.get("Authorization") == "Token env-token-123"
 
+    def test_token_from_legacy_env(self, monkeypatch):
+        """Deprecated BIOLMAI_TOKEN env var is used when BIOLM_TOKEN is unset."""
+        monkeypatch.delenv("BIOLM_TOKEN", raising=False)
+        monkeypatch.setenv("BIOLMAI_TOKEN", "legacy-env-token-123")
+        client = ProtocolClient()
+
+        resp = _mock_response(200, {"count": 0, "results": []})
+        mock_cls, mock_http = _patch_httpx_client("get", resp)
+        with patch("httpx.Client", mock_cls):
+            client._get("")
+
+        call_kwargs = mock_http.get.call_args
+        headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers", {})
+        assert headers.get("Authorization") == "Token legacy-env-token-123"
+
     def test_token_from_arg(self, monkeypatch):
-        """api_key= kwarg takes precedence over BIOLMAI_TOKEN env var."""
-        monkeypatch.setenv("BIOLMAI_TOKEN", "env-token-999")
+        """api_key= kwarg takes precedence over BIOLM_TOKEN env var."""
+        monkeypatch.delenv("BIOLMAI_TOKEN", raising=False)
+        monkeypatch.setenv("BIOLM_TOKEN", "env-token-999")
         client = ProtocolClient(api_key="kwarg-token-456")
 
         resp = _mock_response(200, {"count": 0, "results": []})

@@ -80,9 +80,9 @@ class TestCredentialPersistence:
             }
             
             # Save credentials
-            with patch("biolmai.core.auth.ACCESS_TOK_PATH", str(cred_path)):
-                with patch("biolmai.core.auth.USER_BIOLM_DIR", tmpdir):
-                    with patch("biolmai.core.auth.validate_user_auth"):
+            with patch("biolm.core.auth.CREDENTIALS_WRITE_PATH", str(cred_path)):
+                with patch("biolm.core.auth.USER_BIOLM_DIR", tmpdir):
+                    with patch("biolm.core.auth.validate_user_auth"):
                         save_access_refresh_token(creds)
             
             # Verify file exists
@@ -120,10 +120,10 @@ class TestCredentialPersistence:
 class TestOAuthLogin:
     """Test OAuth login functionality with mocked HTTP requests."""
 
-    @patch("biolmai.core.auth.webbrowser.open")
-    @patch("biolmai.core.auth._start_local_callback_server")
-    @patch("biolmai.core.auth.requests.post")
-    @patch("biolmai.core.auth.save_access_refresh_token")
+    @patch("biolm.core.auth.webbrowser.open")
+    @patch("biolm.core.auth._start_local_callback_server")
+    @patch("biolm.core.auth.requests.post")
+    @patch("biolm.core.auth.save_access_refresh_token")
     def test_browser_login_pkce_success(
         self, mock_save, mock_post, mock_server, mock_browser
     ):
@@ -147,7 +147,7 @@ class TestOAuthLogin:
         # Mock save function
         mock_save.return_value = None
         
-        with patch("biolmai.core.auth.OAUTH_REDIRECT_URI", "http://127.0.0.1:8765/callback"):
+        with patch("biolm.core.auth.OAUTH_REDIRECT_URI", "http://127.0.0.1:8765/callback"):
             result = oauth_login(
                 client_id="test_client",
                 auth_url="https://example.com/authorize",
@@ -170,7 +170,7 @@ class TestOAuthLogin:
 
     def test_oauth_login_missing_client_id(self):
         """Test that oauth_login raises error when client_id is missing."""
-        with patch("biolmai.core.const.BIOLMAI_PUBLIC_CLIENT_ID", ""):
+        with patch("biolm.core.const.BIOLMAI_PUBLIC_CLIENT_ID", ""):
             with pytest.raises(ValueError, match="OAuth client ID required"):
                 oauth_login(client_id=None)
 
@@ -181,7 +181,7 @@ class TestCredentialValidation:
     def test_are_credentials_valid_no_file(self):
         """Test that are_credentials_valid returns False when file doesn't exist."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch("biolmai.core.auth.ACCESS_TOK_PATH", str(Path(tmpdir) / "nonexistent")):
+            with patch("biolm.core.auth.ACCESS_TOK_PATH", str(Path(tmpdir) / "nonexistent")):
                 assert are_credentials_valid() is False
 
     def test_are_credentials_valid_invalid_file(self):
@@ -192,7 +192,7 @@ class TestCredentialValidation:
             with open(cred_path, "w") as f:
                 f.write("invalid json")
             
-            with patch("biolmai.core.auth.ACCESS_TOK_PATH", str(cred_path)):
+            with patch("biolm.core.auth.ACCESS_TOK_PATH", str(cred_path)):
                 assert are_credentials_valid() is False
 
     def test_are_credentials_valid_missing_tokens(self):
@@ -204,10 +204,10 @@ class TestCredentialValidation:
             with open(cred_path, "w") as f:
                 json.dump(creds, f)
             
-            with patch("biolmai.core.auth.ACCESS_TOK_PATH", str(cred_path)):
+            with patch("biolm.core.auth.ACCESS_TOK_PATH", str(cred_path)):
                 assert are_credentials_valid() is False
 
-    @patch("biolmai.core.auth.validate_user_auth")
+    @patch("biolm.core.auth.validate_user_auth")
     def test_are_credentials_valid_success(self, mock_validate):
         """Test that are_credentials_valid returns True for valid credentials."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -226,14 +226,14 @@ class TestCredentialValidation:
             mock_resp.json.return_value = {"user": "test"}  # No "code" key
             mock_validate.return_value = mock_resp
             
-            with patch("biolmai.core.auth.ACCESS_TOK_PATH", str(cred_path)):
+            with patch("biolm.core.auth.ACCESS_TOK_PATH", str(cred_path)):
                 assert are_credentials_valid() is True
                 mock_validate.assert_called_once_with(
                     access="valid_access_token",
                     refresh="valid_refresh_token"
                 )
 
-    @patch("biolmai.core.auth.validate_user_auth")
+    @patch("biolm.core.auth.validate_user_auth")
     def test_are_credentials_valid_failed_validation(self, mock_validate):
         """Test that are_credentials_valid returns False when validation fails."""
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -251,7 +251,7 @@ class TestCredentialValidation:
             mock_resp.status_code = 401
             mock_validate.return_value = mock_resp
             
-            with patch("biolmai.core.auth.ACCESS_TOK_PATH", str(cred_path)):
+            with patch("biolm.core.auth.ACCESS_TOK_PATH", str(cred_path)):
                 assert are_credentials_valid() is False
 
 
