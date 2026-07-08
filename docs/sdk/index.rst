@@ -5,7 +5,7 @@
 SDK Reference
 =============
 
-Reference for the ``biolm`` Python package (``pip install biolm-sdk``). For onboarding and client usage patterns, see :doc:`../intro/sdk-overview`.
+Reference for the ``biolm`` Python package (``pip install biolm-sdk``). For onboarding and client usage patterns, see :sdklink:`Python SDK overview <../../intro/sdk-overview.html>`.
 
 .. list-table::
    :header-rows: 1
@@ -14,29 +14,29 @@ Reference for the ``biolm`` Python package (``pip install biolm-sdk``). For onbo
    * - Module
      - Primary symbols
      - Description
-   * - :doc:`models`
+   * - :sdklink:`biolm.models <../models.html>`
      - ``biolm()``, ``Model``
      - High-level model inference and embeddings.
-   * - :doc:`protocols`
+   * - :sdklink:`biolm.protocols <../protocols.html>`
      - ``Protocol``, ``ProtocolClient``, ``run_protocol()``
      - Protocol YAML validation and programmatic runs.
-   * - :doc:`pipeline`
+   * - :sdklink:`biolm.pipeline <../pipeline.html>`
      - ``GenerativePipeline``, config types
      - Multi-stage protein design with DuckDB caching.
-   * - :doc:`workspaces`
+   * - :sdklink:`biolm.workspaces <../workspaces.html>`
      - ``Workspace``
      - Workspace management (Python SDK upcoming).
-   * - :doc:`volumes`
+   * - :sdklink:`biolm.volumes <../volumes.html>`
      - ``Volume``
      - Volume storage (Python SDK upcoming).
-   * - :doc:`io`
+   * - :sdklink:`biolm.io <../io.html>`
      - ``load_fasta``, ``to_csv``, …
      - FASTA, CSV, JSON, and PDB file helpers.
-   * - :doc:`finetune`
+   * - :sdklink:`biolm.finetune <../finetune.html>`
      - ``Finetune``
      - XGBoost and DSM finetuning workflows.
-   * - :doc:`hub`
+   * - :sdklink:`biolm.hub <../hub.html>`
      - ``list_models_from_openapi``, hub config
      - biolm-hub gateway discovery and configuration.
 
-Full module index: :doc:`../api-reference/biolm`.
+Full module index: :sdklink:`biolm package <../../api-reference/biolm.html>`.
