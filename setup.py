@@ -73,6 +73,11 @@ setup(
     },
     install_requires=requirements,
     extras_require={
+        "seqframe": [
+            "pandas>=1.3.0,<3",
+            "duckdb>=0.9.0,<2",
+            "pyarrow>=10.0.0",
+        ],
         "pipeline": [
             "pandas>=1.3.0,<3",
             "numpy>=1.20,<3",

@@ -1,0 +1,1 @@
+"""SeqFrame namespaced accessors."""
