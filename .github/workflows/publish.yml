@@ -36,7 +36,10 @@ jobs:
           pip install -r requirements_dev.txt
 
       - name: Normalize version for RC tags
-        if: github.event_name == 'release' && contains(github.event.release.tag_name, '-rc')
+        if: >-
+          github.event_name == 'release' &&
+          (contains(github.event.release.tag_name, '-rc') ||
+           contains(github.event.release.tag_name, 'rc'))
         env:
           TAG_NAME: ${{ github.event.release.tag_name }}
         run: |
@@ -44,20 +47,41 @@ jobs:
           import os
           import re
           from pathlib import Path
-          
+
           tag = (os.environ.get("TAG_NAME") or "").strip()
-          m = re.fullmatch(r"v?(\d+\.\d+\.\d+)-rc(\d+)", tag)
+          # Accept both v1.0.0-rc3 and v1.0.0rc3.
+          m = re.fullmatch(r"v?(\d+\.\d+\.\d+)(?:-)?rc(\d+)", tag, flags=re.I)
           if not m:
-            raise SystemExit(f"Unexpected RC tag format: {tag!r}")
-          
+              raise SystemExit(f"Unexpected RC tag format: {tag!r}")
+
           pep440 = f"{m.group(1)}rc{m.group(2)}"
+
           init_py = Path("biolm/__init__.py")
-          text = init_py.read_text(encoding="utf-8")
-          new_text, n = re.subn(r"^(__version__\s*=\s*)['\"][^'\"]+['\"]\s*$", rf"\\1'{pep440}'", text, flags=re.M)
+          init_text = init_py.read_text(encoding="utf-8")
+          init_new, n = re.subn(
+              r"^__version__\s*=\s*['\"][^'\"]*['\"]\s*$",
+              f"__version__ = '{pep440}'",
+              init_text,
+              count=1,
+              flags=re.M,
+          )
           if n != 1:
-            raise SystemExit(f"Expected exactly one __version__ assignment in {init_py}, found {n}")
-          init_py.write_text(new_text, encoding="utf-8")
-          print(f"Set biolm.__version__ = {pep440}")
+              raise SystemExit(f"Expected one __version__ in {init_py}, found {n}")
+          init_py.write_text(init_new, encoding="utf-8")
+
+          pyproject = Path("pyproject.toml")
+          toml_text = pyproject.read_text(encoding="utf-8")
+          toml_new, n = re.subn(
+              r'(?m)^(version\s*=\s*)"[^"]*"\s*$',
+              rf'\1"{pep440}"',
+              toml_text,
+              count=1,
+          )
+          if n != 1:
+              raise SystemExit(f"Expected one project.version in {pyproject}, found {n}")
+          pyproject.write_text(toml_new, encoding="utf-8")
+
+          print(f"Set package version = {pep440}")
           PY
 
       - name: Build distribution
