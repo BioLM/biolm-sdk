@@ -354,19 +354,29 @@ def _trim_click_description_lines(app, ctx, lines):
 _CLICMD_RE = re.compile(r"^(.+?)\s*<([^>]+)>$")
 
 
-def _clicmd_role(name, rawtext, text, lineno, inliner, options=None, content=None):
-    """Internal doc link: ``:clicmd:`title <page.html#anchor>```."""
+def _internal_link_role(name, rawtext, text, lineno, inliner, options=None, content=None):
+    """Internal doc link: ``:role:`title <path.html#anchor>```."""
     if options is None:
         options = {}
     if content is None:
         content = []
     match = _CLICMD_RE.match(text.strip())
     if not match:
-        msg = inliner.reporter.warning(f"Invalid :clicmd: syntax: {text}", line=lineno)
+        msg = inliner.reporter.warning(f"Invalid :{name}: syntax: {text}", line=lineno)
         return [inliner.problematic(rawtext)], [msg]
     title, refuri = match.group(1), match.group(2)
     node = nodes.reference(rawtext, title, refuri=refuri, internal=True)
     return [node], []
+
+
+def _clicmd_role(name, rawtext, text, lineno, inliner, options=None, content=None):
+    """Internal doc link: ``:clicmd:`title <page.html#anchor>```."""
+    return _internal_link_role(name, rawtext, text, lineno, inliner, options, content)
+
+
+def _sdklink_role(name, rawtext, text, lineno, inliner, options=None, content=None):
+    """Internal SDK index link: ``:sdklink:`title <../page.html>```."""
+    return _internal_link_role(name, rawtext, text, lineno, inliner, options, content)
 
 
 def _command_title(text: str) -> nodes.title:
@@ -516,6 +526,7 @@ def setup(app):
     app.connect("html-page-context", _fix_cli_page_toc)
     app.add_js_file("caption-links.js")
     app.add_role("clicmd", _clicmd_role)
+    app.add_role("sdklink", _sdklink_role)
 
 
 # Redirects
