@@ -2,6 +2,8 @@ import pytest
 
 from biolm.core.http import BioLMApiClient
 
+pytestmark = pytest.mark.live
+
 
 @pytest.mark.asyncio
 async def test_schema_max_items_is_int_live():

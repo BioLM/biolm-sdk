@@ -129,6 +129,7 @@ class TestNestAsyncioApplication:
         pytest.skip("Skipping ImportError test - nest_asyncio is a required dependency")
 
 
+@pytest.mark.live
 class TestSyncWrappersInContext:
     """Test that sync wrappers work in different contexts."""
 

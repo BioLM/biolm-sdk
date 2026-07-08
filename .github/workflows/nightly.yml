@@ -1,0 +1,99 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 09:00 UTC daily
+  workflow_dispatch:
+    inputs:
+      tier:
+        description: 'Test tier to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - live
+          - compat
+
+concurrency:
+  group: nightly-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live:
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event.inputs.tier == 'all' ||
+      github.event.inputs.tier == 'live'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
+
+      - name: Run live tier
+        env:
+          BIOLM_USER: ${{ secrets.BIOLM_USER }}
+          BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
+          BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
+          BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '4' }}
+          RS: ${{ secrets.RS || '12345679' }}
+        run: tox -e live
+
+  compat:
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event.inputs.tier == 'all' ||
+      github.event.inputs.tier == 'compat'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
+
+      - name: Run offline full suite
+        env:
+          RS: ${{ secrets.RS || '12345679' }}
+        run: |
+          TOX_ENV=py$(echo "${{ matrix.python-version }}" | tr -d '.')
+          tox -e "$TOX_ENV"
+
+  integration-full:
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event.inputs.tier == 'all'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
+
+      - name: Run full integration tier
+        env:
+          RS: ${{ secrets.RS || '12345679' }}
+        run: tox -e integration

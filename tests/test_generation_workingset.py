@@ -19,6 +19,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+pytestmark = pytest.mark.integration
 pytest.importorskip("duckdb")
 
 from biolm.pipeline.base import StageResult, WorkingSet

@@ -21,6 +21,8 @@ import pytest
 
 from biolm.core.auth import generate_access_token
 
+pytestmark = pytest.mark.live
+
 
 def _has_credential_env() -> bool:
     """Check if BIOLM_USER and BIOLM_PASSWORD are set (needed for access/refresh token tests)."""

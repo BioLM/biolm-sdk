@@ -10,6 +10,8 @@ from biolm.models import Model
 
 LOGGER = logging.getLogger(__name__)
 
+pytestmark = pytest.mark.live
+
 @pytest.fixture(scope='module')
 def model():
     return BioLMApi("esmfold", raise_httpx=False, unwrap_single=False, retry_error_batches=False)

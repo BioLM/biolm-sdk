@@ -7,6 +7,8 @@ from biolm.client import BioLM
 from biolm.core.http import BioLMApi, BioLMApiClient
 from biolm.models import Model
 
+pytestmark = pytest.mark.live
+
 
 def _gen_dicts(n):
     """Generator yielding n dict items."""
