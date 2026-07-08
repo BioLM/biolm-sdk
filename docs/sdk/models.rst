@@ -1,5 +1,8 @@
-``Model``
-=========
+``biolm.models``
+================
+
+Model
+-----
 
 Recommended interface for model inference: bind to a model slug once, then call
 ``encode``, ``predict``, ``generate``, or ``lookup``. Wraps the HTTP client in
