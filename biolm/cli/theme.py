@@ -30,12 +30,12 @@ _LIGHT_THEME = Theme(
 # Dark background — ANSI names for readable contrast on black terminals
 _DARK_THEME = Theme(
     {
-        "brand": "bright_blue",
-        "brand.bold": "bold bright_blue",
-        "brand.bright": "bold bright_blue",
-        "brand.dark": "blue",
-        "text": "default",
-        "text.muted": "dim",
+        "brand": "bright_cyan",
+        "brand.bold": "bold bright_cyan",
+        "brand.bright": "bold bright_cyan",
+        "brand.dark": "bright_blue",
+        "text": "bright_white",
+        "text.muted": "bright_black",
         "success": "green",
         "success.bold": "bold green",
         "error": "yellow",
@@ -62,16 +62,20 @@ def resolve_theme_mode(explicit: ThemeMode | None = None) -> ThemeMode:
 
 
 def terminal_is_dark() -> bool:
-    """Best-effort detection of dark terminal background (xterm COLORFGBG)."""
+    """Best-effort detection of dark terminal background (xterm COLORFGBG).
+
+    Only treats unambiguously light backgrounds as light. Solarized Dark and
+    similar themes often use palette index 8–11 for the background, which is
+    still visually dark but was previously misclassified as light.
+    """
     colorfgbg = os.environ.get("COLORFGBG", "").strip()
     if colorfgbg:
         try:
             bg = int(colorfgbg.split(";")[-1])
-            # 0–7 dark, 8–15 light in the 16-color xterm palette
-            if bg <= 7:
-                return True
-            if bg >= 8:
+            # 7 = light gray, 15 = bright white — clearly light backgrounds
+            if bg in (7, 15):
                 return False
+            return True
         except ValueError:
             pass
     # Conservative default: most dev terminals are dark

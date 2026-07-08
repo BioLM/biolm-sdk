@@ -57,6 +57,16 @@ ARGUMENT_DESCRIPTIONS = {
 }
 
 
+def _command_help_line(cmd: click.Command) -> str:
+    """First line of command help without Click's default 45-char truncation."""
+    if cmd.help:
+        for line in cmd.help.splitlines():
+            stripped = line.strip()
+            if stripped:
+                return stripped
+    return cmd.get_short_help_str(limit=120) or ""
+
+
 class RichHelpFormatter(click.HelpFormatter):
     """Custom help formatter using Rich for styled output."""
     
@@ -259,7 +269,7 @@ class RichGroup(click.Group):
             # If it's a group, expand to show subcommands
             if isinstance(cmd, click.Group) and cmd.commands:
                 for sub_name, sub_cmd in sorted(cmd.commands.items()):
-                    sub_help = sub_cmd.get_short_help_str() or sub_cmd.help or ''
+                    sub_help = _command_help_line(sub_cmd)
                     # Format as "group subcommand"
                     full_name = f"{name} {sub_name}"
                     commands_by_section[section].append((full_name, sub_cmd))
@@ -303,7 +313,7 @@ class RichGroup(click.Group):
                 # Create box content
                 box_content = []
                 for name, cmd in sorted(commands_by_section[section]):
-                    help_text = cmd.get_short_help_str() or cmd.help or ''
+                    help_text = _command_help_line(cmd)
                     # Format command name in brand color, description in text
                     cmd_padding = " " * max(0, 25 - len(name))
                     line = f"[brand.bright]{name}[/brand.bright]{cmd_padding}  [text]{help_text}[/text]"
@@ -342,7 +352,8 @@ def main(args=None):
     help="Force color on or off (also respects NO_COLOR and BIOLM_CLI_THEME)",
 )
 @click.version_option(BIOLM_VERSION, prog_name="biolm", message="%(prog)s %(version)s")
-def cli(debug, color):
+@click.pass_context
+def cli(ctx, debug, color):
     """BioLM CLI - Command-line interface for the BioLM platform.
     
     This CLI provides access to BioLM's biological language models and APIs.
@@ -356,6 +367,9 @@ def cli(debug, color):
         console = create_console(no_color=False)
     else:
         console = create_console()
+
+    if ctx.invoked_subcommand is None:
+        ctx.command.format_help(ctx, click.HelpFormatter())
 
 
 @cli.command()
@@ -378,7 +392,7 @@ def display_env_vars_table():
         header_style="brand.bright",
     )
     table.add_column("Setting", style="brand", no_wrap=True)
-    table.add_column("Value", style="text")
+    table.add_column("Value")
 
     api_token = get_env_api_token()
     if api_token:
