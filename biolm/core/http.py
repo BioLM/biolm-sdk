@@ -55,7 +55,12 @@ if os.environ.get("DEBUG", '').upper().strip() in ('TRUE', '1'):
         force=True,  # Python 3.8+
     )
 
-from biolm.core.const import BIOLM_BASE_API_URL, ACCESS_TOK_PATH, get_env_api_token
+from biolm.core.const import (
+    BIOLM_BASE_API_URL,
+    ACCESS_TOK_PATH,
+    _PLATFORM_API_URL,
+    get_env_api_token,
+)
 from biolm.core.utils import is_list_of_lists, batch_iterable
 
 TIMEOUT_MINS = 20  # Match API server's keep-alive/timeout
@@ -752,21 +757,36 @@ class BioLMApiClient:
         Returns the schema dict if successful, else None.
         Uses a module-level cache keyed by (model, action) so it is safe to use
         from any event loop (sync wrapper, async tests, pytest-xdist workers).
+
+        Schema is always fetched from the hosted platform API without credentials.
+        Hub gateways and custom model API hosts may not expose /schema/, and sending
+        API tokens to the public schema endpoint can return 401.
         """
         key = (model, action)
         if key in _SCHEMA_CACHE:
             return _SCHEMA_CACHE[key]
+
         endpoint = f"schema/{model}/{action}/"
+        schema_base = f"{_PLATFORM_API_URL.rstrip('/')}/"
         try:
-            resp = await self._http_client.get(endpoint)
-            if resp.status_code == 200:
-                result = resp.json()
-            else:
-                result = None
+            client = HttpClient(
+                schema_base,
+                {},
+                self.timeout,
+                compress_requests=False,
+                http2=False,
+            )
+            try:
+                resp = await client.get(endpoint)
+                if resp.status_code == 200:
+                    result = resp.json()
+                    _SCHEMA_CACHE[key] = result
+                    return result
+            finally:
+                await client.close()
         except Exception:
-            result = None
-        _SCHEMA_CACHE[key] = result
-        return result
+            pass
+        return None
 
     @staticmethod
     def extract_max_items(schema: dict) -> Optional[int]:
