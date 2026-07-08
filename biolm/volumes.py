@@ -1,4 +1,4 @@
-"""Volume management for BioLM."""
+"""Volume management for BioLM (Python SDK not yet implemented; use CLI/hub)."""
 from typing import Optional, List, Dict, Any
 
 from biolm.core.http import BioLMApiClient
@@ -6,12 +6,14 @@ from biolm.core.auth import get_user_auth_header
 
 
 class Volume:
-    """
-    Volume management interface.
-    
+    """Volume management interface (not yet implemented).
+
+    Use hub CLI and storage workflows today. This class defines the intended
+    Python API: ``list``, ``create``, and ``get``.
+
     Args:
-        name (Optional[str]): Volume name. If None, uses default volume.
-        api_key (Optional[str]): API key for authentication.
+        name: Volume name. If ``None``, uses the default volume.
+        api_key: Optional API token; defaults to ``BIOLM_TOKEN``.
     """
     def __init__(self, name: Optional[str] = None, api_key: Optional[str] = None):
         self.name = name

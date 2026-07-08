@@ -61,11 +61,11 @@ authors = [
     { name="BioLM", email="support@biolm.ai" }
 ]
 requires-python = ">=3.8"
-readme = "README.rst"
+readme = "README.md"
 license = { text = "Apache Software License 2.0" }
-keywords = ["biolm", "biolmai", "bioai"]
+keywords = ["biolm", "bioai"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
@@ -125,6 +125,21 @@ pipeline = [
     "duckdb>=0.9.0,<2",
     "pyarrow>=10.0.0",
 ]
+
+[tool.semantic_release.changelog]
+mode = "update"
+insertion_flag = "<!-- version list -->"
+exclude_commit_patterns = [
+  '''chore(?:\([^)]*?\))?: .+''',
+  '''ci(?:\([^)]*?\))?: .+''',
+  '''docs(?:\([^)]*?\))?: .+''',
+  '''test(?:\([^)]*?\))?: .+''',
+  '''chore\(release\): .+''',
+]
+
+[tool.semantic_release.changelog.default_templates]
+changelog_file = "CHANGELOG.md"
+output_format = "md"
 
 [tool.semantic_release]
 version_variables = ["biolm/__init__.py:__version__"]

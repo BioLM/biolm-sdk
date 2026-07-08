@@ -2158,7 +2158,7 @@ class CofoldingPredictionStage(Stage):
             sequence in the molecules list.
         sequence_entity_type: Molecule type for the primary sequence
             (``'protein'``, ``'dna'``, ``'rna'``).
-        static_entities: List of :class:`~biolmai.pipeline.generative.FoldingEntity`
+        static_entities: List of :class:`~biolm.pipeline.generative.FoldingEntity`
             objects appended to every molecules list after the primary chain.
         params: Model-specific params dict passed directly to the API
             (e.g. ``{'recycling_steps': 3, 'sampling_steps': 20}`` for Boltz).
@@ -3714,7 +3714,7 @@ def Embed(
 
     Args:
         model_name: BioLM model name (e.g., ``'esm2-8m'``, ``'esm2-650m'``,
-            ``'ablang2'``).  See ``biolmai.list_models()`` for the full slugged
+            ``'ablang2'``).  See ``biolm.list_models()`` for the full slugged
             list — the family name alone (``'esm2'``) is not a valid endpoint.
         sequences: Input sequences
         layer: Optional layer number

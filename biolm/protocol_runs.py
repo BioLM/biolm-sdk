@@ -21,10 +21,10 @@ _DOWNLOAD_TIMEOUT = 120
 
 
 def _auth_headers(api_key: Optional[str] = None) -> Dict[str, str]:
-    token = api_key or os.environ.get("BIOLMAI_TOKEN") or os.environ.get("BIOLM_TOKEN")
+    token = api_key or os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN")
     if not token:
         raise ValueError(
-            "No API key found. Set the BIOLMAI_TOKEN environment variable or pass api_key= to ProtocolClient().\n"
+            "No API key found. Set the BIOLM_TOKEN environment variable or pass api_key= to ProtocolClient().\n"
             "Get a token at https://biolm.ai/console/user/api-keys/"
         )
     return {"Authorization": f"Token {token}"}
@@ -210,7 +210,12 @@ class ProtocolRun:
 
 
 class ProtocolClient:
-    """Programmatic client for BioLM protocol submission endpoints."""
+    """Submit and monitor BioLM protocol runs from Python.
+
+    Wraps the ``/api/protocols/`` REST endpoints. Use :meth:`submit` to start
+    a run, :meth:`run_and_wait` for a blocking workflow, or :meth:`get_run`
+    to poll an existing run ID.
+    """
 
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None) -> None:
         self._api_key = api_key

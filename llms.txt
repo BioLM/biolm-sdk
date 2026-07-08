@@ -2,7 +2,7 @@
 
 ## Package Overview
 
-`biolmai` is an async-first Python SDK for the BioLM API (`api.biolm.ai`),
+`biolm` is an async-first Python SDK for the BioLM API (`api.biolm.ai`),
 which provides access to protein and DNA language models — ESM2, ESMFold,
 ProteinMPNN, DSM, AntiFold, ThermoMPNN-D, Boltz-2, and others — for sequence
 encoding, structure prediction, stability scoring, and sequence generation.
@@ -14,20 +14,20 @@ dependency-aware stage scheduling.
 ## Installation
 
 ```
-pip install biolmai
+pip install biolm-sdk
 ```
 
-Authentication: set `BIOLMAI_TOKEN` to your API token from
+Authentication: set `BIOLM_TOKEN` to your API token from
 https://biolm.ai/ui/accounts/user-api-tokens/
 
 
 ## Quick API Client Usage
 
 ```python
-import biolmai
+import biolm
 
 # One-off call (sync)
-result = biolmai.biolm(
+result = biolm.biolm(
     entity="esm2-8m",
     action="encode",
     type="sequence",
@@ -35,7 +35,7 @@ result = biolmai.biolm(
 )
 
 # Native async client (use inside pipeline stages or async scripts)
-from biolmai.client import BioLMApiClient
+from biolm.client import BioLMApiClient
 
 async def main():
     api = BioLMApiClient("esmfold")
@@ -46,14 +46,14 @@ async def main():
 
 ## Pipeline Design Primitives
 
-The `biolmai.pipeline` module provides a class hierarchy of config objects
+The `biolm.pipeline` module provides a class hierarchy of config objects
 that describe how sequences are generated or scored in a `GenerativePipeline`.
 
 
 ### Base classes
 
 ```python
-from biolmai.pipeline.generative import ScoringProtocolConfig, GenerativeProtocolConfig
+from biolm.pipeline.generative import ScoringProtocolConfig, GenerativeProtocolConfig
 ```
 
 **`ScoringProtocolConfig`**
@@ -77,7 +77,7 @@ scores each variant with a prediction model, and returns the top-N ranked by
 the chosen score field.
 
 ```python
-from biolmai.pipeline import SaturationMutagenesisConfig
+from biolm.pipeline import SaturationMutagenesisConfig
 
 SaturationMutagenesisConfig(
     parent_sequence: str,          # Wild-type amino-acid sequence
@@ -124,7 +124,7 @@ masked language model (e.g. ESM2, ESMC) to build multi-point variants:
   combination variants.
 
 ```python
-from biolmai.pipeline import IterativeMaskingDMSConfig
+from biolm.pipeline import IterativeMaskingDMSConfig
 
 IterativeMaskingDMSConfig(
     parent_sequence: str,          # Starting sequence
@@ -161,7 +161,7 @@ LigandMPNN, SolubleMPNN — to produce new sequences. The caller is responsible
 for providing the correct `item_field` and `params` for the target model.
 
 ```python
-from biolmai.pipeline import DirectGenerationConfig
+from biolm.pipeline import DirectGenerationConfig
 
 DirectGenerationConfig(
     model_name: str,               # BioLM model slug (e.g. 'protein-mpnn', 'dsm-150m-base')
@@ -211,13 +211,13 @@ cfg = DirectGenerationConfig(
 
 ```python
 import asyncio
-from biolmai.pipeline import (
+from biolm.pipeline import (
     GenerativePipeline,
     DirectGenerationConfig,
     SaturationMutagenesisConfig,
     IterativeMaskingDMSConfig,
 )
-from biolmai.pipeline.filters import ThresholdFilter
+from biolm.pipeline.filters import ThresholdFilter
 
 # Build pipeline with one or more configs
 pipeline = GenerativePipeline(
@@ -266,7 +266,7 @@ pipeline.run(resume=True)  # only re-runs incomplete stages; uses cached predict
 ```
 
 Internally, `from_db()` calls `pipeline_from_definition()` in
-`biolmai/pipeline/pipeline_def.py`, which walks the stored `stages_json` and
+`biolm/pipeline/pipeline_def.py`, which walks the stored `stages_json` and
 calls `_config_from_spec()` for each config entry and `stage_from_spec()` for
 each stage. Large strings (e.g. PDB file contents) are externalized to a
 `pipeline_blobs` table and resolved on load.
@@ -276,5 +276,5 @@ each stage. Large strings (e.g. PDB file contents) are externalized to a
 
 For server-side protocol runs submitted via the BioLM protocol API, results
 can be downloaded as a pandas DataFrame or materialized into a local DuckDB
-database for further analysis. See `biolmai.protocols` and the `ProtocolRun`
+database for further analysis. See `biolm.protocols` and the `ProtocolRun`
 result object for the `.to_duckdb()` convenience method.

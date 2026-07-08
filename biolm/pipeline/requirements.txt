@@ -15,7 +15,7 @@ umap-learn>=0.5.0  # For UMAP visualization
 biotite>=0.34.0  # For structure utilities (if using biotite_util)
 biopython>=1.78  # For sequence alignment
 
-# Already included in biolmai
+# Already included in biolm-sdk
 # httpx
 # aiofiles
 # asyncio

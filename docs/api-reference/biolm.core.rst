@@ -52,6 +52,14 @@ biolm.core.http module
    :undoc-members:
    :show-inheritance:
 
+biolm.core.paths module
+-----------------------
+
+.. automodule:: biolm.core.paths
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 biolm.core.payloads module
 --------------------------
 

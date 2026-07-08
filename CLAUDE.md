@@ -1,18 +1,18 @@
 # CLAUDE.md — BioLM Python SDK
 
-This file captures key architectural knowledge, confirmed bugs, performance notes, and future directions for the `biolmai` package, particularly the pipeline subsystem.
+This file captures key architectural knowledge, confirmed bugs, performance notes, and future directions for the `biolm` package, particularly the pipeline subsystem.
 
 ---
 
 ## Project Overview
 
-`biolmai` is an async-first Python SDK for the BioLM API (`api.biolm.ai`), which provides access to protein/DNA language models (ESM2, ESMFold, ProteinMPNN, ProGen2, etc.) for predictions, embeddings, structure prediction, and sequence generation.
+`biolm` is an async-first Python SDK for the BioLM API (`api.biolm.ai`), which provides access to protein/DNA language models (ESM2, ESMFold, ProteinMPNN, ProGen2, etc.) for predictions, embeddings, structure prediction, and sequence generation.
 
 The SDK has two layers:
-- **Direct API client** (`biolmai/core/http.py`): `BioLMApiClient` (native async), `BioLMApi` (sync wrapper via `synchronicity`)
-- **Pipeline framework** (`biolmai/pipeline/`): Multi-stage orchestration with DuckDB caching, streaming, resumability, and dependency resolution
+- **Direct API client** (`biolm/core/http.py`): `BioLMApiClient` (native async), `BioLMApi` (sync wrapper via `synchronicity`)
+- **Pipeline framework** (`biolm/pipeline/`): Multi-stage orchestration with DuckDB caching, streaming, resumability, and dependency resolution
 
-**Auth**: `BIOLMAI_TOKEN` env var → Bearer token header. Get tokens at https://biolm.ai/ui/accounts/user-api-tokens/
+**Auth**: `BIOLM_TOKEN` env var → Bearer token header. Get tokens at https://biolm.ai/ui/accounts/user-api-tokens/
 
 ---
 
@@ -238,7 +238,7 @@ result = biolmai.biolm(entity='esm2-8m', action='encode', items=['MKLLIV'])
 ## Key File Locations
 
 ```
-biolmai/
+biolm/
   pipeline/
     base.py                  # BasePipeline, Stage, StageResult
     data.py                  # DataPipeline, PredictionStage, FilterStage, ClusteringStage

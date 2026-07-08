@@ -1,6 +1,6 @@
 # Pipeline Architecture Guide
 
-Technical reference for `biolmai.pipeline` internals.
+Technical reference for `biolm.pipeline` internals.
 
 ---
 

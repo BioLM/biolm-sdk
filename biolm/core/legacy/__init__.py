@@ -3,7 +3,7 @@
 import warnings
 
 warnings.warn(
-    "The biolmai.core.legacy module is deprecated. "
+    "The biolm.core.legacy module is deprecated. "
     "Please update your imports to use the new module structure.",
     DeprecationWarning,
     stacklevel=2

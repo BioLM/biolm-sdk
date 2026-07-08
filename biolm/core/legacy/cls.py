@@ -2,8 +2,8 @@
 import warnings
 
 warnings.warn(
-    "The biolmai.core.legacy.cls module is deprecated. "
-    "Please use biolmai.models.Model instead.",
+    "The biolm.core.legacy.cls module is deprecated. "
+    "Please use biolm.models.Model instead.",
     DeprecationWarning,
     stacklevel=2
 )

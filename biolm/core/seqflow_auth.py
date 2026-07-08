@@ -1,7 +1,7 @@
 """
-MLflow RequestHeaderProvider that uses biolmai credentials for authentication.
+MLflow RequestHeaderProvider that uses biolm credentials for authentication.
 
-This provider reads OAuth tokens from ~/.biolmai/credentials and adds them
+This provider reads OAuth tokens from ~/.biolm/credentials and adds them
 as Bearer tokens to MLflow requests.
 """
 
@@ -10,6 +10,8 @@ import os
 import time
 from pathlib import Path
 from typing import Optional
+
+from biolm.core.paths import resolve_user_path, user_config_dir
 
 try:
     from mlflow.tracking.request_header.abstract_request_header_provider import RequestHeaderProvider
@@ -23,15 +25,16 @@ except ImportError:
 
 class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
     """
-    MLflow RequestHeaderProvider that uses biolmai credentials.
-    
-    Reads OAuth tokens from ~/.biolmai/credentials (JSON format:
+    MLflow RequestHeaderProvider that uses biolm credentials (deprecated class name).
+
+    Reads OAuth tokens from ~/.biolm/credentials (JSON format:
     {"access": "...", "refresh": "..."}) and adds Authorization header
     with Bearer token to all MLflow requests.
     """
-    
+
     def __init__(self):
-        self.credentials_path = Path.home() / ".biolmai" / "credentials"
+        self.credentials_path = resolve_user_path("credentials")
+        self._write_path = user_config_dir() / "credentials"
         self._cached_token: Optional[str] = None
         self._token_expires_at: float = 0
         self._token_url: Optional[str] = None
@@ -43,15 +46,15 @@ class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
         Return True if provider should be used.
         
         Checks if:
-        1. biolmai package is installed
+        1. biolm package is installed
         2. Credentials file exists
         3. Credentials file contains access token
         """
         try:
-            import biolmai  # noqa: F401
+            import biolm  # noqa: F401
         except ImportError:
             return False
-        
+
         if not self.credentials_path.exists():
             return False
         
@@ -65,7 +68,7 @@ class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
         """
         Return headers to add to MLflow requests.
         
-        Returns Authorization header with Bearer token from biolmai credentials.
+        Returns Authorization header with Bearer token from biolm credentials.
         """
         token = self._get_valid_token()
         if token:
@@ -73,7 +76,7 @@ class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
         return {}
     
     def _load_credentials(self) -> dict:
-        """Load credentials from ~/.biolmai/credentials file."""
+        """Load credentials from ~/.biolm/credentials (or legacy path)."""
         if not self.credentials_path.exists():
             raise FileNotFoundError(f"Credentials file not found: {self.credentials_path}")
         
@@ -95,7 +98,7 @@ class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
             creds = self._load_credentials()
             access_token = creds.get("access")
             refresh_token = creds.get("refresh")
-            expires_at = creds.get("expires_at")  # Optional: if biolmai stores expiration
+            expires_at = creds.get("expires_at")  # Optional: if biolm stores expiration
             
             # If token is expired or about to expire (within 60 seconds), try to refresh
             if refresh_token and expires_at and time.time() >= (expires_at - 60):
@@ -108,7 +111,7 @@ class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
                     if "expires_at" in creds:
                         # Update expiration if provided
                         creds["expires_at"] = time.time() + creds.get("expires_in", 3600)
-                    with open(self.credentials_path, "w") as f:
+                    with open(self._write_path, "w") as f:
                         json.dump(creds, f, indent=2)
             
             # Cache token (assume 1 hour expiration if not specified)
@@ -119,7 +122,7 @@ class BiolmaiRequestHeaderProvider(RequestHeaderProvider):
         except Exception as e:
             # Log error but don't raise - allow MLflow to work without auth if needed
             import warnings
-            warnings.warn(f"Could not load biolmai credentials: {e}")
+            warnings.warn(f"Could not load biolm credentials: {e}")
             return None
     
     

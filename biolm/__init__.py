@@ -100,7 +100,23 @@ def biolm(
     api_key: Optional[str] = None,
     **kwargs
 ) -> Any:
-    """Top-level convenience function that wraps the BioLM class and returns the result."""
+    """Call a BioLM model in one step (sync, blocking).
+
+    Wraps :class:`biolm.client.BioLM` and returns the API result. Single-item
+    calls return a dict; batch calls return a list.
+
+    Args:
+        entity: Model slug (e.g. ``"esm2-8m"``, ``"esmfold"``).
+        action: Model action (e.g. ``"encode"``, ``"predict"``, ``"generate"``).
+        type: Item type when ``items`` are plain strings (e.g. ``"sequence"``).
+        items: One item, a list of items, or a generator of items.
+        params: Optional action-specific parameters.
+        api_key: Optional API token; defaults to ``BIOLM_TOKEN``.
+        **kwargs: Passed through to :class:`biolm.client.BioLM`.
+
+    Returns:
+        A single result dict or a list of result dicts (one per input item).
+    """
     return BioLM(
         entity=entity,
         action=action,

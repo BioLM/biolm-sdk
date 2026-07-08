@@ -59,12 +59,15 @@ lint/ruff: ## run ruff to check Python code style
 	ruff biolm/ tests/
 
 lint/black: ## run black to check and format Python code style
-	black --check biolmai/ tests/
+	black --check biolm/ tests/
 
 lint/flake8: ## check style with flake8
-	flake8 biolmai/ tests/
+	flake8 biolm/ tests/
 
-lint: lint/ruff lint/black lint/flake8 ## check style with ruff, black, flake8
+lint/docs-biolmai: ## fail if stale biolmai references appear in docs
+	@if rg 'biolmai' docs/ --glob '!docs/notes/migration-1.0.rst' --glob '!docs/changelog.rst' >/dev/null 2>&1; then echo "Stale biolmai in docs"; exit 1; fi
+
+lint: lint/ruff lint/black lint/flake8 lint/docs-biolmai ## check style
 
 setup-tox:
 	pyenv install -s 3.13.3
