@@ -25,7 +25,7 @@ from biolm import biolm
 from biolm.core.http import BioLMApiClient
 ```
 
-The legacy `biolmai` import and CLI alias remain available but are deprecated. See the [migration guide](https://docs.biolm.ai/getting-started/migration-1.0.html).
+The legacy `biolmai` import and CLI alias remain available but are deprecated. See the [migration guide](https://docs.biolm.ai/notes/migration-1.0.html).
 
 ## Authentication
 
@@ -98,7 +98,7 @@ See the [pipeline docs](https://docs.biolm.ai/sdk/pipeline.html).
 | `import biolmai` | `import biolm` |
 | `biolmai` CLI | `biolm` CLI |
 
-Details: [migration guide](https://docs.biolm.ai/getting-started/migration-1.0.html).
+Details: [migration guide](https://docs.biolm.ai/notes/migration-1.0.html).
 
 ## Development
 

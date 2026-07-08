@@ -210,7 +210,12 @@ class ProtocolRun:
 
 
 class ProtocolClient:
-    """Programmatic client for BioLM protocol submission endpoints."""
+    """Submit and monitor BioLM protocol runs from Python.
+
+    Wraps the ``/api/protocols/`` REST endpoints. Use :meth:`submit` to start
+    a run, :meth:`run_and_wait` for a blocking workflow, or :meth:`get_run`
+    to poll an existing run ID.
+    """
 
     def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None) -> None:
         self._api_key = api_key

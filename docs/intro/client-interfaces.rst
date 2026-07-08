@@ -4,7 +4,7 @@ Client interfaces
 
 You can call the API in three ways: the one-off function, the class-based Model (one model, multiple calls), or the API client for advanced control. Examples below.
 
-**Sync vs async:** The function ``biolm()``, ``Model``, and ``BioLMApi`` are **synchronous** (blocking) interfaces: you call them without ``await`` and get the result when the call returns. Under the hood they use the same asynchronous backend, so batches are still sent concurrently and you get high throughput without writing async code. For async code (e.g. FastAPI, Jupyter with top-level ``await``), use ``BioLMApiClient`` and ``await`` its methods. See :doc:`async-sync` for details and which methods can be awaited.
+**Sync vs async:** The function ``biolm()``, ``Model``, and ``BioLMApi`` are **synchronous** (blocking) interfaces: you call them without ``await`` and get the result when the call returns. Under the hood they use the same asynchronous backend, so batches are still sent concurrently and you get high throughput without writing async code. For async code (e.g. FastAPI, Jupyter with top-level ``await``), use ``BioLMApiClient`` and ``await`` its methods. See :doc:`concurrency` for details and which methods can be awaited.
 
 One-off calls (function)
 ------------------------

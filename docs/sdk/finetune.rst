@@ -1,10 +1,9 @@
-biolm.finetune
-==============
+``biolm.finetune``
+==================
 
-The :class:`biolm.finetune.Finetune` class wraps BioLM finetuning APIs (XGBoost and
-DSM workflows) so you can launch and track runs from Python without browser cookies.
-
-Install ``biolm-sdk`` and authenticate with ``BIOLM_TOKEN`` or ``biolm login``.
+Launch and track BioLM finetuning runs (XGBoost and DSM) from Python without
+browser cookies. Install ``biolm-sdk`` and authenticate with ``BIOLM_TOKEN`` or
+``biolm login``.
 
 XGBoost finetune
 ----------------
@@ -21,7 +20,34 @@ XGBoost finetune
    )
    print(result["run_id"])
 
-All methods have async variants (e.g. ``Finetune.xgboost_async``). Pass ``api_key=``
-or set ``BIOLM_TOKEN`` for authentication.
+DSM finetune
+------------
 
-See :doc:`../api-reference/modules` for the full ``Finetune`` API.
+DSM is a two-stage workflow (masked-LM pretrain, then RL). Launch stage 1:
+
+.. code-block:: python
+
+   from biolm.finetune import Finetune
+
+   result = Finetune.dsm_stage1(
+       train_data=[{"sequence": "MKTAYIAKQRQ"}],
+       run_name="my-dsm-stage1",
+   )
+   run_id = result["run_id"]
+   Finetune.wait(run_id)
+
+All methods have async variants (e.g. ``Finetune.xgboost_async``,
+``Finetune.dsm_stage1_async``). Pass ``api_key=`` or set ``BIOLM_TOKEN`` for
+authentication.
+
+API
+---
+
+.. autoclass:: biolm.finetune.Finetune
+   :members: xgboost, dsm_stage1, dsm_stage2, dsm_rl, wait, progress, get_run, cancel
+   :undoc-members:
+
+See also
+--------
+
+- :doc:`../api-reference/biolm` — ``biolm.finetune`` module reference

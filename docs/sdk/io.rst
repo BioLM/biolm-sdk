@@ -1,8 +1,19 @@
-=========
-biolm.io
-=========
+``biolm.io``
+============
 
-The ``biolm.io`` module provides utilities for converting between file formats and BioLM API JSON structures.
+Convert between biological file formats (FASTA, CSV, PDB, JSON) and BioLM API
+request/response structures. For writing API results to disk from clients, see
+:ref:`disk-output` in :doc:`../intro/client-interfaces`.
+
+Primary functions
+-----------------
+
+.. autofunction:: biolm.io.load_fasta
+.. autofunction:: biolm.io.to_fasta
+.. autofunction:: biolm.io.load_csv
+.. autofunction:: biolm.io.to_csv
+.. autofunction:: biolm.io.load_pdb
+.. autofunction:: biolm.io.to_pdb
 
 FASTA Format
 ~~~~~~~~~~~~
@@ -259,14 +270,12 @@ Common error types:
 Best Practices
 --------------
 
-1. **Validate input files**: Check that files exist and are readable before processing
-2. **Handle errors gracefully**: Use try/except blocks for file operations
-3. **Preserve metadata**: Include metadata in FASTA headers when exporting
-4. **Use appropriate formats**: FASTA for sequences, CSV for tabular data, PDB for structures
-5. **Round-trip testing**: Test that load → process → save → load works correctly
+- Validate input files before processing; use try/except for ``FileNotFoundError`` and ``ValueError``
+- Preserve metadata in FASTA headers when exporting
+- Test round-trips: load → process → save → load
 
-See Also
+See also
 --------
 
-- :doc:`../api-reference/index` for ``biolm.io`` API details
-- :ref:`disk-output` in :doc:`../intro/client-interfaces` for writing API results to disk
+- :doc:`../api-reference/biolm.io` — full ``biolm.io`` module reference
+- :ref:`disk-output` in :doc:`../intro/client-interfaces` — writing API results to disk

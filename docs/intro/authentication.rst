@@ -83,7 +83,7 @@ If already logged in:
 .. code-block:: text
 
     Credentials location: ~/.biolm/credentials
-    Run `biolm status` to view your authentication status.
+    Run ``biolm status`` to view your authentication status.
 
 Custom OAuth client ID:
 
@@ -129,4 +129,4 @@ Credentials are saved to :code:`~/.biolm/credentials` in JSON format with:
 - ``refresh`` — refresh token for renewing access
 - OAuth metadata (``token_url``, ``client_id``, etc.) when using ``biolm login``
 
-See :doc:`migration-1.0` for the full list of renamed environment variables.
+See :doc:`../notes/migration-1.0` for the full list of renamed environment variables.

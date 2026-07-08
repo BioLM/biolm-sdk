@@ -1,4 +1,4 @@
-"""Workspace management for BioLM."""
+"""Workspace management for BioLM (Python SDK not yet implemented; use CLI)."""
 from typing import Optional, List, Dict, Any
 
 from biolm.core.http import BioLMApiClient
@@ -6,12 +6,14 @@ from biolm.core.auth import get_user_auth_header
 
 
 class Workspace:
-    """
-    Workspace management interface.
-    
+    """Workspace management interface (not yet implemented).
+
+    Use ``biolm workspace`` CLI commands today. This class defines the intended
+    Python API: ``list``, ``create``, and ``get``.
+
     Args:
-        name (Optional[str]): Workspace name. If None, uses default workspace.
-        api_key (Optional[str]): API key for authentication.
+        name: Workspace name. If ``None``, uses the default workspace.
+        api_key: Optional API token; defaults to ``BIOLM_TOKEN``.
     """
     def __init__(self, name: Optional[str] = None, api_key: Optional[str] = None):
         self.name = name

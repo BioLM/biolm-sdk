@@ -1,4 +1,4 @@
-"""Model API operations for BioLM."""
+"""High-level model interface for BioLM (``Model``, encode/predict/generate helpers)."""
 import logging
 from typing import Callable, Optional, Union, List, Any
 

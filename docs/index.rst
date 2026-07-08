@@ -11,19 +11,19 @@ Welcome to BioLM SDK Documentation
    :end-line: 17
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Introduction
    :hidden:
 
+   intro/quickstart
    intro/installation
    intro/authentication
-   intro/quickstart
    intro/concepts
    intro/sdk-overview
    intro/client-interfaces
    intro/batching
    intro/error-handling
-   intro/async-sync
+   intro/concurrency
    intro/rate-limiting
    intro/faq
 
@@ -68,4 +68,4 @@ Welcome to BioLM SDK Documentation
    :hidden:
 
    changelog
-   intro/migration-1.0
+   notes/migration-1.0

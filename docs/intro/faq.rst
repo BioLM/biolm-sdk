@@ -1,6 +1,6 @@
-===
-FAQ
-===
+==========================
+Frequently Asked Questions
+==========================
 
 **Q:** Can I use generators or iterators for ``items``?
 
@@ -40,7 +40,7 @@ A: Set ``output='disk'`` and provide ``file_path`` in either ``BioLM`` or ``BioL
 
 **Q: How do I use the async client?**
 
-A: Use ``BioLMApiClient``; its methods are coroutines and must be awaited (e.g. ``await model.encode(...)``, ``await model.predict(...)``). Do not await ``biolm()``, ``Model``, or ``BioLMApi``—those are synchronous. See :doc:`async-sync` for which methods can be awaited.
+A: Use ``BioLMApiClient``; its methods are coroutines and must be awaited (e.g. ``await model.encode(...)``, ``await model.predict(...)``). Do not await ``biolm()``, ``Model``, or ``BioLMApi``—those are synchronous. See :doc:`concurrency` for which methods can be awaited.
 
 **Q: How does the client achieve high throughput?**
 

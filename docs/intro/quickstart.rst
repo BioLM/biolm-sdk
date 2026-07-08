@@ -4,6 +4,8 @@
 Quickstart
 ==========
 
+Authenticate before calling the API: set ``BIOLM_TOKEN`` or run ``biolm login``. See :doc:`authentication` for details.
+
 Install the package:
 
 .. code-block:: bash

@@ -23,7 +23,7 @@ Feature summary
 BioLM (simple sync)
 ------------------------
 
-**``BioLM``** is the simplest synchronous interface: call a function with entity, action, and items. Single-item calls return a single result (dict); batch calls return a list. No event loop or asyncio required. Under the hood it uses the same asynchronous backend as ``BioLMApiClient``, so you get the performance of concurrent batch requests in a blocking call—no need to write async code.
+``BioLM`` is the simplest synchronous interface: call a function with entity, action, and items. Single-item calls return a single result (dict); batch calls return a list. No event loop or asyncio required. Under the hood it uses the same asynchronous backend as ``BioLMApiClient``, so you get the performance of concurrent batch requests in a blocking call—no need to write async code.
 
 **Example:**
 
@@ -46,14 +46,14 @@ BioLMApi and BioLMApiClient
 
 For more control or high throughput you can use:
 
-- **``BioLMApi``** — Synchronous interface to the same async backend; same style as ``BioLM`` but with more options (rate limits, retry, schema access). Blocking calls, concurrent batches under the hood.
-- **``BioLMApiClient``** — The async client: its methods are coroutines and must be awaited. Use in async code (e.g. ``await model.encode(...)``) or with ``asyncio.run(...)``.
+- ``BioLMApi`` — Synchronous interface to the same async backend; same style as ``BioLM`` but with more options (rate limits, retry, schema access). Blocking calls, concurrent batches under the hood.
+- ``BioLMApiClient`` — The async client: its methods are coroutines and must be awaited. Use in async code (e.g. ``await model.encode(...)``) or with ``asyncio.run(...)``.
 
 **When to use which:**
 
-- **``BioLM``** — Simplest interface; best for scripts, Jupyter, and one-off or small batches.
-- **``BioLMApiClient``** — Many requests in parallel, web servers, or any async app; you control concurrency and rate limiting.
-- **``BioLMApi``** — Sync interface with more control than ``BioLM`` (e.g. custom rate limits, retry).
+- ``BioLM`` — Simplest interface; best for scripts, Jupyter, and one-off or small batches.
+- ``BioLMApiClient`` — Many requests in parallel, web servers, or any async app; you control concurrency and rate limiting.
+- ``BioLMApi`` — Sync interface with more control than ``BioLM`` (e.g. custom rate limits, retry).
 
 ``BioLMApiClient`` always returns a list (even for one item) unless you set ``unwrap_single``. ``BioLM`` and ``BioLMApi`` return a single dict when you pass a single item.
 

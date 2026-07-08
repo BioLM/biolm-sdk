@@ -1,6 +1,5 @@
-========================
-Sync and async
-==================
+Concurrency
+===========
 
 **Synchronous usage:**
 

@@ -15,6 +15,7 @@ Documentation Structure
 - SDK — ``docs/sdk/index.rst`` and ``docs/sdk/*.rst`` (curated module reference)
 - YAML — ``docs/yaml/`` (declarative file-format references)
 - Changelog — ``docs/changelog.rst`` (includes root ``CHANGELOG.md``)
+- Notes — ``docs/notes/`` (misc pages; listed in nav only where needed, e.g. migration under Release notes)
 
 **Auto-generated:**
 
@@ -47,6 +48,13 @@ SDK Documentation
 
 - ``docs/sdk/index.rst`` — SDK landing page
 - ``docs/sdk/*.rst`` — Per-module reference pages (edit docstrings in ``biolm/`` for API detail)
+
+Each SDK page should follow: **what it is** → **when to use** → **minimal example** →
+**primary autoclass/autofunction** → **see also** (intro, CLI, yaml, api-reference).
+
+In ``.rst`` files, use double backticks for inline code (``like this``), not Markdown
+single backticks. Do not nest bold (``**``) inside literals — Sphinx renders the
+backticks literally.
 
 **Auto-generated:**
 

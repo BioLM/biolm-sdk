@@ -23,7 +23,7 @@ Optional extras:
 For open-source models, install and run `biolm-hub <https://github.com/BioLM/biolm-hub>`_,
 then connect with ``biolm hub set``. See :doc:`../cli/hub`.
 
-The ``biolmai`` package name is deprecated; use ``biolm-sdk``. See :doc:`migration-1.0`.
+The ``biolmai`` package name is deprecated; use ``biolm-sdk``. See :doc:`../notes/migration-1.0`.
 
 If you don't have `pip`_ installed, this `Python installation guide`_ can guide
 you through the process.

@@ -42,11 +42,13 @@ class ProtocolValidationResult:
 
 
 class Protocol:
-    """
-    Protocol definition and execution.
-    
+    """Load and validate BioLM protocol YAML files.
+
     Args:
-        yaml_path (str): Path to protocol YAML file.
+        yaml_path: Path to a protocol YAML file. The file is loaded and
+            validated on construction; invalid YAML raises ``ValueError``.
+
+    Use :meth:`validate` as a classmethod to validate without instantiating.
     """
     def __init__(self, yaml_path: str):
         self.yaml_path = yaml_path
