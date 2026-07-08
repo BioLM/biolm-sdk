@@ -1,8 +1,8 @@
 """
 Backward-compatibility shim.
 
-Old code imported from ``biolmai.pipeline.datastore``; the implementation has
-moved to ``biolmai.pipeline.datastore_duckdb``.  Import ``DataStore`` from
+Old code imported from ``biolm.pipeline.datastore``; the implementation has
+moved to ``biolm.pipeline.datastore_duckdb``.  Import ``DataStore`` from
 either location — they resolve to the same class.
 """
 

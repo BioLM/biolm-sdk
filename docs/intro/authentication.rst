@@ -63,11 +63,16 @@ The command will:
 
 - Check for existing valid credentials
 - If credentials are missing or invalid, open a browser for OAuth authorization
-- Save credentials to :code:`~/.biolmai/credentials`
+- Save credentials to :code:`~/.biolm/credentials`
 
 .. code-block:: bash
 
-    Login succeeded! Credentials saved to ~/.biolmai/credentials
+    Login succeeded! Credentials saved to ~/.biolm/credentials
+
+.. note::
+
+   If you have credentials from an older install at ``~/.biolmai/credentials``, they
+   are still read with a deprecation warning. New logins write to ``~/.biolm/credentials``.
 
 .. code-block:: bash
 
@@ -77,7 +82,7 @@ If already logged in:
 
 .. code-block:: text
 
-    Credentials location: ~/.biolmai/credentials
+    Credentials location: ~/.biolm/credentials
     Run `biolm status` to view your authentication status.
 
 Custom OAuth client ID:
@@ -118,7 +123,7 @@ Login with custom scope:
 Credentials file format
 -----------------------
 
-Credentials are saved to :code:`~/.biolmai/credentials` in JSON format with:
+Credentials are saved to :code:`~/.biolm/credentials` in JSON format with:
 
 - ``access`` — short-lived access token
 - ``refresh`` — refresh token for renewing access

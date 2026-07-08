@@ -390,7 +390,7 @@ class Protocol:
     @staticmethod
     def _get_examples_dir() -> Path:
         """Get path to examples directory."""
-        # Get the package root directory (biolmai/)
+        # Get the package root directory (biolm/)
         package_dir = Path(__file__).parent
         # Go up one level to project root, then into examples/
         project_root = package_dir.parent

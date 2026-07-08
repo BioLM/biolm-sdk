@@ -8,9 +8,9 @@ Subpackages
    :maxdepth: 4
 
    biolm.core
+   biolm.hub
    biolm.io
    biolm.pipeline
-   biolm.hub
 
 Submodules
 ----------
@@ -63,6 +63,14 @@ biolm.examples module
    :undoc-members:
    :show-inheritance:
 
+biolm.finetune module
+---------------------
+
+.. automodule:: biolm.finetune
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 biolm.ltc module
 ----------------
 
@@ -83,6 +91,14 @@ biolm.progress module
 ---------------------
 
 .. automodule:: biolm.progress
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+biolm.protocol\_runs module
+---------------------------
+
+.. automodule:: biolm.protocol_runs
    :members:
    :undoc-members:
    :show-inheritance:

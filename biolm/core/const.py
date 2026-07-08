@@ -89,10 +89,13 @@ else:
 BIOLMAI_BASE_DOMAIN = BIOLM_BASE_DOMAIN
 BIOLMAI_BASE_API_URL = BIOLM_BASE_API_URL
 
-USER_BIOLM_DIR = os.path.join(os.path.expanduser("~"), ".biolmai")
-BIOLM_CONFIG_DIR = os.path.join(os.path.expanduser("~"), ".biolm")
+from biolm.core.paths import resolve_user_file, user_config_dir  # noqa: E402
+
+USER_BIOLM_DIR = str(user_config_dir())
+BIOLM_CONFIG_DIR = str(user_config_dir())
 BIOLM_CONFIG_PATH = os.path.join(BIOLM_CONFIG_DIR, "config.yaml")
-ACCESS_TOK_PATH = os.path.join(USER_BIOLM_DIR, "credentials")
+ACCESS_TOK_PATH = resolve_user_file("credentials")
+CREDENTIALS_WRITE_PATH = os.path.join(USER_BIOLM_DIR, "credentials")
 GEN_TOKEN_URL = f"{BIOLM_BASE_DOMAIN}/ui/accounts/user-api-tokens/"
 
 # --- Thread pool ---

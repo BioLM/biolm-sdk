@@ -83,14 +83,16 @@ class DuckDBDataStore:
         db_path: Union[str, Path, None] = None,
         data_dir: Union[str, Path, None] = None,
     ):
-        # Default DB lives in ~/.biolmai/pipelines/, NOT the current working
+        # Default DB lives in ~/.biolm/pipelines/, NOT the current working
         # directory.  The previous default (`./pipeline.duckdb`) caused
         # accidental git commits and dropped sensitive sequence data into
         # whatever folder the user happened to launch Python from.  Callers
         # who want a project-local DB should pass `db_path="./my.duckdb"`
         # explicitly.
         if db_path is None:
-            default_root = Path.home() / ".biolmai" / "pipelines"
+            from biolm.core.paths import resolve_user_path
+
+            default_root = resolve_user_path("pipelines")
             default_root.mkdir(parents=True, exist_ok=True)
             db_path = default_root / "default.duckdb"
             warnings.warn(

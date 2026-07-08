@@ -147,5 +147,5 @@ See Also
 ------------------------
 
 - :doc:`batching`
-- :doc:`usage` (includes Disk output)
-- :doc:`../faq`
+- :doc:`client-interfaces` (includes Disk output)
+- :doc:`faq`

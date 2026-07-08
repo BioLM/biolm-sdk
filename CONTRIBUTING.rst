@@ -38,8 +38,8 @@ and "help wanted" is open to whoever wants to implement it.
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-BioLM AI could always use more documentation, whether as part of the
-official BioLM AI docs, in docstrings, or even on the web in blog posts,
+BioLM SDK could always use more documentation, whether as part of the
+official BioLM SDK docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
@@ -101,7 +101,7 @@ Before you submit a pull request, check that it meets these guidelines:
 1. The pull request should include tests.
 2. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring, and add the
-   feature to the list in README.rst.
+   feature to the list in README.md.
 3. The pull request should work for Python 3.8 through 3.13. Check
    https://github.com/BioLM/biolm-sdk/actions
    and make sure that the tests pass for all supported Python versions.
@@ -121,7 +121,10 @@ See ``VERSIONING.md`` for the full release workflow.
 
 Production releases use **python-semantic-release** on ``main``: merge with a
 conventional commit (``feat:``, ``fix:``, or ``BREAKING:``), CI bumps the
-version and creates a GitHub Release, then the **Publish to PyPI** workflow
-uploads the package.
+version, updates ``CHANGELOG.md``, and creates a GitHub Release, then the
+**Publish to PyPI** workflow uploads the package.
+
+Use ``chore:`` or ``docs:`` prefixes for changes that should not trigger a
+version bump. See ``CHANGELOG.md`` for release history.
 
 Do **not** hand-edit ``biolm/__init__.py`` version for production releases.

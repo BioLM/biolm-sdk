@@ -15,11 +15,8 @@ def _read_version():
                 return line.split("=", 1)[1].strip().strip("'\"")
     raise RuntimeError("Could not find __version__ in biolm/__init__.py")
 
-with open("README.rst") as readme_file:
+with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
-
-with open("HISTORY.rst") as history_file:
-    history = history_file.read()
 
 requirements = [
     "Click>=6.0",
@@ -51,7 +48,7 @@ setup(
     author_email="support@biolm.ai",
     python_requires=">=3.8",
     classifiers=[
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: Apache Software License",
         "Natural Language :: English",
@@ -92,9 +89,9 @@ setup(
         ],
     },
     license="Apache Software License 2.0",
-    long_description=readme + "\n\n" + history,
+    long_description=readme,
     include_package_data=True,
-    keywords=["biolm", "biolmai", "bioai", "bio-ai", "bio-lm", "bio-llm"],
+    keywords=["biolm", "bioai", "bio-ai", "bio-lm", "bio-llm"],
     name="biolm-sdk",
     packages=find_packages(include=["biolm", "biolm.*", "biolmai", "biolmai.*"]),
     package_data={"biolm.hub": ["data/*.json"]},

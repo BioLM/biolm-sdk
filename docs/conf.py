@@ -13,6 +13,10 @@
 # serve to show the default.
 
 import os
+import re
+
+import click
+from docutils import nodes
 
 # Build option: iframe mode (hides header for embedding)
 # Set via environment variable: IFRAME_MODE=1 make html
@@ -85,7 +89,7 @@ source_suffix = ['.rst', '.md']
 master_doc = "index"
 
 # General information about the project.
-project = "BioLM AI"
+project = "BioLM SDK"
 copyright = "2023, BioLM.ai"
 author = "Nikhil Haas"
 
@@ -213,8 +217,8 @@ html_css_files.extend([
 ])
 
 # Additional branding options
-html_title = "BioLM AI Documentation"
-html_short_title = "BioLM AI"
+html_title = "BioLM SDK Documentation"
+html_short_title = "BioLM SDK"
 
 # Custom favicon (add your favicon.ico to _static folder)
 # html_favicon = "_static/favicon.ico"
@@ -225,7 +229,7 @@ html_show_copyright = True
 
 # SEO and metadata
 html_meta = {
-    "description": "Official documentation for BioLM AI - Advanced biological language models and APIs",
+    "description": "Official documentation for the BioLM Python SDK and CLI",
     "keywords": "BioLM, AI, machine learning, biology, protein, DNA, API",
     "author": "BioLM.ai Team",
     "viewport": "width=device-width, initial-scale=1",
@@ -237,7 +241,7 @@ html_theme_options.update({
     "footer_icons": [
         {
             "name": "GitHub",
-            "url": "https://github.com/yourusername/yourrepo",  # Update with your GitHub
+            "url": "https://github.com/BioLM/biolm-sdk",
             "html": """
                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"></path>
@@ -276,7 +280,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass
 # [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "biolmsdk.tex", "BioLM AI Documentation", "Nikhil Haas", "manual"),
+    (master_doc, "biolmsdk.tex", "BioLM SDK Documentation", "Nikhil Haas", "manual"),
 ]
 
 
@@ -284,7 +288,7 @@ latex_documents = [
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "biolm-sdk", "BioLM AI Documentation", [author], 1)]
+man_pages = [(master_doc, "biolm-sdk", "BioLM SDK Documentation", [author], 1)]
 
 
 # -- Options for Texinfo output ----------------------------------------
@@ -296,7 +300,7 @@ texinfo_documents = [
     (
         master_doc,
         "biolm-sdk",
-        "BioLM AI Documentation",
+        "BioLM SDK Documentation",
         author,
         "biolm-sdk",
         "One line description of project.",
@@ -312,12 +316,226 @@ def _envvar_description_as_paragraph(app, ctx, lines):
             lines[i] = stripped
 
 
+def _keep_description_paragraphs(lines: list[str], max_paragraphs: int = 2) -> None:
+    if not lines:
+        return
+    paragraphs: list[list[str]] = []
+    current: list[str] = []
+    for line in lines:
+        if not line.strip():
+            if current:
+                paragraphs.append(current)
+                current = []
+            continue
+        current.append(line)
+    if current:
+        paragraphs.append(current)
+    if not paragraphs:
+        return
+
+    kept = paragraphs[:max_paragraphs]
+    flat: list[str] = []
+    for i, para in enumerate(kept):
+        flat.extend(para)
+        if i < len(kept) - 1:
+            flat.append("")
+    if flat and flat[-1].strip():
+        flat.append("")
+    lines[:] = flat
+
+
+def _trim_click_description_lines(app, ctx, lines):
+    """Use concise multi-paragraph descriptions for groups and subcommands in CLI docs."""
+    path_parts = ctx.command_path.split()
+    if isinstance(ctx.command, click.Group) or len(path_parts) >= 3:
+        _keep_description_paragraphs(lines, max_paragraphs=2)
+
+
+_CLICMD_RE = re.compile(r"^(.+?)\s*<([^>]+)>$")
+
+
+def _clicmd_role(name, rawtext, text, lineno, inliner, options=None, content=None):
+    """Internal doc link: ``:clicmd:`title <page.html#anchor>```."""
+    if options is None:
+        options = {}
+    if content is None:
+        content = []
+    match = _CLICMD_RE.match(text.strip())
+    if not match:
+        msg = inliner.reporter.warning(f"Invalid :clicmd: syntax: {text}", line=lineno)
+        return [inliner.problematic(rawtext)], [msg]
+    title, refuri = match.group(1), match.group(2)
+    node = nodes.reference(rawtext, title, refuri=refuri, internal=True)
+    return [node], []
+
+
+def _command_title(text: str) -> nodes.title:
+    title = nodes.title()
+    title += nodes.Text(text)
+    return title
+
+
+def _strip_click_program_nodes(top_section: nodes.section) -> None:
+    """Remove sphinx-click program index nodes that duplicate the group heading in TOC."""
+    for node in list(top_section.children):
+        if getattr(node, "tagname", "") == "index":
+            node.parent.remove(node)
+
+
+def _is_cli_subcommand_id(section_id: str) -> bool:
+    return section_id.startswith("biolm-") and len(section_id.split("-")) >= 3
+
+
+def _is_click_group_section(section: nodes.section) -> bool:
+    section_id = section.get("ids", [""])[0]
+    if _is_cli_subcommand_id(section_id):
+        return False
+    if any(isinstance(node, nodes.rubric) for node in section.children):
+        return True
+    return any(
+        isinstance(node, nodes.section) and _is_cli_subcommand_id(node.get("ids", [""])[0])
+        for node in section.children
+    )
+
+
+def _find_click_section(parent: nodes.section) -> nodes.section | None:
+    """Return the sphinx-click group/command section nested under the page."""
+    for child in parent.children:
+        if isinstance(child, nodes.section) and _is_click_group_section(child):
+            return child
+    return None
+
+
+def _transform_cli_click_pages(app, doctree, docname=""):
+    """Merge sphinx-click output into Modal-style CLI pages."""
+    if doctree.get("_cli_click_merged"):
+        return
+    if not docname.startswith("cli/") or docname == "cli/index":
+        return
+
+    if not isinstance(doctree, nodes.document):
+        return
+
+    top_section = next((c for c in doctree.children if isinstance(c, nodes.section)), None)
+    if top_section is None:
+        return
+
+    click_section = _find_click_section(top_section)
+    if click_section is None:
+        return
+
+    if click_section.children and isinstance(click_section.children[0], nodes.title):
+        click_section.remove(click_section.children[0])
+
+    insert_at = len(top_section.children)
+    for child in list(click_section.children):
+        click_section.remove(child)
+        top_section.insert(insert_at, child)
+        insert_at += 1
+
+    parent = click_section.parent
+    if parent is not None:
+        parent.remove(click_section)
+
+    _strip_click_program_nodes(top_section)
+
+    for child in top_section.children:
+        if not isinstance(child, nodes.section):
+            continue
+        section_id = child.get("ids", [""])[0]
+        if not _is_cli_subcommand_id(section_id):
+            continue
+        full_name = section_id.replace("-", " ")
+        child["names"] = [nodes.fully_normalize_name(full_name)]
+        if child.children and isinstance(child.children[0], nodes.title):
+            child.remove(child.children[0])
+        child.insert(0, _command_title(full_name))
+
+    doctree["_cli_click_merged"] = True
+
+
+def _fix_cli_toc_reference(ref: nodes.reference) -> None:
+    refuri = ref.get("refuri") or ""
+    if not refuri.startswith("#biolm-"):
+        return
+    section_id = refuri[1:]
+    if len(section_id.split("-")) >= 3:
+        ref.clear()
+        ref += nodes.Text(section_id.replace("-", " "))
+
+
+def _flatten_cli_toc_group_wrapper(toc: nodes.bullet_list) -> None:
+    """Drop the duplicate group-level local-TOC entry under the page title."""
+    for top_item in toc.children:
+        if not isinstance(top_item, nodes.list_item):
+            continue
+        for child in top_item.children:
+            if not isinstance(child, nodes.bullet_list):
+                continue
+            group_list = child
+            for group_item in list(group_list.children):
+                if not isinstance(group_item, nodes.list_item):
+                    continue
+                ref = next((c for c in group_item.children if isinstance(c, nodes.reference)), None)
+                if ref is None:
+                    continue
+                refuri = ref.get("refuri") or ""
+                section_id = refuri[1:] if refuri.startswith("#") else ""
+                if not section_id.startswith("biolm-") or len(section_id.split("-")) != 2:
+                    continue
+                nested = next((c for c in group_item.children if isinstance(c, nodes.bullet_list)), None)
+                if nested is None:
+                    continue
+                group_item.remove(nested)
+                insert_at = group_list.children.index(group_item) + 1
+                group_list.insert(insert_at, nested)
+                group_list.remove(group_item)
+
+
+def _fix_cli_page_toc(app, pagename, templatename, context, doctree) -> None:
+    if not pagename.startswith("cli/") or pagename == "cli/index":
+        return
+    toc = context.get("toc")
+    if not hasattr(toc, "traverse"):
+        return
+    for ref in toc.traverse(nodes.reference):
+        _fix_cli_toc_reference(ref)
+    if isinstance(toc, nodes.bullet_list):
+        _flatten_cli_toc_group_wrapper(toc)
+
+
 def setup(app):
     app.connect("sphinx-click-process-envvars", _envvar_description_as_paragraph)
+    app.connect("sphinx-click-process-description", _trim_click_description_lines)
+
+    def _on_doctree_read(app, doctree):
+        _transform_cli_click_pages(app, doctree, app.env.docname)
+
+    # Run before TocTreeCollector (default priority 500) builds env.tocs.
+    app.connect("doctree-read", _on_doctree_read, priority=10)
+    app.connect("html-page-context", _fix_cli_page_toc)
+    app.add_js_file("caption-links.js")
+    app.add_role("clicmd", _clicmd_role)
 
 
 # Redirects
 redirects = {
+    "api-reference/index": "sdk/index",
+    "sdk/api-reference/index": "sdk/index",
+    "cli/reference": "reference/cli",
+    "protocols/about": "yaml/protocol-schema",
+    "protocols/inputs": "yaml/protocol-schema",
+    "protocols/execution": "yaml/protocol-schema",
+    "protocols/tasks": "yaml/protocol-schema",
+    "protocols/output": "yaml/protocol-schema",
+    "protocols/schema": "yaml/protocol-schema",
+    "resources/rest-api": "reference/rest-api",
+    "cli/overview": "cli/index",
+    "cli/usage/authenticating": "cli/login",
+    "cli/usage/models": "cli/model",
+    "cli/usage/protocols": "cli/protocol",
+    "cli/usage/workspaces": "cli/workspace",
+    "cli/usage/datasets": "cli/dataset",
     "model-docs/esmfold/ESMFold_Additional": "https://biolm.ai/models/esmfold/",
     "model-docs/esmfold/ESMFold_API": "https://biolm.ai/models/esmfold/",
     "model-docs/esmfold/index": "https://biolm.ai/models/esmfold/",
@@ -339,4 +557,23 @@ redirects = {
     "model-docs/biolmtox/BioLMTox_Additional": "https://biolm.ai/models/biolmtox/",
     "model-docs/biolmtox/BioLMTox_API": "https://biolm.ai/models/biolmtox/",
     "model-docs/biolmtox/index": "https://biolm.ai/models/biolmtox/",
+
+    "getting-started/installation": "intro/installation",
+    "getting-started/authentication": "intro/authentication",
+    "getting-started/quickstart": "intro/quickstart",
+    "getting-started/concepts": "intro/concepts",
+    "getting-started/overview": "intro/overview",
+    "getting-started/migration-1.0": "intro/migration-1.0",
+    "sdk/overview": "intro/sdk-overview",
+    "sdk/usage/usage": "intro/client-interfaces",
+    "sdk/usage/batching": "intro/batching",
+    "sdk/usage/error-handling": "intro/error-handling",
+    "sdk/usage/async-sync": "intro/async-sync",
+    "sdk/usage/rate_limiting": "intro/rate-limiting",
+    "sdk/usage/io": "sdk/io",
+    "sdk/faq": "intro/faq",
+    "reference/protocol-schema": "yaml/protocol-schema",
+    "reference/changelog": "changelog",
+    "reference/sdk": "sdk/index",
+    "api-reference/index": "sdk/index",
 }

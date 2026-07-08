@@ -1,4 +1,4 @@
-Workspaces
-==========
+biolm.workspaces
+================
 
-Manage workspaces via the SDK. See the :doc:`api-reference/index` for the ``biolm.workspaces`` API.
+Manage workspaces via the SDK. See the :doc:`../api-reference/modules` for the ``biolm.workspaces`` API.

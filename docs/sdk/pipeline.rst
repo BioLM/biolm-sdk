@@ -1,12 +1,12 @@
 .. _sdk-pipeline:
 
-Pipeline Design Primitives
-==========================
+biolm.pipeline
+==============
 
-The ``biolmai.pipeline`` module provides a config-driven framework for
+The ``biolm.pipeline`` module provides a config-driven framework for
 multi-stage protein design workflows.  Generation, scoring, prediction, and
 filtering stages are declared as typed config objects, linked into a
-:class:`~biolmai.pipeline.generative.GenerativePipeline`, and executed
+:class:`~biolm.pipeline.generative.GenerativePipeline`, and executed
 asynchronously with DuckDB-backed caching and resumability.
 
 .. contents:: On this page
@@ -32,7 +32,7 @@ Use :func:`isinstance` to dispatch on config type in pipeline runners:
 
 .. code-block:: python
 
-    from biolmai.pipeline.generative import (
+    from biolm.pipeline.generative import (
         ScoringProtocolConfig,
         GenerativeProtocolConfig,
     )
@@ -46,11 +46,11 @@ Use :func:`isinstance` to dispatch on config type in pipeline runners:
 Base Classes
 ------------
 
-.. autoclass:: biolmai.pipeline.generative.ScoringProtocolConfig
+.. autoclass:: biolm.pipeline.generative.ScoringProtocolConfig
    :members:
    :undoc-members:
 
-.. autoclass:: biolmai.pipeline.generative.GenerativeProtocolConfig
+.. autoclass:: biolm.pipeline.generative.GenerativeProtocolConfig
    :members:
    :undoc-members:
 
@@ -62,7 +62,7 @@ Enumerates every single amino-acid substitution at the specified positions,
 scores each variant with a BioLM prediction model (e.g. ThermoMPNN-D,
 ESM2StabP), and returns the top-*N* variants ranked by the chosen score field.
 
-.. autoclass:: biolmai.pipeline.generative.SaturationMutagenesisConfig
+.. autoclass:: biolm.pipeline.generative.SaturationMutagenesisConfig
    :members:
    :undoc-members:
    :show-inheritance:
@@ -125,7 +125,7 @@ ESM2StabP), and returns the top-*N* variants ranked by the chosen score field.
 
 .. code-block:: python
 
-    from biolmai.pipeline import SaturationMutagenesisConfig, GenerativePipeline
+    from biolm.pipeline import SaturationMutagenesisConfig, GenerativePipeline
 
     config = SaturationMutagenesisConfig(
         parent_sequence="MKTAYIAKQRQ",
@@ -156,7 +156,7 @@ Implements a greedy-argmax masking procedure using a masked language model
 
 This matches the ESM2 two-round DMS design pattern used in EGF generation.
 
-.. autoclass:: biolmai.pipeline.generative.IterativeMaskingDMSConfig
+.. autoclass:: biolm.pipeline.generative.IterativeMaskingDMSConfig
    :members:
    :undoc-members:
    :show-inheritance:
@@ -207,7 +207,7 @@ This matches the ESM2 two-round DMS design pattern used in EGF generation.
 
 .. code-block:: python
 
-    from biolmai.pipeline import IterativeMaskingDMSConfig, GenerativePipeline
+    from biolm.pipeline import IterativeMaskingDMSConfig, GenerativePipeline
 
     config = IterativeMaskingDMSConfig(
         parent_sequence="MKTAYIAKQRQ",
@@ -231,7 +231,7 @@ SolubleMPNN, AntiFold, DSM — to produce new sequences.  The caller is
 responsible for providing the correct ``item_field`` and ``params`` for the
 target model; no auto-detection is performed.
 
-.. autoclass:: biolmai.pipeline.generative.DirectGenerationConfig
+.. autoclass:: biolm.pipeline.generative.DirectGenerationConfig
    :members:
    :undoc-members:
    :show-inheritance:
@@ -311,7 +311,7 @@ target model; no auto-detection is performed.
 
 .. code-block:: python
 
-    from biolmai.pipeline import DirectGenerationConfig, GenerativePipeline
+    from biolm.pipeline import DirectGenerationConfig, GenerativePipeline
 
     # Structure-conditioned design with ProteinMPNN
     cfg_mpnn = DirectGenerationConfig(
@@ -345,12 +345,12 @@ the final candidates.
 
 .. code-block:: python
 
-    from biolmai.pipeline import (
+    from biolm.pipeline import (
         GenerativePipeline,
         DirectGenerationConfig,
         SaturationMutagenesisConfig,
     )
-    from biolmai.pipeline.filters import ThresholdFilter, RankingFilter
+    from biolm.pipeline.filters import ThresholdFilter, RankingFilter
 
     pdb_str = open("protein.pdb").read()
 
@@ -400,13 +400,51 @@ interruption the pipeline can be reconstructed and resumed:
     pipeline.run(resume=True)
 
 The ``to_spec()`` / ``from_db()`` roundtrip is handled by
-``biolmai.pipeline.pipeline_def.pipeline_from_definition()``.  Large strings
+``biolm.pipeline.pipeline_def.pipeline_from_definition()``.  Large strings
 (e.g. PDB file contents) are stored in a separate ``pipeline_blobs`` table and
 resolved transparently on load.
+
+
+Quickstart examples
+-------------------
+
+Install the pipeline extra: ``pip install "biolm-sdk[pipeline]"``.
+
+**Saturation mutagenesis** — single-mutant library + scoring:
+
+.. code-block:: python
+
+    import asyncio
+    from biolm.pipeline import GenerativePipeline, SaturationMutagenesisConfig
+
+    config = SaturationMutagenesisConfig(
+        scoring_model="esm2-650m",
+        scoring_action="score",
+        score_field="score",
+        positions=[10, 15, 42],
+        batch_size=32,
+    )
+    pipeline = GenerativePipeline(configs=[config])
+    df = asyncio.run(pipeline.run_async(sequences=["MKTAYIAKQRQISFVKSHFSRQ"]))
+
+**Direct generation** (ProteinMPNN / DSM / AntiFold):
+
+.. code-block:: python
+
+    from biolm.pipeline import GenerativePipeline, DirectGenerationConfig
+
+    config = DirectGenerationConfig(
+        model="proteinmpnn-v48-002",
+        action="generate",
+        n_runs=10,
+        params={"temperature": 0.1},
+    )
+    pipeline = GenerativePipeline(configs=[config])
+    df = asyncio.run(pipeline.run_async(pdb_strings=[pdb_str]))
 
 
 See Also
 --------
 
 - :doc:`overview` — SDK overview and quick start
-- :doc:`api-reference/index` — Full autodoc API reference
+- :doc:`../api-reference/modules` — Full autodoc API reference

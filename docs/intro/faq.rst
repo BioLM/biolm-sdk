@@ -4,7 +4,7 @@ FAQ
 
 **Q:** Can I use generators or iterators for ``items``?
 
-A: Yes. Pass a generator (or any iterable) instead of a list. The client consumes it batch-by-batch, so you never hold all items in memory. Ideal for large files or streams. The generator is fully consumed during the call. See :doc:`usage/batching`.
+A: Yes. Pass a generator (or any iterable) instead of a list. The client consumes it batch-by-batch, so you never hold all items in memory. Ideal for large files or streams. The generator is fully consumed during the call. See :doc:`batching`.
 
 **Q: When do I need to specify** ``type`` (e.g. ``type="sequence"``)?
 
@@ -40,11 +40,11 @@ A: Set ``output='disk'`` and provide ``file_path`` in either ``BioLM`` or ``BioL
 
 **Q: How do I use the async client?**
 
-A: Use ``BioLMApiClient``; its methods are coroutines and must be awaited (e.g. ``await model.encode(...)``, ``await model.predict(...)``). Do not await ``biolm()``, ``Model``, or ``BioLMApi``—those are synchronous. See :doc:`usage/async-sync` for which methods can be awaited.
+A: Use ``BioLMApiClient``; its methods are coroutines and must be awaited (e.g. ``await model.encode(...)``, ``await model.predict(...)``). Do not await ``biolm()``, ``Model``, or ``BioLMApi``—those are synchronous. See :doc:`async-sync` for which methods can be awaited.
 
 **Q: How does the client achieve high throughput?**
 
-A: By default, the client batches your items (schema-based size), sends batch requests in parallel (up to 16 concurrent), and applies API-recommended rate limiting. No configuration needed. See :doc:`usage/rate_limiting`.
+A: By default, the client batches your items (schema-based size), sends batch requests in parallel (up to 16 concurrent), and applies API-recommended rate limiting. No configuration needed. See :doc:`rate-limiting`.
 
 **Q: How do I set a custom rate limit?**
 

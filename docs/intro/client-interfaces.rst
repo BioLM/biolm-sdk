@@ -1,6 +1,6 @@
-=====
-Usage
-=====
+==================
+Client interfaces
+==================
 
 You can call the API in three ways: the one-off function, the class-based Model (one model, multiple calls), or the API client for advanced control. Examples below.
 
@@ -131,4 +131,4 @@ For large jobs you can write results to a JSONL file instead of returning them i
     biolm(entity="esmfold", action="predict", type="sequence", items=["MSILV", "BADSEQ"],
           output='disk', file_path="results.jsonl", stop_on_error=True)
 
-**When to use which:** One-off or quick scripts → use the function. One model and several operations → use Model. More control (batching, errors, schema, reuse) → use ``BioLMApi`` or ``BioLMApiClient``. See :doc:`../models` and :doc:`../../getting-started/concepts`.
+**When to use which:** One-off or quick scripts → use the function. One model and several operations → use Model. More control (batching, errors, schema, reuse) → use ``BioLMApi`` or ``BioLMApiClient``. See :doc:`../sdk/models` and :doc:`concepts`.

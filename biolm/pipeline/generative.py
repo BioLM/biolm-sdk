@@ -73,7 +73,7 @@ class ScoringProtocolConfig:
 
     Example::
 
-        from biolmai.pipeline.generative import (
+        from biolm.pipeline.generative import (
             ScoringProtocolConfig,
             SaturationMutagenesisConfig,
         )
@@ -107,7 +107,7 @@ class GenerativeProtocolConfig:
 
     Example::
 
-        from biolmai.pipeline.generative import (
+        from biolm.pipeline.generative import (
             GenerativeProtocolConfig,
             DirectGenerationConfig,
             IterativeMaskingDMSConfig,
@@ -177,7 +177,7 @@ class DirectGenerationConfig(GenerativeProtocolConfig):
 
     Example::
 
-        from biolmai.pipeline.generative import DirectGenerationConfig, GenerativePipeline
+        from biolm.pipeline.generative import DirectGenerationConfig, GenerativePipeline
 
         # Structure-conditioned design with ProteinMPNN
         cfg_mpnn = DirectGenerationConfig(
@@ -348,7 +348,7 @@ class SaturationMutagenesisConfig(ScoringProtocolConfig):
 
     Example::
 
-        from biolmai.pipeline.generative import SaturationMutagenesisConfig, GenerativePipeline
+        from biolm.pipeline.generative import SaturationMutagenesisConfig, GenerativePipeline
 
         # Score all single-mutant variants at three positions with ThermoMPNN-D
         config = SaturationMutagenesisConfig(
@@ -476,7 +476,7 @@ class IterativeMaskingDMSConfig(GenerativeProtocolConfig):
 
     Example::
 
-        from biolmai.pipeline.generative import IterativeMaskingDMSConfig, GenerativePipeline
+        from biolm.pipeline.generative import IterativeMaskingDMSConfig, GenerativePipeline
 
         # Two-round greedy DMS at three positions using ESM2-650M
         config = IterativeMaskingDMSConfig(

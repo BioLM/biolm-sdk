@@ -366,7 +366,7 @@ def cli(debug, color):
 
 @cli.command()
 def version():
-    """Show the installed biolm package version."""
+    """Print the installed ``biolm`` package version."""
     console.print(f"[brand.bright]biolm[/brand.bright] {BIOLM_VERSION}")
 
 
@@ -411,11 +411,10 @@ def display_env_vars_table():
 
 @cli.command()
 def status():
-    """Show authentication status and configuration.
-    
-    Displays the current authentication status, including environment
-    variables, credentials location, and API endpoint. Also validates
-    existing credentials if present.
+    """Show authentication status, API endpoints, and where credentials are stored.
+
+    Prints environment variables, the active model API URL, hub mode, and validates
+    saved OAuth credentials when present.
     """
     display_env_vars_table()
     console.print()  # Add spacing before auth status
@@ -436,11 +435,9 @@ def status():
     help="OAuth scope string",
 )
 def login(client_id, scope):
-    """Login to BioLM using OAuth 2.0 with PKCE.
-    
-    Checks for existing credentials and validates them. If credentials are missing
-    or invalid, opens a browser for OAuth authorization. Credentials are saved to
-    ``~/.biolmai/credentials``.
+    """Log in to BioLM with OAuth 2.0 (PKCE) and save credentials to ``~/.biolm/credentials``.
+
+    Reuses valid existing credentials when possible; otherwise opens a browser to complete authorization.
     
     Examples:
 
@@ -517,10 +514,9 @@ def login(client_id, scope):
 
 @cli.command()
 def logout():
-    """Logout and remove saved credentials.
-    
-    Removes the saved authentication credentials from ``~/.biolmai/credentials``.
-    After logout, you will need to run ``biolm login`` again to authenticate.
+    """Log out and remove saved OAuth credentials from ``~/.biolm/credentials``.
+
+    After logout you must run ``biolm login`` again before calling authenticated commands.
     """
     try:
         os.remove(ACCESS_TOK_PATH)
@@ -535,17 +531,21 @@ def logout():
 
 @cli.group(cls=RichGroup)
 def hub():
-    """Connect to a local or remote biolm-hub gateway (bh serve)."""
+    """Route model inference through a local or self-hosted biolm-hub gateway.
+
+    Use ``biolm hub set`` after ``bh serve`` (or pointing at a deployed gateway). Platform
+    login and protocol commands still target biolm.ai unless overridden in the environment.
+    """
     pass
 
 
 @hub.command("set")
 @click.argument("url", required=False, default="http://127.0.0.1:8000")
 def hub_set(url):
-    """Point model inference at a running bh serve or deployed hub gateway.
+    """Save a biolm-hub gateway URL so ``biolm model`` uses local or self-hosted inference.
 
-    Saves ``hub_api_url`` to ``~/.biolm/config.yaml``. Platform login and
-    protocols still use biolm.ai unless ``BIOLM_BASE_DOMAIN`` is set.
+    Writes ``hub_api_url`` to ``~/.biolm/config.yaml``. Platform login and protocols still
+    use biolm.ai unless ``BIOLM_BASE_DOMAIN`` is set.
     """
     from biolm.hub.config import hub_origin, normalize_hub_url, write_hub_api_url
     from biolm.hub.discovery import fetch_hub_status
@@ -583,7 +583,7 @@ def hub_set(url):
 
 @hub.command("status")
 def hub_status():
-    """Show saved hub connection and live gateway health."""
+    """Show saved hub configuration, the active model API URL, and live gateway health."""
     from biolm.hub.config import config_path, hub_origin, read_hub_api_url
     from biolm.hub.discovery import fetch_hub_status
 
@@ -626,7 +626,10 @@ def hub_status():
 
 @hub.command("unset")
 def hub_unset():
-    """Stop using a saved hub gateway; revert to the hosted platform API."""
+    """Remove saved hub settings and revert model inference to the hosted biolm.ai API.
+
+    Has no effect on ``BIOLM_BASE_API_URL`` when that environment variable is set.
+    """
     from biolm.hub.config import clear_hub_config
 
     if clear_hub_config():
@@ -640,19 +643,16 @@ def hub_unset():
 
 @cli.group(cls=RichGroup)
 def workspace():
-    """Manage workspaces.
-    
-    Commands for creating, listing, and managing BioLM workspaces.
+    """List, inspect, create, and delete BioLM workspaces on the platform.
+
+    Workspaces scope projects, data access, and protocol runs for teams and organizations.
     """
     pass
 
 
 @workspace.command()
 def list():
-    """List all workspaces.
-    
-    Display a list of all workspaces you have access to.
-    """
+    """List workspaces you can access, including names, IDs, and basic metadata."""
     console.print(Panel(
         "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
         "This feature will allow you to list and manage BioLM workspaces.",
@@ -665,11 +665,7 @@ def list():
 @workspace.command()
 @click.argument('workspace_id', required=False)
 def show(workspace_id):
-    """Show workspace details.
-    
-    Display information about a specific workspace. If no workspace ID is provided,
-    shows information about the current workspace.
-    """
+    """Show details for a workspace by ID, or for the current workspace when no ID is given."""
     console.print(Panel(
         "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
         "This feature will allow you to manage BioLM workspaces.",
@@ -682,10 +678,7 @@ def show(workspace_id):
 @workspace.command()
 @click.argument('name')
 def create(name):
-    """Create a new workspace.
-    
-    Create a new workspace with the specified name.
-    """
+    """Create a new workspace with the given name for organizing projects and protocol runs."""
     console.print(Panel(
         "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
         "This feature will allow you to create BioLM workspaces.",
@@ -698,10 +691,7 @@ def create(name):
 @workspace.command()
 @click.argument('workspace_id')
 def delete(workspace_id):
-    """Delete a workspace.
-    
-    Delete the specified workspace.
-    """
+    """Delete a workspace by ID. This permanently removes the workspace and its resources."""
     console.print(Panel(
         "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
         "This feature will allow you to delete BioLM workspaces.",
@@ -1060,9 +1050,10 @@ def _save_output_data(data: List[Dict], file_path: Optional[Union[str, Path]], f
 
 @cli.group(cls=RichGroup)
 def model():
-    """Work with BioLM models.
-    
-    Commands for listing available models, viewing model details, and running models.
+    """Browse the model catalog, inspect schemas and actions, and run inference from the terminal.
+
+    Supports listing and filtering models, viewing metadata, and running encode, predict,
+    fold, generate, and related actions against the hosted API or a connected biolm-hub.
     """
     pass
 
@@ -1075,10 +1066,9 @@ def model():
 @click.option('--fields', help='Comma-separated list of fields to display')
 @click.option('--view', type=click.Choice(['compact', 'detailed', 'full', 'enriched']), help='Predefined field views (enriched includes description, tags, etc.)')
 def list(filter, sort, format, output, fields, view):
-    """List available models.
-    
-    Display a list of all available BioLM models with filtering, sorting, and
-    various output format options.
+    """List available models from the BioLM catalog with filtering, sorting, and export options.
+
+    Output can be a Rich table in the terminal or saved as JSON, YAML, or CSV for scripting.
     
     Examples:
 
@@ -1368,10 +1358,9 @@ def list(filter, sort, format, output, fields, view):
 @click.option('--format', type=click.Choice(['table', 'json', 'yaml']), default='table', help='Output format')
 @click.option('--output', '-o', type=click.Path(), help='Save output to file')
 def catalog(format, output):
-    """List the full OSS model catalog (all deployable models).
+    """List the full open-source model catalog, including every deployable model on the platform.
 
-    When connected to biolm-hub, lists all gateway routes from OpenAPI.
-    Otherwise fetches the hosted platform catalog.
+    When connected to biolm-hub, lists gateway routes from OpenAPI instead of the hosted catalog.
     """
     if is_hub_mode():
         from biolm.hub.discovery import list_models_from_openapi
@@ -1420,10 +1409,9 @@ def catalog(format, output):
 @click.option('--include-schemas', is_flag=True, help='Include JSON schemas for each action')
 @click.option('--include-code-examples', is_flag=True, help='Include code examples from API (fetches detailed model info)')
 def show(model_name, format, output, include_schemas, include_code_examples):
-    """Show model details.
-    
-    Display detailed information about a specific model, including metadata,
-    available actions, and optionally JSON schemas for each action.
+    """Show metadata, actions, and optional JSON schemas for a specific model.
+
+    Look up models by slug or display name; use ``--include-schemas`` for request/response shapes.
     
     Examples:
 
@@ -1696,10 +1684,10 @@ def show(model_name, format, output, include_schemas, include_code_examples):
 @click.option('--batch-size', type=int, help='Batch size for processing (default: auto-detect from schema)')
 @click.option('--progress', is_flag=True, help='Show progress bar for batch processing')
 def run(model_name, action, input, output, format, input_format, type, params, batch_size, progress):
-    """Run a model.
-    
-    Execute a BioLM model with the specified action. Supports reading from files
-    (FASTA, CSV, PDB, JSON) or stdin, and writing results to files or stdout.
+    """Run a model action against sequences or structures from files, stdin, or inline JSON.
+
+    Supports encode, predict, generate, and lookup with batching, progress output, and
+    common bioinformatics formats (FASTA, CSV, PDB, JSON).
     
     Examples:
 
@@ -2132,9 +2120,9 @@ def run(model_name, action, input, output, format, input_format, type, params, b
               default='python', help='Output format')
 @click.option('--output', '-o', type=click.Path(), help='Output file path (default: stdout)')
 def example(model_name, action, format, output):
-    """Generate SDK usage examples for models.
-    
-    If model_name is not provided, lists all available models.
+    """Generate copy-pasteable Python SDK examples for a model and action.
+
+    Omit ``model_name`` to list available models; choose output as Python, Markdown, RST, or JSON.
     """
     try:
         if model_name is None:
@@ -2207,18 +2195,20 @@ def example(model_name, action, format, output):
 
 @cli.group(cls=RichGroup)
 def protocol():
-    """Work with protocols.
-    
-    Commands for managing and executing BioLM protocols.
+    """Define, validate, run, and log multi-step BioLM protocol workflows.
+
+    Protocols chain model calls and data transforms in YAML; use these commands to scaffold files,
+    check schema compliance, inspect definitions, and send results to MLflow.
     """
     pass
 
 
 @protocol.command()
 def list():
-    """List protocols.
-    
-    Display a list of all available protocols.
+    """List protocols registered on the BioLM platform (platform listing coming soon).
+
+    Today, inspect local YAML files with ``biolm protocol show`` or validate them with
+    ``biolm protocol validate``.
     """
     console.print(Panel(
         "[text.muted]Protocol commands are coming soon![/text.muted]\n\n"
@@ -2232,10 +2222,9 @@ def list():
 @protocol.command()
 @click.argument('protocol_source', required=False)
 def show(protocol_source):
-    """Show protocol details.
-    
-    Display a formatted report about a protocol configuration. The protocol can be
-    specified either as a YAML file path or as a protocol ID from the platform.
+    """Show a formatted report for a protocol from a local YAML file or platform ID.
+
+    Displays tasks, dependencies, inputs/outputs, and configuration in a readable layout.
     
     Examples:
 
@@ -2352,9 +2341,9 @@ def show(protocol_source):
 @protocol.command()
 @click.argument('protocol_file', type=click.Path(exists=True))
 def run(protocol_file):
-    """Run a protocol from a YAML file.
-    
-    Execute a protocol defined in a YAML file.
+    """Execute a protocol defined in a YAML file (execution support coming soon).
+
+    Validates the file path today; full remote execution will run the task graph on the platform.
     """
     console.print(Panel(
         "[text.muted]Protocol commands are coming soon![/text.muted]\n\n"
@@ -2369,10 +2358,9 @@ def run(protocol_file):
 @click.argument('protocol_file', type=click.Path(exists=True))
 @click.option('--json', 'output_json', is_flag=True, help='Output results in JSON format')
 def validate(protocol_file, output_json):
-    """Validate a protocol YAML file.
-    
-    Check if a protocol YAML file is valid. Validates YAML syntax, JSON schema
-    compliance, task references, circular dependencies, and template expressions.
+    """Validate a protocol YAML file against the JSON schema and internal rules.
+
+    Checks YAML syntax, task references, circular dependencies, and template expressions.
     """
     from biolm.protocols import Protocol
     
@@ -2512,10 +2500,9 @@ def validate(protocol_file, output_json):
 @click.option('--force', '-f', is_flag=True, help='Overwrite existing file')
 @click.option('--interactive', '-i', is_flag=True, help='Interactive mode to select example')
 def init(filename, output, example, list_examples, force, interactive):
-    """Initialize a new protocol YAML file.
-    
-    Create a blank protocol YAML file or initialize from an example template.
-    The generated file will be validated automatically.
+    """Create a new protocol YAML file from a blank template or bundled example.
+
+    Generated files can be validated immediately with ``biolm protocol validate``.
     
     Examples:
 
@@ -2675,10 +2662,10 @@ def init(filename, output, example, list_examples, force, interactive):
 @click.option('--protocol-name', help='Protocol display name for metadata (default: from protocol YAML)')
 @click.option('--protocol-version', help='Protocol version for metadata')
 def log(results, outputs, account, workspace, protocol_slug, dry_run, mlflow_uri, aggregate_over, protocol_name, protocol_version):
-    """Log protocol results to MLflow.
-    
-    Log protocol execution results to MLflow based on the protocol's outputs
-    configuration. The MLflow experiment is created as account/workspace/protocol.
+    """Log protocol run results to MLflow using the protocol outputs configuration.
+
+    Creates or updates an experiment at ``account/workspace/protocol`` and records metrics,
+    parameters, and artifacts from a results file.
     
     Examples:
 
@@ -2958,9 +2945,10 @@ def log(results, outputs, account, workspace, protocol_slug, dry_run, mlflow_uri
 
 @cli.group(cls=RichGroup)
 def dataset():
-    """Manage datasets.
-    
-    Commands for creating, listing, and managing datasets.
+    """Upload, download, and inspect datasets stored in MLflow on the BioLM platform.
+
+    Datasets are backed by MLflow runs and artifacts; install the ``mlflow`` extra and
+    authenticate with ``biolm login`` before using these commands.
     """
     pass
 
@@ -2972,9 +2960,9 @@ def dataset():
 @click.option('--mlflow-uri', default='https://mlflow.biolm.ai/', help='MLflow tracking URI')
 @click.option('--all-runs', is_flag=True, help='List all runs in experiment, not just datasets (for debugging)')
 def list(experiment, format, output, mlflow_uri, all_runs):
-    """List datasets.
-    
-    Display a list of all datasets you have access to.
+    """List datasets in your MLflow experiment with optional JSON or CSV export.
+
+    By default lists runs tagged as datasets under ``{username}/datasets``.
     
     Examples:
 
@@ -3141,12 +3129,9 @@ def list(experiment, format, output, mlflow_uri, all_runs):
 @click.option('--output', '-o', type=click.Path(), help='Save output to file')
 @click.option('--mlflow-uri', default='https://mlflow.biolm.ai/', help='MLflow tracking URI')
 def show(dataset_id, experiment, format, output, mlflow_uri):
-    """Show dataset details.
-    
-    Display detailed information about a specific dataset, including metadata,
-    tags, parameters, metrics, and artifacts.
-    
-    By default, looks for datasets in the ``{username}/datasets`` experiment.
+    """Show metadata, tags, metrics, and artifact listings for a dataset by ID.
+
+    Resolves the dataset in your default ``{username}/datasets`` experiment unless overridden.
     
     Examples:
 
@@ -3360,10 +3345,9 @@ def show(dataset_id, experiment, format, output, mlflow_uri):
 @click.option('--recursive', '-r', is_flag=True, help='Upload directory recursively')
 @click.option('--mlflow-uri', default='https://mlflow.biolm.ai/', help='MLflow tracking URI')
 def upload(dataset_id, file_path, experiment, name, recursive, mlflow_uri):
-    """Upload data to a dataset.
-    
-    Upload data from a file or directory to the specified dataset.
-    If the dataset doesn't exist, it will be created automatically.
+    """Upload a file or directory to a dataset, creating the dataset run if needed.
+
+    Artifacts are stored in MLflow; use ``--recursive`` for directory uploads.
     
     Examples:
 
@@ -3460,11 +3444,9 @@ def upload(dataset_id, file_path, experiment, name, recursive, mlflow_uri):
 @click.option('--artifact-path', help='Specific artifact path to download (default: all artifacts)')
 @click.option('--mlflow-uri', default='https://mlflow.biolm.ai/', help='MLflow tracking URI')
 def download(dataset_id, output_path, experiment, artifact_path, mlflow_uri):
-    """Download a dataset.
-    
-    Download all artifacts from a dataset to the specified directory.
-    
-    By default, looks for datasets in the ``{username}/datasets`` experiment.
+    """Download dataset artifacts from MLflow to a local directory.
+
+    Fetches all artifacts by default, or a single path when ``--artifact-path`` is set.
     
     Examples:
 

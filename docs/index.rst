@@ -1,35 +1,35 @@
 ===================================
-Welcome to biolm-sdk Documentation
+Welcome to BioLM SDK Documentation
 ===================================
 
-.. include:: getting-started/quickstart.rst
+.. include:: intro/quickstart.rst
    :start-line: 1
    :end-line: 27
 
-.. include:: getting-started/overview.rst
+.. include:: intro/overview.rst
    :start-line: 1
    :end-line: 17
 
-Documentation Authors
----------------------
-
-If you're writing or updating documentation, see the :doc:`authoring-guide` for information on where to write documentation vs where auto-generated documentation appears.
-
 .. toctree::
-   :maxdepth: 1
-   :caption: Getting Started:
+   :maxdepth: 2
+   :caption: Introduction
    :hidden:
 
-   getting-started/installation
-   getting-started/authentication
-   getting-started/quickstart
-   getting-started/concepts
-   getting-started/migration-1.0
-   tutorials_use_cases/notebooks
+   intro/installation
+   intro/authentication
+   intro/quickstart
+   intro/concepts
+   intro/sdk-overview
+   intro/client-interfaces
+   intro/batching
+   intro/error-handling
+   intro/async-sync
+   intro/rate-limiting
+   intro/faq
 
 .. toctree::
    :maxdepth: 1
-   :caption: CLI:
+   :caption: CLI
    :hidden:
 
    cli/login
@@ -42,42 +42,30 @@ If you're writing or updating documentation, see the :doc:`authoring-guide` for 
    cli/dataset
 
 .. toctree::
-   :maxdepth: 2
-   :caption: SDK:
+   :maxdepth: 1
+   :caption: SDK
    :hidden:
 
-   sdk/overview
    sdk/models
    sdk/protocols
    sdk/pipeline
    sdk/workspaces
    sdk/volumes
    sdk/io
-   sdk/usage/usage
-   sdk/usage/batching
-   sdk/usage/error-handling
-   sdk/usage/async-sync
-   sdk/usage/rate_limiting
-   sdk/usage/io
-   sdk/faq
+   sdk/finetune
+   sdk/hub
 
 .. toctree::
    :maxdepth: 1
-   :caption: Protocol Schema:
+   :caption: YAML
    :hidden:
 
-   protocols/about
-   protocols/inputs
-   protocols/execution
-   protocols/tasks
-   protocols/output
-   protocols/schema
+   yaml/protocol-schema
 
 .. toctree::
-   :maxdepth: 2
-   :caption: API References:
+   :maxdepth: 1
+   :caption: Release notes
    :hidden:
 
-   cli/reference
-   sdk/api-reference/index
-   resources/rest-api
+   changelog
+   intro/migration-1.0

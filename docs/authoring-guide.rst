@@ -1,3 +1,5 @@
+:orphan:
+
 Documentation Authoring Guide
 ==============================
 
@@ -6,18 +8,18 @@ This guide explains where to write documentation and where auto-generated docume
 Documentation Structure
 -----------------------
 
-**Manually Written Documentation:**
-  - Getting Started guides (``docs/getting-started/``)
-  - CLI usage guides (``docs/cli/usage/``)
-  - SDK usage guides (``docs/sdk/usage/``)
-  - Protocol usage guides (``docs/protocols/``)
-  - Overview pages (``docs/cli/overview.rst``, ``docs/sdk/overview.rst``, ``docs/protocols/about.rst``)
-  - Resources (``docs/resources/``)
+**Manually written:**
 
-**Auto-Generated Documentation:**
-  - CLI reference (``docs/cli/reference.rst``) - Generated from ``biolm.cli`` using ``sphinx-click``
-  - API reference (``docs/api-reference/``) - Generated from Python code using ``sphinx-apidoc``
-  - Protocol YAML reference - Content in ``docs/protocols/``; full JSON Schema in :doc:`protocols/schema`
+- Introduction — ``docs/intro/`` (onboarding and client usage)
+- CLI — ``docs/cli/index.rst`` (command index) and ``docs/cli/*.rst`` (per-command pages)
+- SDK — ``docs/sdk/index.rst`` and ``docs/sdk/*.rst`` (curated module reference)
+- YAML — ``docs/yaml/`` (declarative file-format references)
+- Changelog — ``docs/changelog.rst`` (includes root ``CHANGELOG.md``)
+
+**Auto-generated:**
+
+- ``docs/api-reference/`` — full module tree (sphinx-apidoc from ``biolm/``)
+- ``docs/reference/cli.rst`` — monolithic CLI dump (legacy; prefer ``docs/cli/``)
 
 Where to Write Documentation
 -----------------------------
@@ -26,30 +28,46 @@ CLI Documentation
 ~~~~~~~~~~~~~~~~~
 
 **Write here:**
-  - ``docs/cli/overview.rst`` - CLI overview and general information
-  - ``docs/cli/usage/*.rst`` - Usage guides for each topic (authenticating, workspaces, models, protocols, datasets)
+
+- ``docs/cli/index.rst`` — CLI command index (grouped tables, links to per-command pages)
+- ``docs/cli/*.rst`` — Per-command pages (e.g. ``cli/model.rst`` for ``biolm model``)
 
 **Auto-generated:**
-  - ``docs/cli/reference.rst`` - Command reference (uses ``sphinx-click`` directives pointing to ``biolm.cli``)
 
-**Note:** The CLI reference page uses ``.. click::`` directives that pull documentation from the Click command definitions in ``biolm/cli.py``. To update command documentation, edit the docstrings and help text in the CLI code.
+- ``docs/reference/cli.rst`` — Full command reference (edit docstrings in ``biolm/cli.py``)
 
 SDK Documentation
 ~~~~~~~~~~~~~~~~~
 
-**Write here:**
-  - ``docs/sdk/overview.rst`` - SDK overview and general information
-  - ``docs/sdk/usage/*.rst`` - Usage guides (batching, error-handling, async-sync, rate_limiting, io, usage; disk output is covered in the Usage page)
+**Write here (Introduction nav):**
+
+- ``docs/intro/*.rst`` — Onboarding, client interfaces, batching, errors, etc.
+
+**Write here (SDK nav):**
+
+- ``docs/sdk/index.rst`` — SDK landing page
+- ``docs/sdk/*.rst`` — Per-module reference pages (edit docstrings in ``biolm/`` for API detail)
 
 **Auto-generated:**
-  - ``docs/api-reference/`` - API reference (generated from Python docstrings using ``sphinx-apidoc``)
 
-**Note:** The API reference is generated from docstrings in the Python code. To update API documentation, edit docstrings in ``biolm/*.py`` files.
+- ``docs/api-reference/`` — Full module index (sphinx-apidoc)
 
-Protocol Schema Documentation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Protocol Schema
+~~~~~~~~~~~~~~~
 
 **Write here:**
-  - ``docs/protocols/about.rst``, ``inputs.rst``, ``execution.rst``, ``tasks.rst``, ``output.rst`` - Protocol YAML structure and semantics
 
-**Schema:** The formal JSON Schema is in :doc:`protocols/schema`; the client validates protocol YAML against it.
+- ``docs/yaml/protocol-schema.rst`` — Protocol YAML structure, semantics, and JSON schema
+- ``docs/sdk/protocols.rst`` — When to use protocols in Python/CLI (links to Reference)
+
+**Schema source:** ``schema/protocol_schema.json``
+
+Building docs
+-------------
+
+.. code-block:: bash
+
+   make docs          # HTML
+   tox -e build_docs  # CI equivalent
+
+``make docs`` runs ``sphinx-apidoc -o docs/api-reference biolm`` before building.

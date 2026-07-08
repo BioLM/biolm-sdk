@@ -15,4 +15,4 @@ Main features:
 - Flexible error handling (raise, continue, or stop on error)
 - Universal HTTP client for both sync and async
 
-See :doc:`quickstart` for examples. For detailed SDK usage, see :doc:`../sdk/overview`.
+See :doc:`quickstart` for examples. For detailed SDK usage, see :doc:`sdk-overview`.

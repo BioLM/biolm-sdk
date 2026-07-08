@@ -11,7 +11,9 @@ HUB_API_SUFFIX = "/api/v1"
 
 
 def config_path() -> Path:
-    return Path.home() / ".biolm" / "config.yaml"
+    from biolm.core.paths import user_config_dir
+
+    return user_config_dir() / "config.yaml"
 
 
 def normalize_hub_url(url: str) -> str:

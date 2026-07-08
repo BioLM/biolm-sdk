@@ -1,8 +1,8 @@
-.. _getting-started-concepts:
+.. _intro-core-concepts:
 
-=========
-Concepts
-=========
+==============
+Core concepts
+==============
 
 This page explains core concepts for using the BioLM Python client: the different client interfaces, sync vs async, batching, error handling, disk output, and rate limiting.
 
@@ -12,12 +12,12 @@ Feature summary
 
 - **Simple one-off calls:** Use the high-level function or the class-based ``Model``; no setup required.
 - **Sync and async:** Use the sync interface for scripts and notebooks, or the async client for high throughput and async apps.
-- **Auto-batching:** Items are split by the API’s maximum batch size and sent in parallel. See :doc:`../sdk/usage/batching`.
-- **Flexible input:** Single value, list of values, list of dicts, or a generator. For lists of plain strings you pass a type (e.g. sequence). See :doc:`../sdk/usage/batching`.
-- **Error handling:** Raise exceptions, continue and collect errors, or stop on first error; optional retry of failed batches. See :doc:`../sdk/usage/error-handling`.
-- **Disk output:** Write results as JSONL for very large jobs. See :ref:`disk-output` in :doc:`../sdk/usage/usage`.
-- **Rate limiting:** Default throttle from the API schema; you can set a custom rate or concurrency. See :doc:`../sdk/usage/rate_limiting`.
-- **Advanced control:** The sync and async API clients expose schema access, manual batching, and more. See :doc:`../sdk/usage/usage`.
+- **Auto-batching:** Items are split by the API’s maximum batch size and sent in parallel. See :doc:`batching`.
+- **Flexible input:** Single value, list of values, list of dicts, or a generator. For lists of plain strings you pass a type (e.g. sequence). See :doc:`batching`.
+- **Error handling:** Raise exceptions, continue and collect errors, or stop on first error; optional retry of failed batches. See :doc:`error-handling`.
+- **Disk output:** Write results as JSONL for very large jobs. See :ref:`disk-output` in :doc:`client-interfaces`.
+- **Rate limiting:** Default throttle from the API schema; you can set a custom rate or concurrency. See :doc:`rate-limiting`.
+- **Advanced control:** The sync and async API clients expose schema access, manual batching, and more. See :doc:`client-interfaces`.
 
 ------------------------
 BioLM (simple sync)
@@ -111,7 +111,7 @@ The client supports single items, lists, and generators. It batches automaticall
 
     result = biolm(entity="esm2-8m", action="encode", items=sequences("sequences.txt"))
 
-For full details and manual batching (list of lists), see :doc:`../sdk/usage/batching`.
+For full details and manual batching (list of lists), see :doc:`batching`.
 
 ------------------------
 Error handling
@@ -144,13 +144,13 @@ You can raise HTTP errors as exceptions or get them as dicts in the results. You
         else:
             print("OK:", r.get("mean_plddt"))
 
-See :doc:`../sdk/usage/error-handling` for the full behavior matrix and retry options.
+See :doc:`error-handling` for the full behavior matrix and retry options.
 
 ------------------------
 Disk output
 ------------------------
 
-For very large jobs you can write results to a JSONL file instead of holding them in memory. Set output to disk and provide a file path. Results are one JSON object per line, in input order. Batch error behavior (stop on first error vs continue, retry) is the same as in-memory. See the :ref:`disk-output` section in :doc:`../sdk/usage/usage`.
+For very large jobs you can write results to a JSONL file instead of holding them in memory. Set output to disk and provide a file path. Results are one JSON object per line, in input order. Batch error behavior (stop on first error vs continue, retry) is the same as in-memory. See the :ref:`disk-output` section in :doc:`client-interfaces`.
 
 .. code-block:: python
 
@@ -165,7 +165,7 @@ For very large jobs you can write results to a JSONL file instead of holding the
 Rate limiting
 ------------------------
 
-By default the client uses the API schema’s recommended throttle and a concurrency limit (semaphore) so you get good throughput without overloading. You can disable throttling, set a custom rate (e.g. requests per second or minute), or set a custom concurrency limit. See :doc:`../sdk/usage/rate_limiting` for details and examples.
+By default the client uses the API schema’s recommended throttle and a concurrency limit (semaphore) so you get good throughput without overloading. You can disable throttling, set a custom rate (e.g. requests per second or minute), or set a custom concurrency limit. See :doc:`rate-limiting` for details and examples.
 
 .. code-block:: python
 

@@ -20,6 +20,7 @@ import requests
 from biolm.core.const import (
     ACCESS_TOK_PATH,
     BIOLMAI_BASE_DOMAIN,
+    CREDENTIALS_WRITE_PATH,
     GEN_TOKEN_URL,
     OAUTH_AUTHORIZE_URL,
     OAUTH_INTROSPECT_URL,
@@ -111,7 +112,7 @@ def refresh_access_token(refresh):
         pretty_json = pprint.pformat(json_response, indent=2)
         click.echo(pretty_json)
         click.echo(
-            "Token refresh failed! Please login by " "running `biolmai login`.\n"
+            "Token refresh failed! Please login by running `biolm login`.\n"
         )
         return False
     else:
@@ -138,7 +139,7 @@ def get_auth_status():
         if access_refresh_dict is None:
             click.echo(f"Error reading credentials file {ACCESS_TOK_PATH}.")
             click.echo("The file may be corrupted or contain invalid data.")
-            click.echo("Please login again by running `biolmai login`.")
+            click.echo("Please login again by running `biolm login`.")
             return
         access = access_refresh_dict.get("access")
         refresh = access_refresh_dict.get("refresh")
@@ -168,7 +169,7 @@ def get_auth_status():
                     current_time = time.time()
                     if current_time >= expires_at:
                         click.echo("OAuth token has expired.")
-                        click.echo("Please login again by running `biolmai login`.")
+                        click.echo("Please login again by running `biolm login`.")
                         return
                     # Token not expired, validate via API call
                     if _is_debug():
@@ -181,7 +182,7 @@ def get_auth_status():
                     click.echo("OAuth token is valid.")
                 else:
                     click.echo("OAuth token validation failed. Token may be expired or invalid.")
-                    click.echo("Please login again by running `biolmai login`.")
+                    click.echo("Please login again by running `biolm login`.")
             else:
                 # Confidential client - use introspection (requires client_secret)
                 is_valid = _validate_oauth_token(access, client_id, client_secret)
@@ -189,7 +190,7 @@ def get_auth_status():
                     click.echo("OAuth token is valid.")
                 else:
                     click.echo("OAuth token validation failed. Token may be expired.")
-                    click.echo("Please login again by running `biolmai login`.")
+                    click.echo("Please login again by running `biolm login`.")
         else:
             # Legacy token validation
             resp = validate_user_auth(access=access, refresh=refresh)
@@ -244,10 +245,10 @@ def save_access_refresh_token(access_refresh_dict):
     """Save temporary access and refresh tokens to user folder for future
     use."""
     os.makedirs(USER_BIOLM_DIR, exist_ok=True)
-    # Save token
-    with open(ACCESS_TOK_PATH, "w") as f:
+    write_path = CREDENTIALS_WRITE_PATH
+    with open(write_path, "w") as f:
         json.dump(access_refresh_dict, f)
-    os.chmod(ACCESS_TOK_PATH, stat.S_IRUSR | stat.S_IWUSR)
+    os.chmod(write_path, stat.S_IRUSR | stat.S_IWUSR)
     # Validate token and print user info (only for legacy tokens, not OAuth)
     access = access_refresh_dict.get("access")
     refresh = access_refresh_dict.get("refresh")
@@ -283,7 +284,7 @@ def get_api_token():
 def get_user_auth_header():
     """Returns a dict with the appropriate Authorization header, either using
     an API token from BIOLM_TOKEN environment variable, or by reading the
-    credentials file at ~/.biolmai/credentials next."""
+    credentials file at ~/.biolm/credentials next."""
     api_token = get_env_api_token()
     if api_token:
         headers = {"Authorization": f"Token {api_token}"}
@@ -293,7 +294,7 @@ def get_user_auth_header():
             err = (
                 f"Error reading credentials file {ACCESS_TOK_PATH}. "
                 "The file may be corrupted or contain invalid data. "
-                "Please run `biolmai login` to re-authenticate."
+                "Please run `biolm login` to re-authenticate."
             )
             raise AssertionError(err)
         access = access_refresh_dict.get("access")
@@ -304,7 +305,7 @@ def get_user_auth_header():
     else:
         err = (
             f"No {BIOLMAI_BASE_DOMAIN} credentials found. Please run "
-            "`biolmai status` to debug."
+            "`biolm status` to debug."
         )
         raise AssertionError(err)
     return headers
@@ -981,7 +982,7 @@ def oauth_login(
     token_url: Optional[str] = None,
     redirect_uri: Optional[str] = None,
 ) -> dict:
-    """Perform OAuth login using PKCE and persist tokens to ~/.biolmai/credentials.
+    """Perform OAuth login using PKCE and persist tokens to ~/.biolm/credentials.
     
     Args:
         client_id: OAuth client ID (defaults to BIOLMAI_PUBLIC_CLIENT_ID from const)

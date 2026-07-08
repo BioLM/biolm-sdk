@@ -5,7 +5,7 @@ console finetuning UI) so callers can launch and track XGBoost and DSM
 finetuning runs from Python without a session cookie.
 
 Auth follows the same rules as the rest of the SDK: pass ``api_key=`` or set
-``BIOLMAI_TOKEN`` / ``BIOLM_TOKEN`` (see :class:`biolm.core.http.CredentialsProvider`).
+``BIOLM_TOKEN`` (see :class:`biolm.core.http.CredentialsProvider`).
 """
 
 import asyncio
@@ -55,7 +55,7 @@ def _raise_for_status(resp, action: str):
     """Translate an error response into a Python exception, mirroring protocols.py."""
     if resp.status_code == 401:
         raise PermissionError(
-            "Authentication required. Set BIOLMAI_TOKEN (or BIOLM_TOKEN) "
+            "Authentication required. Set BIOLM_TOKEN "
             "or run `biolm login`."
         )
     if resp.status_code == 402:

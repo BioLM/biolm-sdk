@@ -1,6 +1,6 @@
 ========================
-Async and Sync Usage
-========================
+Sync and async
+==================
 
 **Synchronous usage:**
 
@@ -162,7 +162,7 @@ Advanced Async Features
 
       async with BioLMApiClient("esmfold") as model:
           result = await model.predict(items=[{"sequence": "MDNELE"}])
-- **Disk output**: Async disk writing is supported for large jobs (see :ref:`disk-output` in :doc:`usage`).
+- **Disk output**: Async disk writing is supported for large jobs (see :ref:`disk-output` in :doc:`client-interfaces`).
 - **Manual batching**: You can control batch size and composition for maximum throughput.
 
 ------------------------
@@ -223,4 +223,4 @@ See Also
 - :doc:`batching`
 - :doc:`error-handling`
 - :doc:`rate_limiting`
-- :doc:`usage` (includes Disk output)
+- :doc:`client-interfaces` (includes Disk output)

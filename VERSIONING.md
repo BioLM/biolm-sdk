@@ -73,6 +73,22 @@ For pre-release uploads without conflicting with the next production version:
 - Use **workflow_dispatch** on the Publish workflow (TestPyPI) after configuring trusted publishing on TestPyPI, or
 - Publish an `-rc` GitHub Release (routes to TestPyPI per `publish.yml`).
 
+## Changelog
+
+Release notes are maintained in **[CHANGELOG.md](CHANGELOG.md)** at the repo root.
+python-semantic-release updates this file on each version bump (``feat``/``fix``/``BREAKING`` commits).
+
+Configuration: ``[tool.semantic_release.changelog]`` in ``pyproject.toml``. The
+insertion flag ``<!-- version list -->`` must remain in CHANGELOG.md for update mode.
+
+Docs mirror: ``docs/reference/changelog.rst`` includes the same file.
+
+Dry-run changelog output:
+
+```bash
+semantic-release changelog --print
+```
+
 ## Configuration
 
 See `[tool.semantic_release]` in `pyproject.toml`. The canonical version lives in `biolm/__init__.py` (also written to `pyproject.toml` by CI). `setup.py` reads `__init__.py`; `docs/conf.py` imports `biolm`.

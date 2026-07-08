@@ -199,7 +199,7 @@ Best practices
 
 - Prefer a list of values or dicts and let the client auto-batch.
 - For large datasets (files, streams), use a generator so items are consumed batch-by-batch.
-- For very large result sets, write to disk (see :ref:`disk-output` in :doc:`usage`).
+- For very large result sets, write to disk (see :ref:`disk-output` in :doc:`client-interfaces`).
 - Use manual batching (list of lists) only when you need custom batch sizes or composition.
 
 ------------------------
@@ -207,5 +207,5 @@ See Also
 ------------------------
 
 - :doc:`error-handling`
-- :doc:`usage` (includes Disk output)
-- :doc:`../faq`
+- :doc:`client-interfaces` (includes Disk output)
+- :doc:`faq`
