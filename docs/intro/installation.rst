@@ -19,9 +19,13 @@ Optional extras:
 .. code-block:: console
 
     $ pip install "biolm-sdk[pipeline]"  # pipeline features
+    $ pip install "biolm-sdk[mlflow]"    # MLflow datasets and protocol logging (CLI)
 
 For open-source models, install and run `biolm-hub <https://github.com/BioLM/biolm-hub>`_,
 then connect with ``biolm hub set``. See :doc:`../cli/hub`.
+
+The ``[mlflow]`` extra is required for ``biolm dataset`` and ``biolm protocol log``.
+See :sdklink:`SDK plugins <../../sdk/index.html#plugins-optional>`.
 
 The ``biolmai`` package name is deprecated; use ``biolm-sdk``. See :doc:`../notes/migration-1.0`.
 

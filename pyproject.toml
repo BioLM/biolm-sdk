@@ -98,11 +98,11 @@ dependencies = [
     "jsonschema>=4.0,<5",
     "websockets>=11.0",
 ]
-scripts = { biolm = "biolm.cli_entry:cli", biolmai = "biolm.cli_entry:cli" }
+scripts = { biolm = "biolm.cli.entry:cli", biolmai = "biolm.cli.entry:cli" }
 
 [project.urls]
 Homepage = "https://github.com/BioLM/biolm-sdk"
-Documentation = "https://docs.biolm.ai"
+Documentation = "https://biolm.ai/docs"
 Repository = "https://github.com/BioLM/biolm-sdk"
 Issues = "https://github.com/BioLM/biolm-sdk/issues"
 
@@ -111,6 +111,9 @@ biolm = "biolm.core.seqflow_auth:BiolmRequestHeaderProvider"
 unused = "biolm.core.seqflow_auth:BiolmaiRequestHeaderProvider"
 
 [project.optional-dependencies]
+mlflow = [
+    "mlflow>=2.0",
+]
 pipeline = [
     "pandas>=1.3.0,<3",
     "numpy>=1.20,<3",

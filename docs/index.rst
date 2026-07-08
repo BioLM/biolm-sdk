@@ -54,6 +54,7 @@ Welcome to BioLM SDK Documentation
    sdk/io
    sdk/finetune
    sdk/hub
+   sdk/core
 
 .. toctree::
    :maxdepth: 1

@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from typing import Dict, Any
 
-from biolm.examples import ExampleGenerator, get_example, list_models
+from biolm.models.examples import ExampleGenerator, get_example, list_models
 from biolm.models import Model
 
 
@@ -141,7 +141,7 @@ def mock_model_schema_generate():
 async def test_fetch_community_models_success(mock_community_models_response):
     """Test successful fetching of community models."""
     with patch("biolm.core.const.is_hub_mode", return_value=False), patch(
-        "biolmai.examples.httpx.AsyncClient"
+        "biolm.models.examples.httpx.AsyncClient"
     ) as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -166,7 +166,7 @@ async def test_fetch_community_models_success(mock_community_models_response):
 async def test_fetch_community_models_empty():
     """Test handling of empty response."""
     with patch("biolm.core.const.is_hub_mode", return_value=False), patch(
-        "biolmai.examples.httpx.AsyncClient"
+        "biolm.models.examples.httpx.AsyncClient"
     ) as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -189,7 +189,7 @@ async def test_fetch_community_models_empty():
 @pytest.mark.asyncio
 async def test_get_model_schema_success(mock_model_schema_encode):
     """Test successful schema retrieval."""
-    with patch('biolmai.examples.BioLMApiClient') as mock_client_class:
+    with patch('biolm.models.examples.BioLMApiClient') as mock_client_class:
         mock_client = AsyncMock()
         mock_client.schema = AsyncMock(return_value=mock_model_schema_encode)
         mock_client.shutdown = AsyncMock()
@@ -206,7 +206,7 @@ async def test_get_model_schema_success(mock_model_schema_encode):
 @pytest.mark.asyncio
 async def test_get_model_schema_not_found():
     """Test handling of missing schema."""
-    with patch('biolmai.examples.BioLMApiClient') as mock_client_class:
+    with patch('biolm.models.examples.BioLMApiClient') as mock_client_class:
         mock_client = AsyncMock()
         mock_client.schema = AsyncMock(return_value=None)
         mock_client.shutdown = AsyncMock()
@@ -221,7 +221,7 @@ async def test_get_model_schema_not_found():
 
 def test_extract_input_type_sequence(mock_model_schema_encode):
     """Test extraction of input type from schema."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     input_type = generator._extract_input_type(mock_model_schema_encode)
     assert input_type == 'sequence'
@@ -230,7 +230,7 @@ def test_extract_input_type_sequence(mock_model_schema_encode):
 
 def test_extract_input_type_context(mock_model_schema_generate):
     """Test extraction of context input type."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     input_type = generator._extract_input_type(mock_model_schema_generate)
     assert input_type == 'context'
@@ -239,7 +239,7 @@ def test_extract_input_type_context(mock_model_schema_generate):
 
 def test_get_sample_input():
     """Test sample input generation."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     assert generator._get_sample_input('sequence', 'encode') == 'MSILVTRPSPAGEEL'
@@ -252,7 +252,7 @@ def test_get_sample_input():
 
 def test_generate_python_example(mock_model_schema_encode):
     """Test Python example generation."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_python_example(
@@ -273,7 +273,7 @@ def test_generate_python_example(mock_model_schema_encode):
 
 def test_generate_markdown_example():
     """Test Markdown example generation."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_markdown_example(
@@ -291,7 +291,7 @@ def test_generate_markdown_example():
 
 def test_generate_rst_example():
     """Test RST example generation."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_rst_example(
@@ -309,7 +309,7 @@ def test_generate_rst_example():
 
 def test_generate_json_example():
     """Test JSON example generation."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_json_example(
@@ -330,7 +330,7 @@ def test_generate_json_example():
 @pytest.mark.asyncio
 async def test_generate_example_with_schema(mock_model_schema_encode):
     """Test example generation with schema."""
-    with patch('biolmai.examples.ExampleGenerator.get_model_schema') as mock_schema:
+    with patch('biolm.models.examples.ExampleGenerator.get_model_schema') as mock_schema:
         mock_schema.return_value = mock_model_schema_encode
         
         generator = ExampleGenerator()
@@ -346,7 +346,7 @@ async def test_generate_example_with_schema(mock_model_schema_encode):
 @pytest.mark.asyncio
 async def test_generate_example_without_schema():
     """Test example generation without schema (fallback)."""
-    with patch('biolmai.examples.ExampleGenerator.get_model_schema') as mock_schema:
+    with patch('biolm.models.examples.ExampleGenerator.get_model_schema') as mock_schema:
         mock_schema.return_value = None
         
         generator = ExampleGenerator()
@@ -361,7 +361,7 @@ async def test_generate_example_without_schema():
 
 def test_get_example_function():
     """Test standalone get_example function."""
-    with patch('biolmai.examples.ExampleGeneratorSync') as mock_generator_class:
+    with patch('biolm.models.examples.ExampleGeneratorSync') as mock_generator_class:
         mock_generator = MagicMock()
         mock_generator.generate_example.return_value = "example code"
         mock_generator.shutdown = MagicMock()
@@ -376,7 +376,7 @@ def test_get_example_function():
 
 def test_list_models_function():
     """Test standalone list_models function."""
-    with patch('biolmai.examples.ExampleGeneratorSync') as mock_generator_class:
+    with patch('biolm.models.examples.ExampleGeneratorSync') as mock_generator_class:
         mock_generator = MagicMock()
         mock_generator.fetch_community_models.return_value = MOCK_COMMUNITY_MODELS
         mock_generator.shutdown = MagicMock()
@@ -424,7 +424,7 @@ def test_model_get_examples():
 
 def test_example_with_parameters(mock_model_schema_generate):
     """Test example generation includes parameters when schema has them."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     example = generator._generate_python_example(
@@ -442,7 +442,7 @@ def test_example_with_parameters(mock_model_schema_generate):
 
 def test_example_formats(mock_model_schema_encode):
     """Test all output formats are valid."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     # Test format methods directly (they're not async)
@@ -477,7 +477,7 @@ def test_example_formats(mock_model_schema_encode):
 
 def test_example_error_handling():
     """Test error handling in example generation."""
-    from biolm.examples import ExampleGeneratorSync
+    from biolm.models.examples import ExampleGeneratorSync
     generator = ExampleGeneratorSync()
     
     # Should handle None schema gracefully

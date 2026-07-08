@@ -71,6 +71,7 @@ _JSON_INCOMPATIBLE_EXTENSIONS = (
     "sphinxext.opengraph",
     "sphinx_reredirects",
     "sphinx_new_tab_link",
+    "sphinx.ext.viewcode",
 )
 if _sphinx_builder_name() == "json":
     extensions = [

@@ -63,8 +63,8 @@ setup(
     description="BioLM Python client for the hosted platform and biolm-hub",
     entry_points={
         "console_scripts": [
-            "biolm=biolm.cli_entry:cli",
-            "biolmai=biolm.cli_entry:cli",
+            "biolm=biolm.cli.entry:cli",
+            "biolmai=biolm.cli.entry:cli",
         ],
         "mlflow.request_header_provider": [
             "biolm=biolm.core.seqflow_auth:BiolmRequestHeaderProvider",

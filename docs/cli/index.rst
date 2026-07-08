@@ -20,13 +20,13 @@ Sign in, check status, and manage saved credentials.
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm login <login.html#biolm-login>`
+   * - :clicmd:`biolm login <../login.html#biolm-login>`
      - Log in with OAuth (PKCE); credentials are saved to ``~/.biolm/credentials`` for later commands.
-   * - :clicmd:`biolm logout <logout.html#biolm-logout>`
+   * - :clicmd:`biolm logout <../logout.html#biolm-logout>`
      - Remove saved credentials so the CLI no longer has platform access until you log in again.
-   * - :clicmd:`biolm status <status.html#biolm-status>`
+   * - :clicmd:`biolm status <../status.html#biolm-status>`
      - Show auth state, environment variables, model API URL, hub mode, and credential path.
-   * - :clicmd:`biolm version <../reference/cli.html#biolm-version>`
+   * - :clicmd:`biolm version <../../reference/cli.html#biolm-version>`
      - Print the installed ``biolm`` package version.
 
 .. _cli-index-models:
@@ -41,15 +41,15 @@ Discover models and run inference from the terminal (hosted API or a connected b
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm model list <model.html#biolm-model-list>`
+   * - :clicmd:`biolm model list <../model.html#biolm-model-list>`
      - Browse the model catalog with filters, sorting, and table/JSON/YAML/CSV export.
-   * - :clicmd:`biolm model catalog <model.html#biolm-model-catalog>`
+   * - :clicmd:`biolm model catalog <../model.html#biolm-model-catalog>`
      - List the full open-source deployable catalog (or hub OpenAPI routes when connected).
-   * - :clicmd:`biolm model show <model.html#biolm-model-show>`
+   * - :clicmd:`biolm model show <../model.html#biolm-model-show>`
      - Inspect a model's metadata, actions, and optional JSON schemas for each action.
-   * - :clicmd:`biolm model run <model.html#biolm-model-run>`
+   * - :clicmd:`biolm model run <../model.html#biolm-model-run>`
      - Run encode, predict, generate, or lookup on FASTA, CSV, PDB, or JSON input.
-   * - :clicmd:`biolm model example <model.html#biolm-model-example>`
+   * - :clicmd:`biolm model example <../model.html#biolm-model-example>`
      - Generate copy-pasteable Python SDK examples for a model and action.
 
 .. _cli-index-protocols:
@@ -64,17 +64,17 @@ Define, validate, and execute multi-step workflows described in YAML.
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm protocol list <protocol.html#biolm-protocol-list>`
+   * - :clicmd:`biolm protocol list <../protocol.html#biolm-protocol-list>`
      - List platform protocols (listing UI coming soon; use ``show``/``validate`` for local YAML).
-   * - :clicmd:`biolm protocol show <protocol.html#biolm-protocol-show>`
+   * - :clicmd:`biolm protocol show <../protocol.html#biolm-protocol-show>`
      - Render a readable report from a YAML file or a protocol ID on the platform.
-   * - :clicmd:`biolm protocol run <protocol.html#biolm-protocol-run>`
+   * - :clicmd:`biolm protocol run <../protocol.html#biolm-protocol-run>`
      - Execute a protocol YAML file on the platform (execution support coming soon).
-   * - :clicmd:`biolm protocol validate <protocol.html#biolm-protocol-validate>`
+   * - :clicmd:`biolm protocol validate <../protocol.html#biolm-protocol-validate>`
      - Validate YAML syntax, JSON schema, task graph, and template expressions.
-   * - :clicmd:`biolm protocol init <protocol.html#biolm-protocol-init>`
+   * - :clicmd:`biolm protocol init <../protocol.html#biolm-protocol-init>`
      - Scaffold a blank or example-based protocol YAML file.
-   * - :clicmd:`biolm protocol log <protocol.html#biolm-protocol-log>`
+   * - :clicmd:`biolm protocol log <../protocol.html#biolm-protocol-log>`
      - Push protocol run results to MLflow using the outputs section of the protocol.
 
 .. _cli-index-workspaces:
@@ -89,13 +89,13 @@ Create and manage BioLM workspaces that scope projects and protocol runs.
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm workspace list <workspace.html#biolm-workspace-list>`
+   * - :clicmd:`biolm workspace list <../workspace.html#biolm-workspace-list>`
      - List workspaces you can access with names, IDs, and basic metadata.
-   * - :clicmd:`biolm workspace show <workspace.html#biolm-workspace-show>`
+   * - :clicmd:`biolm workspace show <../workspace.html#biolm-workspace-show>`
      - Show details for a workspace by ID, or the current workspace when omitted.
-   * - :clicmd:`biolm workspace create <workspace.html#biolm-workspace-create>`
+   * - :clicmd:`biolm workspace create <../workspace.html#biolm-workspace-create>`
      - Create a new workspace for organizing projects and protocol runs.
-   * - :clicmd:`biolm workspace delete <workspace.html#biolm-workspace-delete>`
+   * - :clicmd:`biolm workspace delete <../workspace.html#biolm-workspace-delete>`
      - Permanently delete a workspace and its associated resources.
 
 .. _cli-index-datasets:
@@ -110,13 +110,13 @@ Upload, download, and inspect MLflow-backed datasets on the platform.
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm dataset list <dataset.html#biolm-dataset-list>`
+   * - :clicmd:`biolm dataset list <../dataset.html#biolm-dataset-list>`
      - List datasets in your MLflow experiment with optional JSON or CSV export.
-   * - :clicmd:`biolm dataset show <dataset.html#biolm-dataset-show>`
+   * - :clicmd:`biolm dataset show <../dataset.html#biolm-dataset-show>`
      - Show metadata, tags, metrics, and artifact listings for a dataset by ID.
-   * - :clicmd:`biolm dataset upload <dataset.html#biolm-dataset-upload>`
+   * - :clicmd:`biolm dataset upload <../dataset.html#biolm-dataset-upload>`
      - Upload a file or directory to a dataset (creates the dataset run if needed).
-   * - :clicmd:`biolm dataset download <dataset.html#biolm-dataset-download>`
+   * - :clicmd:`biolm dataset download <../dataset.html#biolm-dataset-download>`
      - Download all artifacts, or a single artifact path, to a local directory.
 
 .. _cli-index-hub:
@@ -131,9 +131,9 @@ Route model inference through a local or self-hosted `biolm-hub <https://github.
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm hub set <hub.html#biolm-hub-set>`
+   * - :clicmd:`biolm hub set <../hub.html#biolm-hub-set>`
      - Save a gateway URL so ``biolm model`` uses local or self-hosted inference.
-   * - :clicmd:`biolm hub status <hub.html#biolm-hub-status>`
+   * - :clicmd:`biolm hub status <../hub.html#biolm-hub-status>`
      - Show saved hub config, active model API URL, and live gateway health.
-   * - :clicmd:`biolm hub unset <hub.html#biolm-hub-unset>`
+   * - :clicmd:`biolm hub unset <../hub.html#biolm-hub-unset>`
      - Clear saved hub settings and revert model calls to the hosted biolm.ai API.

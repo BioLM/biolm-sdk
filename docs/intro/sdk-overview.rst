@@ -3,27 +3,25 @@
 Python SDK overview
 ===================
 
-The BioLM Python SDK lets you call BioLM models from Python with minimal setup: encode sequences, predict structures, and generate sequences. Use a one-off function, a class-based Model, or the API client for more control.
+The BioLM Python SDK lets you call BioLM models from Python with minimal setup: encode sequences, predict structures, and generate sequences. The recommended interface is :class:`~biolm.models.Model`; lower-level HTTP clients live in ``biolm.core``.
 
 **Quick example**
 
 .. code-block:: python
 
-    from biolm import biolm
+    from biolm import Model
 
-    # Encode a sequence (e.g. ESM2-8M)
-    result = biolm(entity="esm2-8m", action="encode", type="sequence", items="MSILVTRPSPAGEEL")
+    model = Model("esm2-8m")
+    result = model.encode(type="sequence", items="MSILVTRPSPAGEEL")
 
-    # Predict structure (e.g. ESMFold)
-    result = biolm(entity="esmfold", action="predict", type="sequence", items=["MDNELE", "MENDEL"])
+    model = Model("esmfold")
+    result = model.predict(type="sequence", items=["MDNELE", "MENDEL"])
 
-    # Generate sequences (e.g. ProGen2-OAS)
-    result = biolm(
-        entity="progen2-oas",
-        action="generate",
+    model = Model("progen2-oas")
+    result = model.generate(
         type="context",
         items="M",
-        params={"temperature": 0.7, "num_samples": 2, "max_length": 17}
+        params={"temperature": 0.7, "num_samples": 2, "max_length": 17},
     )
 
 **What you can do**
@@ -34,14 +32,17 @@ The BioLM Python SDK lets you call BioLM models from Python with minimal setup: 
 
 **Ways to use the SDK**
 
-- **One-off or script:** Use the function or the class-based Model. See :doc:`client-interfaces`.
-- **Sync vs async:** Scripts and notebooks → function or Model. High throughput or async apps → ``BioLMApi`` / ``BioLMApiClient``. See :doc:`concurrency`.
-- **Batching, errors, rate limits, disk output:** All supported; see :doc:`batching`, :doc:`rate-limiting`, :doc:`error-handling`.
+- **Model inference:** Use :class:`~biolm.models.Model`. See :doc:`client-interfaces` and :doc:`../sdk/models`.
+- **Protocols, pipelines, platform:** See :sdklink:`SDK reference <../../sdk/index.html>`.
+- **Sync vs async:** ``Model`` is sync; async apps use ``BioLMApiClient``. See :doc:`concurrency`.
+- **Batching, errors, rate limits, disk output:** See :doc:`batching`, :doc:`rate-limiting`, :doc:`error-handling`.
+- **Advanced / legacy HTTP clients:** See :doc:`../sdk/core`.
 
 **Next steps**
 
-- :doc:`../sdk/models` — Model interface and examples.
+- :doc:`../sdk/models` — ``Model`` interface and examples.
+- :doc:`../sdk/core` — ``biolm()``, ``BioLMApi``, and ``BioLMApiClient``.
 - :doc:`../sdk/pipeline` — Pipeline config types and ``GenerativePipeline``.
 - :doc:`client-interfaces` — When to use which client interface.
 - :doc:`faq` — Common questions.
-- :doc:`../sdk/index` — Full SDK module reference.
+- :sdklink:`Full SDK module reference <../../sdk/index.html>`

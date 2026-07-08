@@ -35,7 +35,7 @@ CLI Documentation
 
 **Auto-generated:**
 
-- ``docs/reference/cli.rst`` — Full command reference (edit docstrings in ``biolm/cli.py``)
+- ``docs/reference/cli.rst`` — Full command reference (edit docstrings in ``biolm/cli/``)
 
 SDK Documentation
 ~~~~~~~~~~~~~~~~~
@@ -51,6 +51,16 @@ SDK Documentation
 
 Each SDK page should follow: **what it is** → **when to use** → **minimal example** →
 **primary autoclass/autofunction** → **see also** (intro, CLI, yaml, api-reference).
+
+**Product vs core:** Curated pages under ``docs/sdk/`` document product APIs
+(``Model``, ``Protocol``, pipelines, platform types). ``docs/sdk/core.rst`` covers
+``biolm.core`` — HTTP clients, ``biolm()``, and legacy imports. Nudge users toward
+product APIs; link to core for advanced control.
+
+Package layout:
+
+- ``biolm/models/`` — ``Model`` (``__init__.py``) and ``examples.py`` (catalog and example generation)
+- ``biolm/plugins/`` — optional third-party backends (e.g. ``plugins/mlflow`` for datasets and protocol logging). Document on ``sdk/index`` under **Plugins (optional)**; require ``pip install biolm-sdk[mlflow]`` where applicable. Do not import plugins from ``biolm/__init__.py``.
 
 In ``.rst`` files, use double backticks for inline code (``like this``), not Markdown
 single backticks. Do not nest bold (``**``) inside literals — Sphinx renders the

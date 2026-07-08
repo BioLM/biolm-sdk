@@ -16,7 +16,7 @@ from biolm.protocol_runs import (
 )
 from biolm.workspaces import Workspace
 from biolm.volumes import Volume
-from biolm.examples import get_example, list_models
+from biolm.models.examples import get_example, list_models
 from biolm.io import (
     load_fasta,
     to_fasta,

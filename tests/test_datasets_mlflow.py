@@ -8,7 +8,7 @@ from datetime import datetime
 import pytest
 from click.testing import CliRunner
 
-from biolm.datasets_mlflow import (
+from biolm.plugins.mlflow.datasets import (
     MLflowNotAvailableError,
     list_datasets,
     get_dataset,
@@ -24,13 +24,13 @@ from biolm.cli import cli
 class TestMLflowAvailability:
     """Test MLflow availability checks."""
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", False)
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", False)
     def test_check_mlflow_available_raises_error(self):
         """Test that _check_mlflow_available raises error when MLflow is not available."""
         with pytest.raises(MLflowNotAvailableError):
             _check_mlflow_available()
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
     def test_check_mlflow_available_succeeds(self):
         """Test that _check_mlflow_available succeeds when MLflow is available."""
         _check_mlflow_available()  # Should not raise
@@ -39,9 +39,9 @@ class TestMLflowAvailability:
 class TestDatasetOperations:
     """Test dataset operations with mocked MLflow."""
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_list_datasets(self, mock_client_class, mock_mlflow):
         """Test listing datasets."""
         # Setup mocks
@@ -92,9 +92,9 @@ class TestDatasetOperations:
         assert datasets[1]["run_id"] == "run-2"
         mock_client.search_runs.assert_called_once()
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_get_dataset_by_tag(self, mock_client_class, mock_mlflow):
         """Test getting dataset by dataset_id tag."""
         # Setup mocks
@@ -136,9 +136,9 @@ class TestDatasetOperations:
         assert len(dataset["artifacts"]) == 1
         assert dataset["artifacts"][0]["path"] == "file.txt"
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_get_dataset_by_run_id(self, mock_client_class, mock_mlflow):
         """Test getting dataset by run_id."""
         # Setup mocks
@@ -175,9 +175,9 @@ class TestDatasetOperations:
         assert dataset["run_id"] == "run-1"
         mock_client.get_run.assert_called_once_with("run-1")
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_get_dataset_not_found(self, mock_client_class, mock_mlflow):
         """Test getting non-existent dataset."""
         # Setup mocks
@@ -199,9 +199,9 @@ class TestDatasetOperations:
         # Assertions
         assert dataset is None
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_upload_dataset_new(self, mock_client_class, mock_mlflow, tmp_path):
         """Test uploading to a new dataset."""
         # Setup mocks
@@ -242,9 +242,9 @@ class TestDatasetOperations:
         mock_mlflow.set_tags.assert_called_once()
         mock_mlflow.log_artifact.assert_called_once()
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_upload_dataset_existing(self, mock_client_class, mock_mlflow, tmp_path):
         """Test uploading to an existing dataset."""
         # Setup mocks
@@ -281,9 +281,9 @@ class TestDatasetOperations:
         assert result["run_id"] == "run-1"
         mock_mlflow.log_artifact.assert_called_once()
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_upload_dataset_file_not_found(self, mock_client_class, mock_mlflow):
         """Test uploading with non-existent file."""
         with pytest.raises(FileNotFoundError):
@@ -293,9 +293,9 @@ class TestDatasetOperations:
                 experiment_name="datasets"
             )
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_download_dataset(self, mock_client_class, mock_mlflow, tmp_path):
         """Test downloading dataset artifacts."""
         # Setup mocks
@@ -336,9 +336,9 @@ class TestDatasetOperations:
         assert result["status"] == "success"
         mock_client.download_artifacts.assert_called_once()
     
-    @patch("biolmai.datasets_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.datasets_mlflow.mlflow")
-    @patch("biolmai.datasets_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.datasets.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.datasets.mlflow")
+    @patch("biolm.plugins.mlflow.datasets.MlflowClient")
     def test_download_dataset_not_found(self, mock_client_class, mock_mlflow):
         """Test downloading non-existent dataset."""
         # Setup mocks
@@ -366,8 +366,8 @@ class TestDatasetOperations:
 class TestCLIDatasetCommands:
     """Test CLI dataset commands."""
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.list_datasets")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.list_datasets")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list(self, mock_auth, mock_list_datasets, mock_mlflow_check):
         """Test CLI dataset list command."""
@@ -389,8 +389,8 @@ class TestCLIDatasetCommands:
         assert "Dataset 1" in result.output
         assert "ds-1" in result.output
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.list_datasets")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.list_datasets")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_json(self, mock_auth, mock_list_datasets, mock_mlflow_check):
         """Test CLI dataset list command with JSON output."""
@@ -413,8 +413,8 @@ class TestCLIDatasetCommands:
         assert isinstance(output_data, list)
         assert len(output_data) == 1
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.list_datasets")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.list_datasets")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_empty(self, mock_auth, mock_list_datasets, mock_mlflow_check):
         """Test CLI dataset list command with no datasets."""
@@ -427,8 +427,8 @@ class TestCLIDatasetCommands:
         assert result.exit_code == 0
         assert "No datasets found" in result.output
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.get_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.get_dataset")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_show(self, mock_auth, mock_get_dataset, mock_mlflow_check):
         """Test CLI dataset show command."""
@@ -451,8 +451,8 @@ class TestCLIDatasetCommands:
         assert "Dataset 1" in result.output
         assert "ds-1" in result.output
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.get_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.get_dataset")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_show_not_found(self, mock_auth, mock_get_dataset, mock_mlflow_check):
         """Test CLI dataset show command with non-existent dataset."""
@@ -465,8 +465,8 @@ class TestCLIDatasetCommands:
         assert result.exit_code == 1
         assert "not found" in result.output.lower()
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.upload_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.upload_dataset")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_upload(self, mock_auth, mock_upload, mock_mlflow_check, tmp_path):
         """Test CLI dataset upload command."""
@@ -490,8 +490,8 @@ class TestCLIDatasetCommands:
         assert "Successfully uploaded" in result.output
         mock_upload.assert_called_once()
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.download_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.download_dataset")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_download(self, mock_auth, mock_download, mock_mlflow_check, tmp_path):
         """Test CLI dataset download command."""
@@ -512,8 +512,8 @@ class TestCLIDatasetCommands:
         assert "Successfully downloaded" in result.output
         mock_download.assert_called_once()
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.download_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.download_dataset")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_download_not_found(self, mock_auth, mock_download, mock_mlflow_check):
         """Test CLI dataset download command with non-existent dataset."""
@@ -532,7 +532,7 @@ class TestCLIDatasetCommands:
 class TestErrorHandling:
     """Test error handling."""
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_not_authenticated(self, mock_auth, mock_mlflow_check):
         """Test CLI dataset list without authentication (are_credentials_valid returns False)."""
@@ -544,7 +544,7 @@ class TestErrorHandling:
         assert result.exit_code == 1
         assert "Authentication" in result.output or "Not Authenticated" in result.output or "authenticate" in result.output.lower()
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_list_mlflow_not_available(self, mock_auth, mock_check):
         """Test CLI dataset list without MLflow."""
@@ -557,8 +557,8 @@ class TestErrorHandling:
         assert result.exit_code == 1
         assert "MLflow" in result.output
     
-    @patch("biolmai.datasets_mlflow._check_mlflow_available")
-    @patch("biolm.cli.upload_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets.upload_dataset")
     @patch("biolm.cli.are_credentials_valid")
     def test_cli_dataset_upload_file_not_found(self, mock_auth, mock_upload, mock_mlflow_check):
         """Test CLI dataset upload with non-existent file."""

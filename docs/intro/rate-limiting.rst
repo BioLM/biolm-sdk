@@ -57,4 +57,4 @@ See Also
 
 - :doc:`error-handling`
 - :doc:`batching`
-- :doc:`../faq`
+- :sdklink:`FAQ <../../intro/faq.html>`
