@@ -2,6 +2,8 @@ import pytest
 
 from biolm.core.http import BioLMApiClient
 
+pytestmark = pytest.mark.live
+
 
 @pytest.mark.asyncio
 async def test_schema_max_items_is_int_live():
@@ -9,7 +11,7 @@ async def test_schema_max_items_is_int_live():
     model_name = "esm2-35m"  # or any model you know exists
     action = "encode"      # or "encode", "generate", etc.
 
-    client = BioLMApiClient(model_name)
+    client = BioLMApiClient(model_name, api_key="schema-test")
     schema = await client.schema(model_name, action)
     assert schema is not None, "Schema should not be None"
     max_items = client.extract_max_items(schema)
@@ -18,13 +20,15 @@ async def test_schema_max_items_is_int_live():
     print(f"maxItems for {model_name}/{action}: {max_items}")
 
 @pytest.mark.asyncio
-async def test_schema_contains_throttle_rate_live():
-    model_name = "esm2-35m"  # Use a real model name available on your API
-    action = "encode"        # Use a real action, e.g., "encode", "generate", etc.
+async def test_schema_contains_items_max_items_live():
+    model_name = "esm2-35m"
+    action = "encode"
 
-    client = BioLMApiClient(model_name)
+    client = BioLMApiClient(model_name, api_key="schema-test")
     schema = await client.schema(model_name, action)
     assert schema is not None, "Schema should not be None"
-    assert "throttle_rate" in schema, f"'throttle_rate' key not found in schema: {schema.keys()}"
-    # Optionally, print the value for debugging
-    print(f"throttle_rate for {model_name}/{action}: {schema['throttle_rate']}")
+    items_schema = schema.get("properties", {}).get("items", {})
+    assert "maxItems" in items_schema, (
+        f"'maxItems' not found under properties.items: {items_schema.keys()}"
+    )
+    assert isinstance(items_schema["maxItems"], int)

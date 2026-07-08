@@ -7,6 +7,8 @@ from biolm.core.http import BioLMApi, BioLMApiClient
 
 LOGGER = logging.getLogger(__name__)
 
+pytestmark = pytest.mark.live
+
 @pytest.fixture(scope='function')
 def model():
     return BioLMApiClient("esmfold", raise_httpx=False, unwrap_single=False, retry_error_batches=False)

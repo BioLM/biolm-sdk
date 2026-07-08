@@ -4,6 +4,8 @@ import pytest
 
 from biolm.core.http import BioLMApiClient
 
+pytestmark = pytest.mark.live
+
 
 @pytest.mark.asyncio
 async def test_retry_error_batches_live_partial_batch():

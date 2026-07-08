@@ -1,5 +1,4 @@
-"""
-Complete end-to-end pipeline tests.
+"""Complete end-to-end pipeline tests.
 
 Tests cover:
 - FilterStage actually filters in batch mode (regression for Bug 6)
@@ -12,6 +11,8 @@ Tests cover:
 - Streaming trickles results
 """
 import pytest
+
+pytestmark = pytest.mark.integration
 pytest.importorskip("duckdb")
 
 import asyncio
