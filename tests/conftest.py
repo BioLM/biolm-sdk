@@ -13,6 +13,10 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
+    # Offline tiers construct BioLMApiClient in mocked tests; avoid requiring real tokens.
+    if not config.getoption("--run-live"):
+        os.environ.setdefault("BIOLM_TOKEN", "unit-test-token")
+
     # Ensure markers are registered even if pyproject isn't consulted in some contexts.
     config.addinivalue_line("markers", "smoke: fast sanity checks suitable for PRs")
     config.addinivalue_line("markers", "unit: offline unit tests (default PR tier)")

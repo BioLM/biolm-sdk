@@ -1,5 +1,6 @@
 python-semantic-release>=9.0,<11
 Click>=6.0
+pyyaml>=5.0
 requests
 httpx>=0.23.2
 httpcore
