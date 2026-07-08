@@ -1,4 +1,4 @@
 SDK Reference
 =============
 
-Moved to :doc:`../sdk/index`.
+Moved to :sdklink:`SDK Reference <../../sdk/index.html>`.

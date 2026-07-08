@@ -4,7 +4,7 @@ from typing import Callable, Optional, Union, List, Any
 
 from biolm.core.http import BioLMApi, BioLMApiClient
 from biolm.core.utils import prepare_items_for_api
-from biolm.examples import ExampleGeneratorSync
+from biolm.models.examples import ExampleGeneratorSync
 from biolm.progress import rich_progress
 
 log = logging.getLogger("biolm_util")

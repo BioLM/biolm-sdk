@@ -221,5 +221,5 @@ See Also
 
 - :doc:`batching`
 - :doc:`error-handling`
-- :doc:`rate_limiting`
+- :doc:`rate-limiting`
 - :doc:`client-interfaces` (includes Disk output)

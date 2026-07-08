@@ -5,38 +5,114 @@
 SDK Reference
 =============
 
-Reference for the ``biolm`` Python package (``pip install biolm-sdk``). For onboarding and client usage patterns, see :doc:`../intro/sdk-overview`.
+Reference for the ``biolm`` Python package (``pip install biolm-sdk``). **Product APIs**
+below are the recommended entry points. For HTTP clients, legacy helpers, and deprecated
+imports, see :sdklink:`biolm.core <../core.html>`.
+
+Product APIs
+------------
+
+Inference
+~~~~~~~~~
 
 .. list-table::
-   :header-rows: 1
-   :widths: 22 28 50
+   :header-rows: 0
+   :widths: 28 72
 
-   * - Module
-     - Primary symbols
-     - Description
-   * - :doc:`models`
-     - ``biolm()``, ``Model``
-     - High-level model inference and embeddings.
-   * - :doc:`protocols`
-     - ``Protocol``, ``ProtocolClient``, ``run_protocol()``
-     - Protocol YAML validation and programmatic runs.
-   * - :doc:`pipeline`
-     - ``GenerativePipeline``, config types
-     - Multi-stage protein design with DuckDB caching.
-   * - :doc:`workspaces`
-     - ``Workspace``
+   * - :sdklink:`Model <../models.html>`
+     - Encode, predict, generate, and lookup with a bound model interface.
+   * - :sdklink:`get_example, list_models <../models.html>`
+     - Model catalog browsing and copy-paste example generation (``biolm.models.examples``).
+
+Protocols
+~~~~~~~~~
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`Protocol <../protocols.html>`
+     - Load, validate, and inspect protocol YAML locally.
+   * - :sdklink:`run_protocol() <../protocols.html>`
+     - Submit a protocol run and block until results are ready.
+   * - :sdklink:`ProtocolClient <../protocols.html>`
+     - Submit, track, and download protocol runs programmatically.
+
+Pipelines
+~~~~~~~~~
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`GenerativePipeline <../pipeline.html>`
+     - Multi-stage protein design with DuckDB caching and resumability.
+   * - :sdklink:`Pipeline configs <../pipeline.html>`
+     - ``ScoringProtocolConfig``, ``DirectGenerationConfig``, saturation mutagenesis, and related types.
+
+Platform
+~~~~~~~~
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`Workspace <../workspaces.html>`
      - Workspace management (Python SDK upcoming).
-   * - :doc:`volumes`
-     - ``Volume``
+   * - :sdklink:`Volume <../volumes.html>`
      - Volume storage (Python SDK upcoming).
-   * - :doc:`io`
-     - ``load_fasta``, ``to_csv``, …
-     - FASTA, CSV, JSON, and PDB file helpers.
-   * - :doc:`finetune`
-     - ``Finetune``
+   * - :sdklink:`Finetune <../finetune.html>`
      - XGBoost and DSM finetuning workflows.
-   * - :doc:`hub`
-     - ``list_models_from_openapi``, hub config
+
+Utilities
+~~~~~~~~~
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`biolm.io <../io.html>`
+     - FASTA, CSV, JSON, and PDB file helpers.
+   * - :sdklink:`biolm.hub <../hub.html>`
      - biolm-hub gateway discovery and configuration.
 
-Full module index: :doc:`../api-reference/biolm`.
+Core client (advanced)
+----------------------
+
+Prefer product APIs above. Use :sdklink:`biolm.core <../core.html>` when you need direct
+HTTP control, async clients, or legacy imports.
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`biolm() <../core.html>`
+     - Legacy one-shot sync wrapper (re-exported from ``biolm``).
+   * - :sdklink:`BioLMApi <../core.html>`
+     - Sync HTTP client with schema access and manual batching.
+   * - :sdklink:`BioLMApiClient <../core.html>`
+     - Async HTTP client; ``await`` its methods.
+   * - :sdklink:`biolm.core.legacy <../../api-reference/biolm.core.legacy.html>`
+     - Deprecated; do not use in new code.
+
+.. _plugins-optional:
+
+Plugins (optional)
+------------------
+
+Optional third-party backends under ``biolm.plugins``. Install extras as needed
+(``pip install biolm-sdk[mlflow]``). Plugins are not imported from the top-level
+``biolm`` package.
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`biolm.plugins.mlflow <../../api-reference/biolm.plugins.mlflow.html>`
+     - Protocol result logging and MLflow-backed datasets.
+   * - :sdklink:`protocol log <../cli/protocol.html>`
+     - CLI: log protocol run results to MLflow.
+   * - :sdklink:`dataset <../cli/dataset.html>`
+     - CLI: list, upload, and download MLflow-backed datasets.
+
+Full module index: :sdklink:`biolm package <../../api-reference/biolm.html>`.

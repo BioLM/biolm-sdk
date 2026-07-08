@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from biolm.cli_theme import (
+from biolm.cli.theme import (
     build_theme,
     create_console,
     no_color_requested,

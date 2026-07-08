@@ -12,7 +12,7 @@ from biolm.core.expression_evaluator import (
     evaluate_where_clause,
     extract_template_expr,
 )
-from biolm.protocols_mlflow import (
+from biolm.plugins.mlflow.protocols import (
     MLflowNotAvailableError,
     combine_output_rules,
     compute_aggregates,
@@ -398,9 +398,9 @@ class TestPrepareLoggingData:
 class TestMLflowIntegration:
     """Test MLflow integration (mocked)."""
 
-    @patch("biolmai.protocols_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.protocols_mlflow.mlflow")
-    @patch("biolmai.protocols_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.protocols.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.protocols.mlflow")
+    @patch("biolm.plugins.mlflow.protocols.MlflowClient")
     def test_log_to_mlflow_dry_run(self, mock_client_class, mock_mlflow):
         """Test dry run mode."""
         results = [{"score": 0.8}]
@@ -420,7 +420,7 @@ class TestMLflowIntegration:
         # Should not call MLflow
         mock_mlflow.start_run.assert_not_called()
 
-    @patch("biolmai.protocols_mlflow.MLFLOW_AVAILABLE", False)
+    @patch("biolm.plugins.mlflow.protocols.MLFLOW_AVAILABLE", False)
     def test_log_to_mlflow_not_available(self):
         """Test error when MLflow is not available."""
         results = [{"score": 0.8}]
@@ -436,9 +436,9 @@ class TestMLflowIntegration:
                 dry_run=False,
             )
 
-    @patch("biolmai.protocols_mlflow.MLFLOW_AVAILABLE", True)
-    @patch("biolmai.protocols_mlflow.mlflow")
-    @patch("biolmai.protocols_mlflow.MlflowClient")
+    @patch("biolm.plugins.mlflow.protocols.MLFLOW_AVAILABLE", True)
+    @patch("biolm.plugins.mlflow.protocols.mlflow")
+    @patch("biolm.plugins.mlflow.protocols.MlflowClient")
     def test_log_to_mlflow_full(self, mock_client_class, mock_mlflow):
         """Test full MLflow logging (mocked)."""
         # Setup mocks

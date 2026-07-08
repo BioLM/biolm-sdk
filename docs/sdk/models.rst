@@ -1,30 +1,22 @@
-``biolm.models``
-================
+``Model``
+=========
 
-High-level interface for calling BioLM models: one-off requests, a bound
-:class:`~biolm.models.Model`, and module-level helpers.
+Recommended interface for model inference: bind to a model slug once, then call
+``encode``, ``predict``, ``generate``, or ``lookup``. Wraps the HTTP client in
+``biolm.core`` with a simpler, product-focused API.
+
+Catalog and example helpers live in ``biolm.models.examples`` (also re-exported
+from ``biolm`` as ``get_example`` and ``list_models``).
 
 When to use
 -----------
 
-- ``biolm()`` — scripts and notebooks; one import, one call.
-- ``Model`` — same model, many calls (``.encode()``, ``.predict()``, ``.generate()``).
-- **Lower-level clients** — more control over batching, concurrency, and errors; see
-  :doc:`../intro/client-interfaces` and :doc:`../intro/concurrency`.
+- **Model** — preferred for scripts, notebooks, and apps that call the same model repeatedly.
+- **Lower-level clients** — ``biolm()``, ``BioLMApi``, and ``BioLMApiClient`` for advanced
+  batching, async, and schema control; see :doc:`core`.
 
 Examples
 --------
-
-One-off call:
-
-.. code-block:: python
-
-    from biolm import biolm
-
-    result = biolm(entity="esm2-8m", action="encode", type="sequence", items="MSILVTRPSPAGEEL")
-    result = biolm(entity="esmfold", action="predict", type="sequence", items=["SEQ1", "SEQ2"])
-
-Bound model:
 
 .. code-block:: python
 
@@ -36,18 +28,48 @@ Bound model:
     model = Model("esmfold")
     structures = model.predict(type="sequence", items=["SEQ1", "SEQ2"])
 
+    model = Model("progen2-oas")
+    sequences = model.generate(
+        type="context",
+        items="M",
+        params={"temperature": 0.7, "num_samples": 2, "max_length": 17},
+    )
+
+Example generation
+----------------
+
+Generate copy-pasteable Python for a model action, or browse the model catalog:
+
+.. code-block:: python
+
+    from biolm import Model
+    from biolm.models.examples import get_example, list_models
+
+    model = Model("esm2-8m")
+    print(model.get_example("encode"))
+    print(get_example("esm2-8m", "encode"))
+
+    for entry in list_models():
+        print(entry.get("model_slug") or entry.get("name"))
+
+From the terminal: ``biolm model example esm2-8m encode``. See :doc:`../cli/model`.
+
 API
 ---
 
-.. autofunction:: biolm.biolm
-
 .. autoclass:: biolm.models.Model
-   :members: encode, predict, generate, lookup
+   :members: encode, predict, generate, lookup, get_example, get_examples
    :undoc-members:
+
+.. autofunction:: biolm.models.examples.get_example
+
+.. autofunction:: biolm.models.examples.list_models
 
 See also
 --------
 
-- :doc:`../intro/client-interfaces` — when to use ``biolm()`` vs ``Model`` vs ``BioLMApiClient``
+- :doc:`core` — ``biolm()``, ``BioLMApi``, and ``BioLMApiClient``
+- :doc:`../intro/client-interfaces` — sync vs async and disk output
 - :doc:`../intro/quickstart` — minimal install and auth
-- :doc:`../api-reference/biolm` — ``biolm.models`` module reference
+- :doc:`../cli/model` — ``biolm model example`` and catalog commands
+- :doc:`../api-reference/biolm.models` — full ``biolm.models`` package reference

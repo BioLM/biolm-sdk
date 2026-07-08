@@ -7,37 +7,16 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   biolm.cli
    biolm.core
    biolm.hub
    biolm.io
+   biolm.models
    biolm.pipeline
+   biolm.plugins
 
 Submodules
 ----------
-
-biolm.cli module
-----------------
-
-.. automodule:: biolm.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.cli\_entry module
------------------------
-
-.. automodule:: biolm.cli_entry
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.cli\_theme module
------------------------
-
-.. automodule:: biolm.cli_theme
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 biolm.client module
 -------------------
@@ -47,42 +26,10 @@ biolm.client module
    :undoc-members:
    :show-inheritance:
 
-biolm.datasets\_mlflow module
------------------------------
-
-.. automodule:: biolm.datasets_mlflow
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.examples module
----------------------
-
-.. automodule:: biolm.examples
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 biolm.finetune module
 ---------------------
 
 .. automodule:: biolm.finetune
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.ltc module
-----------------
-
-.. automodule:: biolm.ltc
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.models module
--------------------
-
-.. automodule:: biolm.models
    :members:
    :undoc-members:
    :show-inheritance:
@@ -107,14 +54,6 @@ biolm.protocols module
 ----------------------
 
 .. automodule:: biolm.protocols
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.protocols\_mlflow module
-------------------------------
-
-.. automodule:: biolm.protocols_mlflow
    :members:
    :undoc-members:
    :show-inheritance:

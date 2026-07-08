@@ -11,7 +11,7 @@ import builtins
 import click
 from click.formatting import HelpFormatter
 from biolm import __version__ as BIOLM_VERSION
-from biolm.cli_theme import create_console, no_color_requested
+from biolm.cli.theme import create_console, no_color_requested
 from rich.table import Table
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
@@ -34,16 +34,9 @@ from biolm.core.const import (
     get_model_api_source,
     is_hub_mode,
 )
-from biolm.examples import get_example, list_models, get_model_details
+from biolm.models.examples import get_example, list_models, get_model_details
 from biolm.io import load_fasta, load_csv, load_pdb, load_json, to_fasta, to_csv, to_pdb, to_json
 from biolm.models import Model
-from biolm.datasets_mlflow import (
-    MLflowNotAvailableError,
-    list_datasets,
-    get_dataset,
-    upload_dataset,
-    download_dataset,
-)
 
 console = create_console()
 
@@ -335,7 +328,7 @@ class RichGroup(click.Group):
 @click.command()
 def main(args=None):
     """Console script for biolm."""
-    click.echo("Replace this message by putting your code into " "biolm.cli.main")
+    click.echo("Replace this message by putting your code into " "biolm.cli")
     click.echo("See click documentation at https://click.palletsprojects.com/")
     return 0
 
@@ -2681,7 +2674,7 @@ def log(results, outputs, account, workspace, protocol_slug, dry_run, mlflow_uri
         biolm protocol log results.jsonl --outputs protocol.yaml --account acme --workspace lab --protocol antifold-antibody --mlflow-uri http://localhost:5001
     """
     try:
-        from biolm.protocols_mlflow import (
+        from biolm.plugins.mlflow.protocols import (
             MLflowNotAvailableError,
             log_protocol_results,
         )
@@ -2981,9 +2974,10 @@ def list(experiment, format, output, mlflow_uri, all_runs):
         biolm dataset list --all-runs
     """
     try:
+        from biolm.plugins.mlflow.protocols import MLflowNotAvailableError
+        from biolm.plugins.mlflow.datasets import _check_mlflow_available, list_datasets
         # Check MLflow availability
         try:
-            from biolm.datasets_mlflow import _check_mlflow_available
             _check_mlflow_available()
         except MLflowNotAvailableError:
             console.print(Panel(
@@ -3144,9 +3138,10 @@ def show(dataset_id, experiment, format, output, mlflow_uri):
         biolm dataset show my-dataset-123 --format json --output dataset.json
     """
     try:
+        from biolm.plugins.mlflow.protocols import MLflowNotAvailableError
+        from biolm.plugins.mlflow.datasets import _check_mlflow_available, get_dataset
         # Check MLflow availability
         try:
-            from biolm.datasets_mlflow import _check_mlflow_available
             _check_mlflow_available()
         except MLflowNotAvailableError:
             console.print(Panel(
@@ -3363,9 +3358,10 @@ def upload(dataset_id, file_path, experiment, name, recursive, mlflow_uri):
         biolm dataset upload my-dataset-123 data.csv --name "Training Data"
     """
     try:
+        from biolm.plugins.mlflow.protocols import MLflowNotAvailableError
+        from biolm.plugins.mlflow.datasets import _check_mlflow_available, upload_dataset
         # Check MLflow availability
         try:
-            from biolm.datasets_mlflow import _check_mlflow_available
             _check_mlflow_available()
         except MLflowNotAvailableError:
             console.print(Panel(
@@ -3462,9 +3458,10 @@ def download(dataset_id, output_path, experiment, artifact_path, mlflow_uri):
         biolm dataset download my-dataset-123 ./downloads --artifact-path model.pkl
     """
     try:
+        from biolm.plugins.mlflow.protocols import MLflowNotAvailableError
+        from biolm.plugins.mlflow.datasets import _check_mlflow_available, download_dataset
         # Check MLflow availability
         try:
-            from biolm.datasets_mlflow import _check_mlflow_available
             _check_mlflow_available()
         except MLflowNotAvailableError:
             console.print(Panel(

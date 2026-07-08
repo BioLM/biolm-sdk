@@ -16,7 +16,7 @@ except ImportError:
     mlflow = None
     MlflowClient = None
 
-from biolm.protocols_mlflow import MLflowNotAvailableError
+from biolm.plugins.mlflow.protocols import MLflowNotAvailableError
 
 
 def _get_username() -> Optional[str]:
