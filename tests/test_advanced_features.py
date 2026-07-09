@@ -2,6 +2,8 @@
 Advanced pipeline feature tests: resumability, streaming behavior, error handling.
 """
 import pytest
+
+pytestmark = pytest.mark.integration
 pytest.importorskip("pandas")
 
 import asyncio
@@ -9,7 +11,6 @@ import time
 from unittest.mock import AsyncMock, patch
 
 import pandas as pd
-import pytest
 
 from biolm.pipeline.base import WorkingSet
 from biolm.pipeline.data import DataPipeline, FilterStage, PipelineAPIAuthError, PredictionStage

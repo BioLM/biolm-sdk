@@ -1,0 +1,79 @@
+# Maps source areas to pytest paths for selective integration runs.
+# Used by scripts/select_integration_tests.py and CI path filters.
+
+areas:
+  pipeline:
+    sources:
+      - biolm/pipeline/
+    tests:
+      - tests/test_pipeline_complete.py
+      - tests/test_design_primitives.py
+      - tests/test_generation_workingset.py
+      - tests/test_advanced_features.py
+      - tests/test_embedding_pipeline.py
+      - tests/test_pipeline.py
+      - tests/test_duckdb_datastore.py
+      - tests/test_filters.py
+      - tests/test_clustering.py
+      - tests/test_mlm_remasking.py
+      - tests/test_remasking_config.py
+      - tests/test_ranking_filter.py
+      - tests/test_datastore.py
+      - tests/test_specs.py
+
+  client:
+    sources:
+      - biolm/core/http.py
+      - biolm/core/auth.py
+      - biolm/core/asynch.py
+      - biolm/core/payloads.py
+      - biolm/core/validate.py
+      - biolm/client.py
+      - biolm/models.py
+    tests:
+      - tests/test_client.py
+      - tests/test_aclient.py
+      - tests/test_biolmai.py
+      - tests/test_abatch_calls.py
+      - tests/test_iterables.py
+      - tests/test_batch_error_retry.py
+      - tests/test_batch_errors.py
+      - tests/test_concurrent_batches.py
+      - tests/test_rate_limit.py
+      - tests/test_max_items.py
+      - tests/test_schemas.py
+      - tests/test_jupyter_context.py
+      - tests/test_integration.py
+      - tests/test_auth_integration.py
+
+  cli:
+    sources:
+      - biolm/cli.py
+      - biolm/cli_entry.py
+      - biolm/cli_theme.py
+    tests:
+      - tests/test_cli_hub.py
+      - tests/test_cli_login.py
+      - tests/test_cli_model_io.py
+      - tests/test_cli_model_list.py
+      - tests/test_cli_model_run.py
+      - tests/test_cli_model_show.py
+      - tests/test_cli_theme.py
+
+  protocols:
+    sources:
+      - biolm/protocols.py
+      - biolm/protocol_runs.py
+      - biolm/protocols_mlflow.py
+      - biolm/core/expression_evaluator.py
+    tests:
+      - tests/test_protocols.py
+      - tests/test_protocol_client.py
+      - tests/test_protocols_mlflow.py
+
+  hub:
+    sources:
+      - biolm/hub/
+    tests:
+      - tests/test_hub_config.py
+      - tests/test_hub_discovery.py

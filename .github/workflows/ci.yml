@@ -6,83 +6,239 @@ on:
   pull_request:
     branches: ['*']
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      pipeline: ${{ steps.filter.outputs.pipeline }}
+      client: ${{ steps.filter.outputs.client }}
+      cli: ${{ steps.filter.outputs.cli }}
+      protocols: ${{ steps.filter.outputs.protocols }}
+      hub: ${{ steps.filter.outputs.hub }}
+      tests: ${{ steps.filter.outputs.tests }}
+      config: ${{ steps.filter.outputs.config }}
+      docs: ${{ steps.filter.outputs.docs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            pipeline:
+              - 'biolm/pipeline/**'
+            client:
+              - 'biolm/core/**'
+              - 'biolm/client.py'
+              - 'biolm/models.py'
+            cli:
+              - 'biolm/cli*.py'
+              - 'biolm/cli_entry.py'
+            protocols:
+              - 'biolm/protocols*.py'
+              - 'biolm/protocol_runs.py'
+              - 'biolm/core/expression_evaluator.py'
+            hub:
+              - 'biolm/hub/**'
+            tests:
+              - 'tests/**'
+            config:
+              - 'tox.ini'
+              - 'pyproject.toml'
+              - 'setup.cfg'
+              - 'requirements_dev.txt'
+              - '.github/workflows/**'
+              - '.github/test-areas.yml'
+              - 'scripts/select_integration_tests.py'
+            docs:
+              - 'docs/**'
+              - '**/*.md'
+              - 'requirements_docs.txt'
+              - 'Makefile'
+
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
+
+      - name: Run smoke tier
+        env:
+          RS: ${{ secrets.RS || '12345679' }}
+        run: tox -e smoke
+
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
+
+      - name: Run unit tier (offline)
+        env:
+          RS: ${{ secrets.RS || '12345679' }}
+        run: tox -e unit
+
+  integration:
+    needs: changes
+    if: >-
+      needs.changes.outputs.pipeline == 'true' ||
+      needs.changes.outputs.tests == 'true' ||
+      needs.changes.outputs.config == 'true' ||
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install tox and dev dependencies
+        run: |
+          python -m pip install --upgrade 'pip<25' setuptools wheel typing-extensions tox
+          pip install -r requirements_dev.txt
+
+      - name: Select integration tests
+        id: select
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE_SHA="${{ github.event.before }}"
+          fi
+          if [[ -z "${BASE_SHA}" || "${BASE_SHA}" == "0000000000000000000000000000000000000000" ]]; then
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          mapfile -t CHANGED < <(git diff --name-only "${BASE_SHA}" HEAD || true)
+          if ((${#CHANGED[@]} == 0)); then
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          SELECTION=$(python scripts/select_integration_tests.py "${CHANGED[@]}")
+          if [[ "${SELECTION}" == "FULL" || -z "${SELECTION}" ]]; then
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=selected" >> "$GITHUB_OUTPUT"
+            echo "files=${SELECTION}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run integration tier
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          RS: ${{ secrets.RS || '12345679' }}
+        run: |
+          if [[ "${{ steps.select.outputs.mode }}" == "full" ]]; then
+            tox -e integration
+          else
+            pytest -m "integration and not live and not slow" -s --durations=5 --randomly-seed="${RS}" -n 2 ${{ steps.select.outputs.files }}
+          fi
+
+  compat:
+    needs: [smoke, unit]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
       fail-fast: false
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip'
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
-    - name: Upgrade pip, setuptools, typing-extensions
-      run: |
-        python -m pip install --upgrade 'pip<25' setuptools typing-extensions
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
 
-    - name: Install tox and tox-travis
-      run: |
-        python -m pip install tox tox-travis
-
-    - name: Run tox
-      env:
-        BIOLM_USER: ${{ secrets.BIOLM_USER }}
-        BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
-        BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
-        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
-        RS: ${{ secrets.RS || '12345679' }}
-      run: |
-        TOX_ENV=py$(echo "${{ matrix.python-version }}" | tr -d '.')
-        tox -e $TOX_ENV
-
-    - name: Clean pip cache debug log
-      if: always()
-      run: |
-        rm -f $HOME/.cache/pip/log/debug.log || true
+      - name: Run offline full suite
+        env:
+          RS: ${{ secrets.RS || '12345679' }}
+        run: |
+          TOX_ENV=py$(echo "${{ matrix.python-version }}" | tr -d '.')
+          tox -e "$TOX_ENV"
 
   docs:
+    needs: changes
+    if: >-
+      needs.changes.outputs.docs == 'true' ||
+      github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
 
-    - name: Install system dependencies for docs
-      run: |
-        sudo apt-get update && sudo apt-get install -y font-manager fonts-roboto fonts-noto || true
+      - name: Install system dependencies for docs
+        run: |
+          sudo apt-get update && sudo apt-get install -y font-manager fonts-roboto fonts-noto || true
 
-    - name: Upgrade pip, setuptools, typing-extensions
-      run: |
-        python -m pip install --upgrade 'pip<25' setuptools typing-extensions
+      - name: Install tox
+        run: python -m pip install --upgrade 'pip<25' setuptools tox
 
-    - name: Install tox
-      run: |
-        python -m pip install tox
+      - name: Build docs
+        env:
+          RS: ${{ secrets.RS || '12345679' }}
+        run: tox -e build_docs
 
-    - name: Build docs
-      env:
-        BIOLM_USER: ${{ secrets.BIOLM_USER }}
-        BIOLM_PASSWORD: ${{ secrets.BIOLM_PASSWORD }}
-        BIOLM_TOKEN: ${{ secrets.BIOLM_TOKEN || secrets.BIOLMAI_TOKEN }}
-        BIOLMAI_THREADS: ${{ secrets.BIOLMAI_THREADS || '8' }}
-        RS: ${{ secrets.RS || '12345679' }}
-      run: |
-        tox -e build_docs
+  ci-gate:
+    runs-on: ubuntu-latest
+    needs: [smoke, unit, integration, compat, docs]
+    if: always()
+    steps:
+      - name: Check required jobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          check() {
+            local name="$1"
+            local result="$2"
+            if [[ "${result}" == "failure" || "${result}" == "cancelled" ]]; then
+              echo "${name} job failed (${result})"
+              exit 1
+            fi
+          }
+          check smoke "${{ needs.smoke.result }}"
+          check unit "${{ needs.unit.result }}"
+          check integration "${{ needs.integration.result }}"
+          check compat "${{ needs.compat.result }}"
+          check docs "${{ needs.docs.result }}"
 
   version:
     runs-on: ubuntu-latest
-    needs: test
+    needs: ci-gate
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&

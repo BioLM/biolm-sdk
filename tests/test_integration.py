@@ -4,6 +4,8 @@ import pytest
 
 from biolm.core.http import BioLMApiClient
 
+pytestmark = pytest.mark.live
+
 # ---------------------------------------------------------------------------
 # Minimal payload builders (items + optional params) for each model/action.
 # These mirror the logic used by backend test_endpoints_v3.py but rely on the

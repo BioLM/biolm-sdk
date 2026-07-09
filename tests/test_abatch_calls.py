@@ -9,6 +9,8 @@ from biolm.core.http import BioLMApiClient, BioLMApi
 from biolm.core.utils import batch_iterable
 from biolm.models import Model
 
+pytestmark = pytest.mark.live
+
 
 def random_sequence(length=5):
     return ''.join(random.choices('ACDEFGHIKLMNPQRSTVWYB', k=length))

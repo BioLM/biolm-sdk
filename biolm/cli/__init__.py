@@ -29,6 +29,7 @@ from biolm.core.const import (
     ACCESS_TOK_PATH,
     BIOLM_BASE_API_URL,
     BIOLM_BASE_DOMAIN,
+    BIOLM_PUBLIC_CLIENT_ID,
     get_env_api_token,
     get_model_catalog_base,
     get_model_api_source,

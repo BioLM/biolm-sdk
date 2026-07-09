@@ -52,10 +52,18 @@ build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+addopts = "--ignore=setup.py"
+markers = [
+    "smoke: fast sanity checks suitable for PRs",
+    "unit: offline unit tests (default PR tier)",
+    "integration: heavier offline integration/E2E tests",
+    "live: requires network and a live BioLM server/token",
+    "slow: long-running tests (benchmarks, large datasets)",
+]
 
 [project]
 name = "biolm-sdk"
-version = "1.0.0"
+version = "1.0.1"
 description = "BioLM Python client for the hosted platform and biolm-hub"
 authors = [
     { name="BioLM", email="support@biolm.ai" }

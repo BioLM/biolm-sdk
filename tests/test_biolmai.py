@@ -8,6 +8,8 @@ from biolm import biolm
 from biolm.client import BioLM
 from biolm.models import Model
 
+pytestmark = pytest.mark.live
+
 N = 6
 
 def return_shuffle(list_):
