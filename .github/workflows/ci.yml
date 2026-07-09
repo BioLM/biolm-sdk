@@ -35,12 +35,14 @@ jobs:
               - 'biolm/client.py'
               - 'biolm/models.py'
             cli:
-              - 'biolm/cli*.py'
-              - 'biolm/cli_entry.py'
+              - 'biolm/cli/**'
             protocols:
-              - 'biolm/protocols*.py'
+              - 'biolm/protocols/**'
               - 'biolm/protocol_runs.py'
+              - 'biolm/protocol_runtime/**'
+              - 'biolm/plugins/mlflow/protocols.py'
               - 'biolm/core/expression_evaluator.py'
+              - 'schema/protocol_schema.json'
             hub:
               - 'biolm/hub/**'
             tests:

@@ -52,7 +52,7 @@ def _client(api_key: Optional[str], base_url: Optional[str]):
 
 
 def _raise_for_status(resp, action: str):
-    """Translate an error response into a Python exception, mirroring protocols.py."""
+    """Translate an error response into a Python exception, mirroring protocols.model."""
     if resp.status_code == 401:
         raise PermissionError(
             "Authentication required. Set BIOLM_TOKEN "

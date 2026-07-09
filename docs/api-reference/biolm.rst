@@ -46,6 +46,8 @@ biolm.progress module
 biolm.protocol\_runs module (compat shim)
 -----------------------------------------
 
+Re-exports :mod:`biolm.protocols.runs`. Prefer ``from biolm.protocols import ProtocolClient``.
+
 .. automodule:: biolm.protocol_runs
    :members:
    :undoc-members:
@@ -54,21 +56,17 @@ biolm.protocol\_runs module (compat shim)
 biolm.protocols package
 -----------------------
 
+See :doc:`biolm.protocols` for submodules (``model``, ``validation``, ``runs``, ``runtime``).
+
 .. automodule:: biolm.protocols
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-biolm.protocols.runtime module
-------------------------------
-
-.. automodule:: biolm.protocols.runtime
    :members:
    :undoc-members:
    :show-inheritance:
 
 biolm.protocol\_runtime module (compat shim)
 --------------------------------------------
+
+Re-exports :mod:`biolm.protocols.runtime`. Prefer ``from biolm.protocols.runtime import run_local_protocol``.
 
 .. automodule:: biolm.protocol_runtime
    :members:

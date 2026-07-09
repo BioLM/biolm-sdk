@@ -274,7 +274,10 @@ each stage. Large strings (e.g. PDB file contents) are externalized to a
 
 ## ProtocolRun Results
 
-For server-side protocol runs submitted via the BioLM protocol API, results
-can be downloaded as a pandas DataFrame or materialized into a local DuckDB
-database for further analysis. See `biolm.protocols` and the `ProtocolRun`
-result object for the `.to_duckdb()` convenience method.
+**Hosted runs** submitted via the BioLM protocol API can be downloaded as a
+pandas DataFrame or materialized into a local DuckDB database. See
+`biolm.protocols.runs.ProtocolRun` for the `.to_duckdb()` convenience method.
+
+**Local runs** via `biolm.protocols.runtime` compile supported protocol YAML to
+`DataPipeline` stages and return a `LocalRunResult` (`dataframe`, `records`).
+See `docs/notes/local-protocol-profile-v1.md` for supported features.

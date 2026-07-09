@@ -69,7 +69,7 @@ Define, validate, and execute multi-step workflows described in YAML.
    * - :clicmd:`biolm protocol show <../protocol.html#biolm-protocol-show>`
      - Render a readable report from a YAML file or a protocol ID on the platform.
    * - :clicmd:`biolm protocol run <../protocol.html#biolm-protocol-run>`
-     - Execute a protocol YAML file on the platform (execution support coming soon).
+     - Execute a protocol YAML file locally (requires ``biolm[pipeline]``; use ``--input key=value``, ``--json``, ``--output-dir``).
    * - :clicmd:`biolm protocol validate <../protocol.html#biolm-protocol-validate>`
      - Validate YAML syntax, JSON schema, task graph, and template expressions.
    * - :clicmd:`biolm protocol init <../protocol.html#biolm-protocol-init>`

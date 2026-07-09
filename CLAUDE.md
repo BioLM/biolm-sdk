@@ -260,9 +260,15 @@ biolm/
   client.py                  # Re-exports BioLMApiClient
   models.py                  # Model class (sync user interface)
   biolmai.py                 # biolm() convenience function
-  protocol_runs.py           # ProtocolClient, ProtocolRun — submit/wait/results/to_duckdb
+  protocols/                 # Protocol YAML: validation, hosted runs, local runtime
+    validation.py            # Schema + semantic validation
+    model.py                 # Protocol class (load, validate, execute, inspect)
+    runs.py                  # ProtocolClient, ProtocolRun (hosted API)
+    runtime/                 # Local compiler + executor (biolm[pipeline])
 tests/
   test_pipeline.py           # Core pipeline logic tests
+  test_protocol_runtime.py   # Local protocol compiler/executor tests
+  test_protocols.py          # Protocol validation tests
   test_duckdb_datastore.py   # DuckDB-specific tests
   test_advanced_features.py  # Streaming, resumability, error handling
   test_filters.py            # Filter unit tests

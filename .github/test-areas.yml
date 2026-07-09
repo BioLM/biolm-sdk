@@ -20,6 +20,7 @@ areas:
       - tests/test_ranking_filter.py
       - tests/test_datastore.py
       - tests/test_specs.py
+      - tests/test_protocol_runtime.py
 
   client:
     sources:
@@ -48,9 +49,7 @@ areas:
 
   cli:
     sources:
-      - biolm/cli.py
-      - biolm/cli_entry.py
-      - biolm/cli_theme.py
+      - biolm/cli/
     tests:
       - tests/test_cli_hub.py
       - tests/test_cli_login.py
@@ -62,12 +61,16 @@ areas:
 
   protocols:
     sources:
-      - biolm/protocols.py
+      - biolm/protocols/
       - biolm/protocol_runs.py
-      - biolm/protocols_mlflow.py
+      - biolm/protocol_runtime/
+      - biolm/plugins/mlflow/protocols.py
       - biolm/core/expression_evaluator.py
+      - schema/protocol_schema.json
     tests:
       - tests/test_protocols.py
+      - tests/test_protocol_runtime.py
+      - tests/test_protocol_package.py
       - tests/test_protocol_client.py
       - tests/test_protocols_mlflow.py
 
