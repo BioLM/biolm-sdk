@@ -1,0 +1,19 @@
+name: encode-single
+schema_version: 1
+description: Single encode task for local runtime tests
+
+inputs:
+  sequences:
+    type: list_of_str
+    label: Sequences
+    required: true
+    initial: []
+
+tasks:
+  - id: encode
+    slug: esm2-8m
+    action: encode
+    request_body:
+      items: ${{ sequences }}
+    response_mapping:
+      embedding: mean_representations

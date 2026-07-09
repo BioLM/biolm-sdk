@@ -6,14 +6,14 @@ __version__ = '1.0.1'
 from biolm.core.http import BioLMApi, BioLMApiClient
 from biolm.client import BioLM
 from biolm.models import Model, predict, encode, generate
-from biolm.protocols import Protocol
-from biolm.finetune import Finetune
-from biolm.protocol_runs import (
+from biolm.protocols import (
+    Protocol,
     ProtocolClient,
     ProtocolRun,
     ProtocolRunError,
     ProtocolNotFoundError,
 )
+from biolm.finetune import Finetune
 from biolm.workspaces import Workspace
 from biolm.volumes import Volume
 from biolm.models.examples import get_example, list_models
@@ -67,6 +67,12 @@ __all__ = [
 ]
 if _HAS_PIPELINE:
     __all__.append('pipeline')
+    try:
+        from biolm.protocols.runtime import run_local_protocol as _run_local_protocol
+        run_local_protocol = _run_local_protocol
+        __all__.append('run_local_protocol')
+    except ImportError:
+        pass
 
 
 def run_protocol(

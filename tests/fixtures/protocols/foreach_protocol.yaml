@@ -1,0 +1,19 @@
+name: foreach-protocol
+schema_version: 1
+description: Protocol with unsupported foreach task
+
+inputs:
+  sequences:
+    type: list_of_str
+    required: true
+    initial: []
+
+tasks:
+  - id: loop
+    foreach: sequences
+    slug: esm2-8m
+    action: encode
+    request_body:
+      items: ${{ item }}
+    response_mapping:
+      embedding: mean_representations

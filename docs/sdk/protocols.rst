@@ -3,7 +3,7 @@
 
 Protocol YAML workflows define multi-step BioLM jobs: inputs, ordered tasks, and
 optional MLflow outputs. Use them from the CLI, the :class:`biolm.protocols.Protocol`
-class, or :class:`biolm.protocol_runs.ProtocolClient` for programmatic submission.
+class, or :class:`biolm.protocols.ProtocolClient` for programmatic submission.
 
 When to use which
 -----------------
@@ -51,11 +51,11 @@ Programmatic runs
 -----------------
 
 For progress tracking, cancellation, and result download, use
-:class:`~biolm.protocol_runs.ProtocolClient` directly:
+:class:`~biolm.protocols.ProtocolClient` directly:
 
 .. code-block:: python
 
-   from biolm.protocol_runs import ProtocolClient
+   from biolm.protocols import ProtocolClient
 
    client = ProtocolClient()
    run = client.submit("my-protocol-slug", inputs={"sequences": ["MKTAYIAKQRQ"]})
@@ -71,11 +71,11 @@ API
 
 .. autofunction:: biolm.run_protocol
 
-.. autoclass:: biolm.protocol_runs.ProtocolClient
+.. autoclass:: biolm.protocols.ProtocolClient
    :members: submit, run_and_wait, get_run, list
    :undoc-members:
 
-.. autoclass:: biolm.protocol_runs.ProtocolRun
+.. autoclass:: biolm.protocols.ProtocolRun
    :members: wait, results, cancel, download
    :undoc-members:
 
@@ -84,4 +84,4 @@ See also
 
 - :doc:`../cli/protocol` — CLI validate and run
 - :doc:`../yaml/protocol-schema` — protocol YAML schema
-- :doc:`../api-reference/biolm` — ``biolm.protocol_runs`` module reference
+- :doc:`../api-reference/biolm` — ``biolm.protocols`` package reference

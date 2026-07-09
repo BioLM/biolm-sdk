@@ -14,6 +14,7 @@ Subpackages
    biolm.models
    biolm.pipeline
    biolm.plugins
+   biolm.protocols
 
 Submodules
 ----------
@@ -42,18 +43,34 @@ biolm.progress module
    :undoc-members:
    :show-inheritance:
 
-biolm.protocol\_runs module
----------------------------
+biolm.protocol\_runs module (compat shim)
+-----------------------------------------
 
 .. automodule:: biolm.protocol_runs
    :members:
    :undoc-members:
    :show-inheritance:
 
-biolm.protocols module
-----------------------
+biolm.protocols package
+-----------------------
 
 .. automodule:: biolm.protocols
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+biolm.protocols.runtime module
+------------------------------
+
+.. automodule:: biolm.protocols.runtime
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+biolm.protocol\_runtime module (compat shim)
+--------------------------------------------
+
+.. automodule:: biolm.protocol_runtime
    :members:
    :undoc-members:
    :show-inheritance:
