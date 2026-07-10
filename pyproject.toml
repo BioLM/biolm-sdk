@@ -63,7 +63,7 @@ markers = [
 
 [project]
 name = "biolm-sdk"
-version = "1.0.1"
+version = "1.0.2"
 description = "BioLM Python client for the hosted platform and biolm-hub"
 authors = [
     { name="BioLM", email="support@biolm.ai" }
