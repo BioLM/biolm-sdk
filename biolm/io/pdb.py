@@ -1,4 +1,5 @@
 """PDB format input/output utilities."""
+import sys
 from pathlib import Path
 from typing import IO, Any, Dict, List, Union
 
@@ -104,7 +105,7 @@ def to_pdb(
     
     Args:
         data: List of dictionaries containing PDB data
-        file_path: Output file path (str, Path) or file-like object
+        file_path: Output file path (str, Path), file-like object, or "-" for stdout
         pdb_key: Key to use for PDB content (default: "pdb")
         
     Raises:
@@ -117,8 +118,12 @@ def to_pdb(
     if not data:
         raise ValueError("Cannot write empty data to PDB file")
     
+    # Handle stdout
+    if file_path == "-" or (isinstance(file_path, str) and file_path == "-"):
+        file_obj = sys.stdout
+        should_close = False
     # Handle file path vs file-like object
-    if isinstance(file_path, (str, Path)):
+    elif isinstance(file_path, (str, Path)):
         file_path = Path(file_path)
         file_obj = open(file_path, "w", encoding="utf-8")
         should_close = True
