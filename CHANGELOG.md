@@ -2,6 +2,23 @@
 
 <!-- version list -->
 
+## v1.0.3 (2026-07-15)
+
+### Bug Fixes
+
+- Apache-2.0 license text and stdout I/O for CSV/FASTA/PDB
+  ([#12](https://github.com/BioLM/biolm-sdk/pull/12),
+  [`c7f6488`](https://github.com/BioLM/biolm-sdk/commit/c7f6488b0042b48641d5c2b5c54dfcdd8b461c2e))
+
+- Ship full Apache-2.0 license text and SPDX metadata
+  ([#12](https://github.com/BioLM/biolm-sdk/pull/12),
+  [`c7f6488`](https://github.com/BioLM/biolm-sdk/commit/c7f6488b0042b48641d5c2b5c54dfcdd8b461c2e))
+
+- **io**: Write csv/fasta/pdb to stdout when path is '-'
+  ([#12](https://github.com/BioLM/biolm-sdk/pull/12),
+  [`c7f6488`](https://github.com/BioLM/biolm-sdk/commit/c7f6488b0042b48641d5c2b5c54dfcdd8b461c2e))
+
+
 ## v1.0.2 (2026-07-10)
 
 ### Bug Fixes
