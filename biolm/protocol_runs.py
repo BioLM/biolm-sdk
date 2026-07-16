@@ -6,7 +6,9 @@ kept for backwards compatibility when migrating to the ``biolm`` namespace.
 
 import io
 import json
+import logging
 import os
+import time
 import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -18,6 +20,8 @@ from biolm.core.const import BIOLMAI_BASE_DOMAIN
 _DEFAULT_TIMEOUT = 30
 _UPLOAD_TIMEOUT = 120
 _DOWNLOAD_TIMEOUT = 120
+
+logger = logging.getLogger(__name__)
 
 
 def _auth_headers(api_key: Optional[str] = None) -> Dict[str, str]:
@@ -57,7 +61,36 @@ class ProtocolRun:
     def progress(self) -> Dict[str, Any]:
         return self._client._get(f"runs/{self.run_id}/progress/")
 
-    def wait(self, timeout: float = 3600.0, show_progress: bool = True) -> "ProtocolRun":
+    def wait(
+        self,
+        timeout: float = 3600.0,
+        show_progress: bool = True,
+        poll_interval: float = 5.0,
+    ) -> "ProtocolRun":
+        """Block until this run reaches a terminal state.
+
+        Waiting is websocket-first: it connects to the run's telemetry channel
+        for live progress. If the ``websockets`` dependency is missing, the
+        connection fails, or the stream closes while the run is still
+        nonterminal, it transparently falls back to REST polling of the run
+        detail endpoint until the run succeeds, fails, or is cancelled.
+
+        :param timeout: Total deadline in seconds shared across the websocket
+            and REST polling phases. The deadline is not reset after a
+            websocket failure.
+        :param show_progress: Print status changes to stdout.
+        :param poll_interval: Seconds between REST polls during fallback.
+            Each sleep is clamped to the remaining deadline and must be
+            greater than zero.
+        :returns: ``self`` for chaining.
+        :raises ProtocolRunError: If the run fails or is cancelled.
+        :raises TimeoutError: If the total deadline elapses before completion.
+        :raises ValueError: If ``poll_interval`` is not greater than zero.
+        """
+        if poll_interval <= 0:
+            raise ValueError("poll_interval must be greater than 0.")
+
+        deadline = time.monotonic() + timeout
         snap = self.progress()
         self.status = snap.get("status", self.status)
         channel_id = snap.get("channel_id", f"telemetry_{self.run_id}")
@@ -73,9 +106,42 @@ class ProtocolRun:
             .split("/")[0]
         )
         ws_url = f"{_ws_scheme}://{domain}/ws/telemetry/{channel_id}/"
-        self._listen_ws(ws_url, show_progress=show_progress, timeout=timeout)
-        self._check_terminal()
-        return self
+        remaining = max(0.0, deadline - time.monotonic())
+        try:
+            self._listen_ws(
+                ws_url,
+                show_progress=show_progress,
+                timeout=remaining,
+            )
+        except Exception as exc:
+            logger.debug(
+                "WebSocket wait for run %s failed; falling back to REST polling: %s",
+                self.run_id,
+                exc,
+                exc_info=True,
+            )
+
+        if self.status in ("succeeded", "failed", "cancelled"):
+            self._check_terminal()
+            return self
+
+        last_status = self.status
+        while True:
+            self.refresh()
+            if show_progress and self.status != last_status:
+                print(f"  [{self.run_id}] {self.status}")
+            last_status = self.status
+
+            if self.status in ("succeeded", "failed", "cancelled"):
+                self._check_terminal()
+                return self
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError(
+                    f"Protocol run {self.run_id} did not complete within {timeout:.0f}s."
+                )
+            time.sleep(min(poll_interval, remaining))
 
     def _listen_ws(self, ws_url: str, show_progress: bool = True, timeout: float = 3600.0) -> None:
         try:
@@ -121,14 +187,7 @@ class ProtocolRun:
         except RuntimeError:
             pass
 
-        try:
-            asyncio.run(asyncio.wait_for(_listen(), timeout=timeout))
-        except asyncio.TimeoutError:
-            try:
-                self.refresh()
-            except Exception:
-                pass
-            raise TimeoutError(f"Protocol run {self.run_id} did not complete within {timeout:.0f}s.")
+        asyncio.run(asyncio.wait_for(_listen(), timeout=timeout))
 
     def _check_terminal(self) -> None:
         if self.status == "failed":
@@ -315,9 +374,14 @@ class ProtocolClient:
         run_name: Optional[str] = None,
         timeout: float = 3600.0,
         show_progress: bool = True,
+        poll_interval: float = 5.0,
     ) -> Dict[str, Any]:
         run = self.submit(slug, inputs, run_name=run_name)
-        run.wait(timeout=timeout, show_progress=show_progress)
+        run.wait(
+            timeout=timeout,
+            show_progress=show_progress,
+            poll_interval=poll_interval,
+        )
         detail = run.results()
         return detail.get("results", {})
 

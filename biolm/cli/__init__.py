@@ -38,6 +38,7 @@ from biolm.core.const import (
 from biolm.models.examples import get_example, list_models, get_model_details
 from biolm.io import load_fasta, load_csv, load_pdb, load_json, to_fasta, to_csv, to_pdb, to_json
 from biolm.models import Model
+from biolm.platform import PlatformClient, PlatformError, Workspace
 
 console = create_console()
 
@@ -252,8 +253,8 @@ class RichGroup(click.Group):
                 section = 'Authentication'
             elif name == 'hub':
                 section = 'Hub'
-            elif name == 'workspace':
-                section = 'Workspaces'
+            elif name in ['workspace', 'org', 'budget']:
+                section = 'Platform'
             elif name == 'model':
                 section = 'Models'
             elif name == 'protocol':
@@ -307,7 +308,7 @@ class RichGroup(click.Group):
             console.print()
         
         # Write command sections in order with boxes
-        section_order = ['Authentication', 'Hub', 'Workspaces', 'Models', 'Protocols', 'Datasets', 'Commands']
+        section_order = ['Authentication', 'Hub', 'Platform', 'Models', 'Protocols', 'Datasets', 'Commands']
         for section in section_order:
             if section in commands_by_section:
                 # Create box content
@@ -651,62 +652,322 @@ def hub_unset():
 
 @cli.group(cls=RichGroup)
 def workspace():
-    """List, inspect, create, and delete BioLM workspaces on the platform.
+    """List, inspect, create, and switch BioLM platform workspaces.
 
-    Workspaces scope projects, data access, and protocol runs for teams and organizations.
+    A workspace is an account and environment pair, addressed as ``account/environment``.
     """
     pass
 
 
-@workspace.command()
-def list():
-    """List workspaces you can access, including names, IDs, and basic metadata."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to list and manage BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+def _platform_request(callback):
+    """Run one platform operation with deterministic client cleanup."""
+    try:
+        with PlatformClient() as client:
+            return callback(client)
+    except PlatformError as exc:
+        raise click.ClickException(str(exc))
+
+
+def _workspace_data(workspace_value: Workspace) -> Dict[str, Any]:
+    """Return the stable public CLI representation of a workspace."""
+    return {
+        "path": workspace_value.path,
+        "account_type": workspace_value.account_type,
+        "account_id": workspace_value.account_id,
+        "environment_id": workspace_value.environment_id,
+    }
+
+
+def _print_json(value: Any) -> None:
+    """Write JSON without Rich markup or additional prose."""
+    click.echo(json.dumps(value, indent=2, default=str))
+
+
+def _display_workspace(workspace_value: Workspace, output_format: str) -> None:
+    data = _workspace_data(workspace_value)
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    table = Table(
+        title="[brand]Workspace[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Path", style="brand")
+    table.add_column("Account type")
+    table.add_column("Account ID", justify="right")
+    table.add_column("Environment ID", justify="right")
+    table.add_row(
+        str(data["path"]),
+        str(data["account_type"]),
+        str(data["account_id"]),
+        str(data["environment_id"]),
+    )
+    console.print(table)
 
 
-@workspace.command()
-@click.argument('workspace_id', required=False)
-def show(workspace_id):
-    """Show details for a workspace by ID, or for the current workspace when no ID is given."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to manage BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+def _display_record(title: str, data: Dict[str, Any], output_format: str) -> None:
+    """Display all fields returned by a platform endpoint."""
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    table = Table(
+        title="[brand]{}[/brand]".format(title),
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Field", style="brand")
+    table.add_column("Value")
+    for key, value in data.items():
+        label = str(key).replace("_", " ").strip().title()
+        if isinstance(value, (dict, builtins.list)):
+            rendered = json.dumps(value, default=str)
+        else:
+            rendered = str(value)
+        table.add_row(label, rendered)
+    console.print(table)
 
 
-@workspace.command()
-@click.argument('name')
-def create(name):
-    """Create a new workspace with the given name for organizing projects and protocol runs."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to create BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+@workspace.command("list")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_list(output_format):
+    """List workspaces available to the authenticated user."""
+    workspaces = _platform_request(lambda client: client.list_workspaces())
+    data = [_workspace_data(item) for item in workspaces]
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    table = Table(
+        title="[brand]Workspaces[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Path", style="brand")
+    table.add_column("Account type")
+    table.add_column("Account ID", justify="right")
+    table.add_column("Environment ID", justify="right")
+    for item in data:
+        table.add_row(
+            str(item["path"]),
+            str(item["account_type"]),
+            str(item["account_id"]),
+            str(item["environment_id"]),
+        )
+    console.print(table)
 
 
-@workspace.command()
-@click.argument('workspace_id')
-def delete(workspace_id):
-    """Delete a workspace by ID. This permanently removes the workspace and its resources."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to delete BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+@workspace.command("show")
+@click.argument("path", required=False)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_show(path, output_format):
+    """Show the current workspace, or resolve an exact workspace PATH."""
+    if path is None:
+        workspace_value = _platform_request(lambda client: client.current_workspace())
+    else:
+        workspace_value = _platform_request(
+            lambda client: client.get_workspace(path)
+        )
+    _display_workspace(workspace_value, output_format)
+
+
+@workspace.command("switch")
+@click.argument("path")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_switch(path, output_format):
+    """Switch the active account and environment to workspace PATH."""
+    workspace_value = _platform_request(
+        lambda client: client.switch_workspace(path)
+    )
+    _display_workspace(workspace_value, output_format)
+
+
+@workspace.command("create")
+@click.argument("name")
+@click.option(
+    "--account",
+    "account_slug",
+    help="Account slug in which to create the environment.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_create(name, account_slug, output_format):
+    """Create a workspace environment named NAME."""
+    workspace_value = _platform_request(
+        lambda client: client.create_workspace(name, account=account_slug)
+    )
+    _display_workspace(workspace_value, output_format)
+
+
+@cli.group(cls=RichGroup)
+def org():
+    """List and manage BioLM organizations."""
+    pass
+
+
+@org.command("list")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_list(output_format):
+    """List organizations available to the authenticated user."""
+    organizations = _platform_request(lambda client: client.list_organizations())
+    if output_format == "json":
+        _print_json(organizations)
+        return
+
+    table = Table(
+        title="[brand]Organizations[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("ID", justify="right")
+    table.add_column("Name")
+    table.add_column("Slug", style="brand")
+    for organization in organizations:
+        table.add_row(
+            str(organization.get("id", "")),
+            str(organization.get("name", "")),
+            str(organization.get("slug", "")),
+        )
+    console.print(table)
+
+
+@org.command("show")
+@click.argument("org_id", type=click.INT)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_show(org_id, output_format):
+    """Show organization ORG_ID."""
+    data = _platform_request(lambda client: client.get_organization(org_id))
+    _display_record("Organization", data, output_format)
+
+
+@org.command("create")
+@click.argument("name")
+@click.option("--slug", required=True, help="Unique organization slug.")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_create(name, slug, output_format):
+    """Create an organization named NAME."""
+    data = _platform_request(
+        lambda client: client.create_organization(name, slug)
+    )
+    _display_record("Organization created", data, output_format)
+
+
+@org.command("invite")
+@click.argument("org_id", type=click.INT)
+@click.argument("email")
+@click.option(
+    "--role",
+    type=click.Choice(["member", "admin", "billing_admin"]),
+    default="member",
+    show_default=True,
+    help="Organization role.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_invite(org_id, email, role, output_format):
+    """Invite EMAIL to organization ORG_ID."""
+    data = _platform_request(
+        lambda client: client.invite_to_organization(org_id, email, role=role)
+    )
+    _display_record("Organization invitation", data, output_format)
+
+
+@cli.group(cls=RichGroup)
+def budget():
+    """Inspect and set the active account budget."""
+    pass
+
+
+@budget.command("show")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def budget_show(output_format):
+    """Show budget and usage fields for the active account."""
+    data = _platform_request(lambda client: client.get_budget())
+    _display_record("Account budget", data, output_format)
+
+
+# Let negative numeric arguments reach FloatRange; extra unknown options still fail.
+@budget.command("set", context_settings={"ignore_unknown_options": True})
+@click.argument("amount", type=click.FloatRange(min=0.0))
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def budget_set(amount, output_format):
+    """Set the active account budget to nonnegative AMOUNT."""
+    data = _platform_request(lambda client: client.set_budget(amount))
+    _display_record("Account budget updated", data, output_format)
 
 
 # Helper functions for model commands

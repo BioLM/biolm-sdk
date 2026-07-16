@@ -82,7 +82,8 @@ Define, validate, and execute multi-step workflows described in YAML.
 Workspaces
 ----------
 
-Create and manage BioLM workspaces that scope projects and protocol runs.
+Manage immutable account/environment identities addressed as
+``{account}/{environment}``.
 
 .. list-table::
    :header-rows: 0
@@ -90,13 +91,27 @@ Create and manage BioLM workspaces that scope projects and protocol runs.
    :class: cli-command-table
 
    * - :clicmd:`biolm workspace list <../workspace.html#biolm-workspace-list>`
-     - List workspaces you can access with names, IDs, and basic metadata.
+     - List accessible personal and organization workspace paths and IDs.
    * - :clicmd:`biolm workspace show <../workspace.html#biolm-workspace-show>`
-     - Show details for a workspace by ID, or the current workspace when omitted.
+     - Show the current workspace, or resolve an exact path when one is provided.
+   * - :clicmd:`biolm workspace switch <../workspace.html#biolm-workspace-switch>`
+     - Switch the active account and environment to an exact workspace path.
    * - :clicmd:`biolm workspace create <../workspace.html#biolm-workspace-create>`
-     - Create a new workspace for organizing projects and protocol runs.
-   * - :clicmd:`biolm workspace delete <../workspace.html#biolm-workspace-delete>`
-     - Permanently delete a workspace and its associated resources.
+     - Create an environment in the active account or the account selected by ``--account``.
+
+There is no workspace delete command or platform delete endpoint.
+
+Organizations and budgets
+-------------------------
+
+Organization commands manage accounts available to the authenticated user:
+``biolm org list`` lists organizations, ``biolm org show`` inspects one,
+``biolm org create`` creates one, and ``biolm org invite`` invites a member
+with an organization role.
+
+Budget commands operate on the active account context. ``biolm budget show``
+displays budget and usage fields, while ``biolm budget set`` sets a
+nonnegative account budget.
 
 .. _cli-index-datasets:
 

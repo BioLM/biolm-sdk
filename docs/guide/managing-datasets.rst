@@ -79,7 +79,7 @@ than a formatted panel.
 
 
 Uploading files
-==============
+===============
 
 Uploading attaches one or more files to a dataset, creating the dataset on the fly
 if the ID does not exist yet:
@@ -107,7 +107,7 @@ rather than replacing it, so you can accumulate files across several calls.
 
 
 Downloading artifacts
-====================
+=====================
 
 Pulling a dataset back down is the mirror image of upload:
 
@@ -136,16 +136,25 @@ experiment, download stops with a "Dataset Not Found" error rather than writing 
 empty directory, so a typo fails fast instead of looking like an empty result.
 
 
-A note on workspaces
-===================
+Workspaces, datasets, and volumes
+=================================
 
-You may see a ``biolm workspace`` command group alongside ``biolm dataset``. It is
-currently a stub and does not yet manage real remote storage, so reach for
-``biolm dataset`` for anything you actually need to persist on the platform today.
+Workspaces, datasets, and runtime volumes serve different purposes:
+
+- A workspace is the active organization or personal account plus environment
+  context, written as ``{account}/{environment}``.
+- A dataset is a collection of MLflow artifacts that the SDK can upload,
+  inspect, and download.
+- A runtime volume is Modal-backed storage mounted server-side into Jupyter or
+  protocol runs. It is not a local SDK storage API.
+
+Use ``biolm workspace`` to select platform context, ``biolm dataset`` for
+MLflow-backed artifacts, and protocol downloads or exports to bring runtime
+results onto your machine.
 
 
-Where to go next
-===============
+Dataset next steps
+==================
 
 - :doc:`sequence-and-structure-data` — read sequences and structures from local
   FASTA, CSV, and PDB files (the local-data counterpart to this page).

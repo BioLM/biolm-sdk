@@ -57,10 +57,10 @@ Platform
    :header-rows: 0
    :widths: 28 72
 
-   * - :sdklink:`Workspace <../workspaces.html>`
-     - Workspace management (Python SDK upcoming).
+   * - :sdklink:`PlatformClient, Workspace <../workspaces.html>`
+     - Supported account/environment context, organization, environment, and budget APIs.
    * - :sdklink:`Volume <../volumes.html>`
-     - Volume storage (Python SDK upcoming).
+     - Deprecated compatibility placeholder; Modal volumes are runtime-only.
    * - :sdklink:`Finetune <../finetune.html>`
      - XGBoost and DSM finetuning workflows.
 

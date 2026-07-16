@@ -78,6 +78,7 @@ API
 .. autoclass:: biolm.protocol_runs.ProtocolRun
    :members: wait, results, cancel, download
    :undoc-members:
+   :noindex:
 
 See also
 --------

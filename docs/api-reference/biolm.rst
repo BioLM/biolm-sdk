@@ -34,6 +34,14 @@ biolm.finetune module
    :undoc-members:
    :show-inheritance:
 
+biolm.platform module
+---------------------
+
+.. automodule:: biolm.platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 biolm.progress module
 ---------------------
 
