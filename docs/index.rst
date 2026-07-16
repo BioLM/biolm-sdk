@@ -39,6 +39,18 @@ Welcome to BioLM SDK Documentation
    :hidden:
 
    guide/what-are-biolms
+   guide/how-biolms-work
+   guide/choosing-models
+   guide/running-inference
+   guide/biolm-hub
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Working with biological data
+   :hidden:
+
+   guide/sequence-and-structure-data
+   guide/managing-datasets
 
 .. toctree::
    :maxdepth: 1
@@ -47,6 +59,18 @@ Welcome to BioLM SDK Documentation
 
    guide/workflows-overview
    guide/protocol-workflows
+   guide/pipeline-workflows
+   guide/pipeline-caching
+   guide/saturation-mutagenesis
+   guide/iterative-masking-dms
+   guide/structure-conditioned-generation
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Model finetuning
+   :hidden:
+
+   guide/finetuning-models
 
 .. toctree::
    :maxdepth: 1
