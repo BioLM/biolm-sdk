@@ -46,6 +46,14 @@ Welcome to BioLM SDK Documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Working with biological data
+   :hidden:
+
+   guide/sequence-and-structure-data
+   guide/managing-datasets
+
+.. toctree::
+   :maxdepth: 1
    :caption: Orchestrating molecular design workflows
    :hidden:
 
@@ -56,6 +64,13 @@ Welcome to BioLM SDK Documentation
    guide/saturation-mutagenesis
    guide/iterative-masking-dms
    guide/structure-conditioned-generation
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Model finetuning
+   :hidden:
+
+   guide/finetuning-models
 
 .. toctree::
    :maxdepth: 1

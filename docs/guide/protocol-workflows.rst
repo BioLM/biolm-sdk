@@ -270,6 +270,7 @@ See also
 ==================================
 
 - :doc:`../guide/workflows-overview` — how protocols fit alongside the local pipeline framework
+- :doc:`managing-datasets` — upload and download platform datasets for protocol inputs
 - :doc:`../yaml/protocol-schema` — the full protocol YAML field reference
 - :doc:`../sdk/protocols` — Python API reference for protocol classes
 - :doc:`../cli/protocol` — CLI command reference, including ``log`` and MLflow

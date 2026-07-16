@@ -91,7 +91,8 @@ The CLI accepts input three ways through ``-i/--input``:
 FASTA is the natural choice for batches of sequences; JSON lets you attach
 per-item fields; CSV suits tabular inputs. In Python the equivalent is simply
 the ``items`` argument — a string, a list, or dicts you build yourself (the
-:doc:`../sdk/io` helpers such as ``load_fasta`` turn files into that list).
+:doc:`../sdk/io` helpers such as ``load_fasta`` turn files into that list). See
+:doc:`sequence-and-structure-data` for a full walkthrough.
 
 Passing parameters
 ===================
@@ -147,7 +148,8 @@ Where to go next
 - :doc:`what-are-biolms` — the four actions and the ``items``/``type``/``params`` pattern.
 - :doc:`how-biolms-work` — slugs, schemas, and how items are normalized.
 - :doc:`choosing-models` — confirm a model's actions, input type, and params.
-- :doc:`batching` — run many items efficiently with automatic concurrency.
+- :doc:`sequence-and-structure-data` — load FASTA, CSV, JSON, and PDB into ``items``.
+- :doc:`managing-datasets` — upload and download platform datasets via MLflow.
 - :doc:`error-handling` — inspect and recover from per-item and request errors.
 - :doc:`client-interfaces` — sync vs. async and when to use each.
 - :doc:`../sdk/models` — the full ``Model`` API reference.
