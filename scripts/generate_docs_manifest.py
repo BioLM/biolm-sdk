@@ -196,6 +196,52 @@ def _find_source_file(docs_root: Path, slug: str) -> Path | None:
     return None
 
 
+def collect_item_slugs(items: list[dict[str, Any]]) -> list[str]:
+    """Collect slug strings from nav items, including nested children."""
+    slugs: list[str] = []
+    for item in items:
+        slug = item.get("slug")
+        if isinstance(slug, str) and slug:
+            slugs.append(slug)
+        children = item.get("children")
+        if isinstance(children, list):
+            slugs.extend(collect_item_slugs(children))
+    return slugs
+
+
+def infer_kind(slugs: list[str]) -> str:
+    """Classify a nav section from its page slugs.
+
+    Returns ``guide``, ``reference``, or ``notes``. Raises ``ValueError`` when
+    slugs are empty or do not share a single kind.
+    """
+    if not slugs:
+        raise ValueError("Cannot infer kind for nav section with no slugs")
+
+    def _kind_for(slug: str) -> str | None:
+        if slug.startswith("guide/"):
+            return "guide"
+        if slug.startswith(("sdk/", "cli/", "yaml/")):
+            return "reference"
+        if slug == "changelog" or slug.startswith("notes/"):
+            return "notes"
+        return None
+
+    kinds: set[str] = set()
+    unknown: list[str] = []
+    for slug in slugs:
+        kind = _kind_for(slug)
+        if kind is None:
+            unknown.append(slug)
+        else:
+            kinds.add(kind)
+    if unknown:
+        raise ValueError(f"Unclassified nav section slugs: {sorted(unknown)}")
+    if len(kinds) != 1:
+        raise ValueError(f"Nav section mixes kinds {sorted(kinds)} for slugs: {slugs}")
+    return next(iter(kinds))
+
+
 def build_navigation(docs_root: Path, build_dir: Path) -> list[dict[str, Any]]:
     index = docs_root / "index.rst"
     if not index.is_file():
@@ -215,7 +261,10 @@ def build_navigation(docs_root: Path, build_dir: Path) -> list[dict[str, Any]]:
                 items.append(item)
 
         if items:
-            section: dict[str, Any] = {"items": items}
+            section: dict[str, Any] = {
+                "kind": infer_kind(collect_item_slugs(items)),
+                "items": items,
+            }
             if caption:
                 section["caption"] = caption
             navigation.append(section)

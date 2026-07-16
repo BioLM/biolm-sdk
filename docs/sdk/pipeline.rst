@@ -2,7 +2,7 @@
 ==================
 
 Multi-stage protein design pipelines with DuckDB caching, resumability, and
-dependency resolution. See :doc:`../intro/sdk-overview` for SDK onboarding.
+dependency resolution. See :doc:`../guide/sdk-overview` for SDK onboarding.
 
 .. contents:: On this page
    :local:
@@ -165,5 +165,5 @@ completed work.
 Related
 -------
 
-- :doc:`../intro/sdk-overview` — SDK overview
+- :doc:`../guide/sdk-overview` — SDK overview
 - :doc:`../api-reference/biolm.pipeline` — full pipeline module reference

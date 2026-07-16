@@ -32,8 +32,8 @@ The BioLM Python SDK lets you call BioLM models from Python with minimal setup: 
 
 **Ways to use the SDK**
 
-- **Model inference:** Use :class:`~biolm.models.Model`. See :doc:`client-interfaces` and :doc:`../sdk/models`.
-- **Protocols, pipelines, platform:** See :sdklink:`SDK reference <../../sdk/index.html>`.
+- **Model inference:** Use :class:`~biolm.models.Model`. See :doc:`what-are-biolms` and :doc:`client-interfaces`.
+- **Protocols and pipelines:** See :doc:`workflows-overview`, :doc:`protocol-workflows`, and :sdklink:`SDK reference <../../sdk/index.html>`.
 - **Sync vs async:** ``Model`` is sync; async apps use ``BioLMApiClient``. See :doc:`concurrency`.
 - **Batching, errors, rate limits, disk output:** See :doc:`batching`, :doc:`rate-limiting`, :doc:`error-handling`.
 - **Advanced / legacy HTTP clients:** See :doc:`../sdk/core`.

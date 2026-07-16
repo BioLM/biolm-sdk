@@ -232,8 +232,8 @@ Full guides, API reference, and tutorials: **[biolm.ai/docs](https://biolm.ai/do
 
 | Task | Link |
 |------|------|
-| First run | [Quickstart](https://biolm.ai/docs/intro/quickstart.html) |
-| Batching, errors, rate limits | [Core concepts](https://biolm.ai/docs/intro/concepts.html) |
+| First run | [Quickstart](https://biolm.ai/docs/guide/quickstart.html) |
+| Batching, errors, rate limits | [Core concepts](https://biolm.ai/docs/guide/concepts.html) |
 | Pipeline design primitives | [Pipeline](https://biolm.ai/docs/sdk/pipeline.html) |
 | Protocol YAML schema | [Protocol schema](https://biolm.ai/docs/yaml/protocol-schema.html) |
 | CLI reference | [CLI](https://biolm.ai/docs/cli/index.html) |
