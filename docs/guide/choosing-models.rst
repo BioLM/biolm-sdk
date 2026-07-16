@@ -110,12 +110,14 @@ the CLI and SDK at it with ``biolm hub set`` (defaulting to
 ``example`` — and the Python discovery helpers — resolve against the hub's
 catalog, so you discover exactly the models your gateway serves. You can also
 browse them in a browser at ``http://127.0.0.1:8000/catalog`` while the gateway
-is running. See :doc:`../cli/hub` for setup details.
+is running. See :doc:`biolm-hub` for setup details.
 
 Where to go next
 ================
 
 - :doc:`what-are-biolms` — the four actions and the call pattern, with examples.
+- :doc:`running-inference` — run a model from Python or the CLI.
+- :doc:`biolm-hub` — route inference through a local or self-hosted gateway.
 - :doc:`quickstart` — install, authenticate, and make your first call.
 - :doc:`../cli/model` — complete ``biolm model`` command reference.
 - :doc:`../cli/hub` — route discovery and inference through a local gateway.

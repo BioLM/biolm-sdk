@@ -167,6 +167,7 @@ Where to go next
 - :doc:`quickstart` — install, authenticate, and make your first call.
 - :doc:`how-biolms-work` — slugs, schemas, and how items are normalized.
 - :doc:`choosing-models` — discover models in the catalog, CLI, and Python.
+- :doc:`running-inference` — run a model from Python or the CLI.
 - :doc:`batching` — run many items efficiently with automatic concurrency.
 - :doc:`error-handling` — inspect and recover from per-item and request errors.
 - :doc:`../sdk/models` — the full ``Model`` API and more examples.

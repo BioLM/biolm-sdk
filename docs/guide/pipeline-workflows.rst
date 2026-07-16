@@ -72,7 +72,8 @@ candidates are made. The three you will reach for most:
 - ``IterativeMaskingDMSConfig`` — build multi-point variants by greedy argmax
   masking with a masked language model over several rounds.
 - ``DirectGenerationConfig`` — structure- or sequence-conditioned generation with
-  models like ProteinMPNN, AntiFold, LigandMPNN, or DSM.
+  models like ProteinMPNN, AntiFold, LigandMPNN, or DSM. See
+  :doc:`structure-conditioned-generation`.
 
 Each config's fields and recipes are documented on the SDK reference pages; the
 saturation-mutagenesis walkthrough lives at :doc:`saturation-mutagenesis`.
@@ -162,7 +163,9 @@ Caching, resume, and reconnecting
 When you do not pass a ``datastore``, the pipeline creates one automatically at
 ``.biolm/pipelines/<run_id>/pipeline.duckdb``. Predictions, embeddings, and
 structures are cached there, so a second run over overlapping sequences reuses
-the stored values instead of re-calling the API.
+the stored values instead of re-calling the API. See :doc:`pipeline-caching` for
+a full walkthrough of the cache layout, per-sequence deduplication, and recovery
+after a kernel death.
 
 To pick up where a previous run left off after a crash or kernel death, pass
 ``resume=True``. Completed stages are reloaded from DuckDB rather than recomputed:
@@ -210,6 +213,8 @@ See also
 
 - :doc:`workflows-overview` — choosing between model calls, protocols, and pipelines
 - :doc:`protocol-workflows` — the server-side, YAML-defined counterpart
+- :doc:`pipeline-caching` — DuckDB cache layout, resume, and reconnecting
 - :doc:`saturation-mutagenesis` — a full saturation-mutagenesis design walkthrough
 - :doc:`iterative-masking-dms` — greedy MLM argmax deep mutational scanning
+- :doc:`structure-conditioned-generation` — inverse folding and DSM with ``DirectGenerationConfig``
 - :doc:`../sdk/pipeline` — Python API reference for pipeline classes and configs

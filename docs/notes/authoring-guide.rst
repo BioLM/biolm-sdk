@@ -21,8 +21,8 @@ Documentation Structure
 
 - Getting started — quickstart, install, auth, concepts, SDK overview, FAQ
 - How the client works — client interfaces, batching, errors, concurrency, rate limiting
-- Running BioLM inferences — what BioLMs are, how they work, choosing models (growing)
-- Orchestrating molecular design workflows — workflows overview, protocols, pipelines, saturation mutagenesis, iterative masking DMS (growing)
+- Running BioLM inferences — what BioLMs are, how they work, choosing models, running inference, biolm-hub (growing)
+- Orchestrating molecular design workflows — workflows overview, protocols, pipelines, caching, saturation mutagenesis, iterative masking DMS, structure-conditioned generation (growing)
 
 **Manifest ``kind``** (emitted by ``scripts/generate_docs_manifest.py`` for the main site):
 
