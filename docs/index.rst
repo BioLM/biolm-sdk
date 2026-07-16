@@ -35,6 +35,21 @@ Welcome to BioLM SDK Documentation
 
 .. toctree::
    :maxdepth: 1
+   :caption: Running BioLM inferences
+   :hidden:
+
+   guide/what-are-biolms
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Orchestrating molecular design workflows
+   :hidden:
+
+   guide/workflows-overview
+   guide/protocol-workflows
+
+.. toctree::
+   :maxdepth: 1
    :caption: CLI
    :hidden:
 

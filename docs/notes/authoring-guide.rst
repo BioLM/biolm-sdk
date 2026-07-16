@@ -17,10 +17,12 @@ Documentation Structure
 - Changelog — ``docs/changelog.rst`` (includes root ``CHANGELOG.md``)
 - Notes — ``docs/notes/`` (misc pages; listed in nav only where needed, e.g. migration under Release notes)
 
-**Guide left-nav captions** (both live under ``docs/guide/``):
+**Guide left-nav captions** (pages live under ``docs/guide/``, flat layout):
 
 - Getting started — quickstart, install, auth, concepts, SDK overview, FAQ
 - How the client works — client interfaces, batching, errors, concurrency, rate limiting
+- Running BioLM inferences — what BioLMs are, model selection, running inference (growing)
+- Orchestrating molecular design workflows — workflows overview, protocols, pipelines (growing)
 
 **Manifest ``kind``** (emitted by ``scripts/generate_docs_manifest.py`` for the main site):
 
