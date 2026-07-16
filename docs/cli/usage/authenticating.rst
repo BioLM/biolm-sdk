@@ -1,4 +1,4 @@
 Authenticating
 ==============
 
-See :doc:`../../intro/authentication` for environment variable and CLI (OAuth) authentication.
+See :doc:`../../guide/authentication` for environment variable and CLI (OAuth) authentication.

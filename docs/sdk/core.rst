@@ -11,8 +11,8 @@ When to use
 - :class:`~biolm.core.http.BioLMApi` — sync client with schema helpers and manual batching
 - :class:`~biolm.core.http.BioLMApiClient` — async client (``await`` its methods)
 - ``biolm()`` — legacy one-shot sync wrapper (re-exported from ``biolm``); still common in examples
-- :doc:`../intro/client-interfaces` — extended examples for batching, disk output, and errors
-- :doc:`../intro/concurrency` — async patterns and throughput tuning
+- :doc:`../guide/client-interfaces` — extended examples for batching, disk output, and errors
+- :doc:`../guide/concurrency` — async patterns and throughput tuning
 
 .. warning::
 
@@ -71,7 +71,7 @@ See also
 --------
 
 - :doc:`models` — :class:`~biolm.models.Model` (recommended inference interface)
-- :doc:`../intro/batching` — generators, batch sizes, and manual batching
-- :doc:`../intro/error-handling` — stop-on-error, retries, disk output
-- :doc:`../intro/rate-limiting` — throttling and concurrency
+- :doc:`../guide/batching` — generators, batch sizes, and manual batching
+- :doc:`../guide/error-handling` — stop-on-error, retries, disk output
+- :doc:`../guide/rate-limiting` — throttling and concurrency
 - :doc:`../api-reference/biolm.core` — full ``biolm.core`` module tree

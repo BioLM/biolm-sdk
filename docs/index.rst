@@ -2,30 +2,36 @@
 Welcome to BioLM SDK Documentation
 ===================================
 
-.. include:: intro/quickstart.rst
+.. include:: guide/quickstart.rst
    :start-line: 1
    :end-line: 27
 
-.. include:: intro/overview.rst
+.. include:: guide/overview.rst
    :start-line: 1
    :end-line: 17
 
 .. toctree::
    :maxdepth: 1
-   :caption: Introduction
+   :caption: Getting started
    :hidden:
 
-   intro/quickstart
-   intro/installation
-   intro/authentication
-   intro/concepts
-   intro/sdk-overview
-   intro/client-interfaces
-   intro/batching
-   intro/error-handling
-   intro/concurrency
-   intro/rate-limiting
-   intro/faq
+   guide/quickstart
+   guide/installation
+   guide/authentication
+   guide/concepts
+   guide/sdk-overview
+   guide/faq
+
+.. toctree::
+   :maxdepth: 1
+   :caption: How the client works
+   :hidden:
+
+   guide/client-interfaces
+   guide/batching
+   guide/error-handling
+   guide/concurrency
+   guide/rate-limiting
 
 .. toctree::
    :maxdepth: 1

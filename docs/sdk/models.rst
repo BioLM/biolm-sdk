@@ -72,7 +72,7 @@ See also
 --------
 
 - :doc:`core` — ``biolm()``, ``BioLMApi``, and ``BioLMApiClient``
-- :doc:`../intro/client-interfaces` — sync vs async and disk output
-- :doc:`../intro/quickstart` — minimal install and auth
+- :doc:`../guide/client-interfaces` — sync vs async and disk output
+- :doc:`../guide/quickstart` — minimal install and auth
 - :doc:`../cli/model` — ``biolm model example`` and catalog commands
 - :doc:`../api-reference/biolm.models` — full ``biolm.models`` package reference

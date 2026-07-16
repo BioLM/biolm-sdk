@@ -10,12 +10,23 @@ Documentation Structure
 
 **Manually written:**
 
-- Introduction — ``docs/intro/`` (onboarding and client usage)
+- Guide — ``docs/guide/`` (instructional content; flat layout)
 - CLI — ``docs/cli/index.rst`` (command index) and ``docs/cli/*.rst`` (per-command pages)
 - SDK — ``docs/sdk/index.rst`` and ``docs/sdk/*.rst`` (curated module reference)
 - YAML — ``docs/yaml/`` (declarative file-format references)
 - Changelog — ``docs/changelog.rst`` (includes root ``CHANGELOG.md``)
 - Notes — ``docs/notes/`` (misc pages; listed in nav only where needed, e.g. migration under Release notes)
+
+**Guide left-nav captions** (both live under ``docs/guide/``):
+
+- Getting started — quickstart, install, auth, concepts, SDK overview, FAQ
+- How the client works — client interfaces, batching, errors, concurrency, rate limiting
+
+**Manifest ``kind``** (emitted by ``scripts/generate_docs_manifest.py`` for the main site):
+
+- ``guide`` — all slugs under ``guide/``
+- ``reference`` — slugs under ``sdk/``, ``cli/``, or ``yaml/``
+- ``notes`` — ``changelog`` or slugs under ``notes/``
 
 **Auto-generated:**
 
@@ -40,9 +51,9 @@ CLI Documentation
 SDK Documentation
 ~~~~~~~~~~~~~~~~~
 
-**Write here (Introduction nav):**
+**Write here (Guide nav):**
 
-- ``docs/intro/*.rst`` — Onboarding, client interfaces, batching, errors, etc.
+- ``docs/guide/*.rst`` — Onboarding (Getting started) and client mechanics (How the client works)
 
 **Write here (SDK nav):**
 
@@ -50,7 +61,7 @@ SDK Documentation
 - ``docs/sdk/*.rst`` — Per-module reference pages (edit docstrings in ``biolm/`` for API detail)
 
 Each SDK page should follow: **what it is** → **when to use** → **minimal example** →
-**primary autoclass/autofunction** → **see also** (intro, CLI, yaml, api-reference).
+**primary autoclass/autofunction** → **see also** (guide, CLI, yaml, api-reference).
 
 **Product vs core:** Curated pages under ``docs/sdk/`` document product APIs
 (``Model``, ``Protocol``, pipelines, platform types). ``docs/sdk/core.rst`` covers
