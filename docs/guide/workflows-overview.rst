@@ -134,7 +134,8 @@ inside a ``GenerativePipeline``:
    results = GenerativePipeline(configs=[config]).run()
 
 The full PETase and antibody design walkthroughs live in :doc:`../sdk/pipeline`.
-For a step-by-step saturation mutagenesis recipe, see :doc:`saturation-mutagenesis`.
+For step-by-step recipes, see :doc:`saturation-mutagenesis` and
+:doc:`iterative-masking-dms`.
 
 CLI
 ===

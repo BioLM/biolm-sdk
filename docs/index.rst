@@ -39,6 +39,8 @@ Welcome to BioLM SDK Documentation
    :hidden:
 
    guide/what-are-biolms
+   guide/how-biolms-work
+   guide/choosing-models
 
 .. toctree::
    :maxdepth: 1
@@ -49,6 +51,7 @@ Welcome to BioLM SDK Documentation
    guide/protocol-workflows
    guide/pipeline-workflows
    guide/saturation-mutagenesis
+   guide/iterative-masking-dms
 
 .. toctree::
    :maxdepth: 1

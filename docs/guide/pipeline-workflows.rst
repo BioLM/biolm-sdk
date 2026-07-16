@@ -211,4 +211,5 @@ See also
 - :doc:`workflows-overview` — choosing between model calls, protocols, and pipelines
 - :doc:`protocol-workflows` — the server-side, YAML-defined counterpart
 - :doc:`saturation-mutagenesis` — a full saturation-mutagenesis design walkthrough
+- :doc:`iterative-masking-dms` — greedy MLM argmax deep mutational scanning
 - :doc:`../sdk/pipeline` — Python API reference for pipeline classes and configs
