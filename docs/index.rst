@@ -47,6 +47,8 @@ Welcome to BioLM SDK Documentation
 
    guide/workflows-overview
    guide/protocol-workflows
+   guide/pipeline-workflows
+   guide/saturation-mutagenesis
 
 .. toctree::
    :maxdepth: 1
