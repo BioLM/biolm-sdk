@@ -74,8 +74,10 @@ import os
 import tempfile
 from pathlib import Path
 
-# Avoid accidental auth lookups during construct-only snippets.
-os.environ.setdefault("BIOLM_TOKEN", "doctest-dummy-token")
+# Avoid accidental auth lookups during construct-only snippets. Tox defines
+# BIOLM_TOKEN as an empty string when no secret is present, so ``setdefault``
+# alone is insufficient in CI.
+os.environ["BIOLM_TOKEN"] = os.environ.get("BIOLM_TOKEN") or "doctest-dummy-token"
 
 _DOCTEST_TMP = Path(tempfile.mkdtemp(prefix="biolm-docs-doctest-"))
 """
