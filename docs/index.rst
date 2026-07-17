@@ -18,6 +18,7 @@ Welcome to BioLM SDK Documentation
    guide/quickstart
    guide/installation
    guide/authentication
+   guide/account-management
    guide/concepts
    guide/sdk-overview
    guide/faq
