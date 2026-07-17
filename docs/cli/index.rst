@@ -33,6 +33,10 @@ Sign in, inspect identity and usage, and manage account resources.
    * - ``biolm --version``
      - Print the installed ``biolm`` package version.
 
+For compatibility, short aliases such as ``biolm login`` and ``biolm logout``
+still work; this documentation uses the canonical ``biolm account login`` and
+``biolm account logout`` forms.
+
 .. _cli-index-models:
 
 Models
