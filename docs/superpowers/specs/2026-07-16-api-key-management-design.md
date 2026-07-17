@@ -25,19 +25,23 @@ console. The SDK will not use it.
 Extend `PlatformClient` with:
 
 ```python
-def create_api_key(self) -> Dict[str, str]: ...
+def create_api_key(self, account: Optional[str] = None) -> Dict[str, str]: ...
 def delete_api_key(self, token_or_prefix: str) -> None: ...
 ```
 
-Both methods use the client's current session and existing `_request` path.
-`create_api_key()` returns the one-time secret response. `delete_api_key()`
-validates that its argument is not blank, sends it in the DELETE body, and
-returns `None` after a successful 204 response.
+Both methods use one client session and the existing `_request` path.
+`create_api_key()` returns the one-time secret response. When `account` names
+an account slug, the method resolves that account without enumerating
+environments, switches the same client session to that account, creates the
+key, and restores the original context. Without `account`, it uses the
+client's current context. `delete_api_key()` validates that its argument is not
+blank, sends it in the DELETE body, and returns `None` after a successful 204
+response.
 
 Account ownership comes from the active server-side account context. A caller
-must use `switch_workspace()` or `set_context()` before creating an
-organization key. The token belongs to the account, not to the selected
-environment.
+may pass `account`, or call `switch_workspace()` or `set_context()` before
+creating an organization key. The token belongs to the account, not to the
+selected environment.
 
 The SDK will not add `list_api_keys()` until the backend provides a Knox list
 endpoint that returns prefixes and metadata without secrets.
@@ -47,13 +51,21 @@ endpoint that returns prefixes and metadata without secrets.
 Add an `apikey` command group:
 
 ```text
-biolm apikey create [--workspace ACCOUNT/ENV] [--format table|json]
+biolm apikey create [--account ACCOUNT] [--format table|json]
 biolm apikey delete TOKEN_OR_PREFIX [--yes] [--format table|json]
 ```
 
-`create` optionally switches the client to `--workspace` before creating the
-key. Human-readable output states that the secret appears once and must be
-stored securely. JSON output contains only the server response.
+`create` optionally selects the account named by `--account`. It resolves and
+switches the account before creating the key within one `_platform_request`
+callback and one `PlatformClient` session. This atomic flow prevents a second
+session from silently creating a personal key. The selector never enumerates
+or creates environments because keys are account-scoped.
+
+Each CLI invocation starts a fresh client session. Therefore, `create` without
+`--account` deterministically creates a personal key; a prior
+`workspace switch` command does not persist context across processes.
+Human-readable output states that the secret appears once and must be stored
+securely. JSON output contains only the server response.
 
 `delete` asks for confirmation unless the user passes `--yes`. It accepts the
 full token or its eight-character prefix. Human-readable and JSON output
@@ -87,18 +99,20 @@ expired key surfaces the backend's 404 or 403 response.
 Follow test-driven development:
 
 1. Extend `FakeConsole` with Knox create and delete routes.
-2. Verify personal and organization key creation follows account context.
+2. Verify a Python caller's current context controls creation when `account`
+   is absent.
 3. Verify creation returns the full token and deletion accepts a prefix.
 4. Verify blank deletion fails before a request.
-5. Verify CLI registration, workspace switching, one-time token output,
-   confirmation, `--yes`, JSON output, and error conversion.
+5. Verify CLI registration, personal default ownership, account selection,
+   same-session organization ownership, one-time token output, confirmation,
+   `--yes`, JSON output, and error conversion.
 6. Verify help and docs never promise a list command.
 7. Run focused platform and CLI tests, then the full suite.
 
 ## Documentation
 
 Update the CLI index, workspace or authentication guide, and README capability
-summary. Explain that `--workspace` selects ownership, created secrets appear
+summary. Explain that `--account` selects ownership, created secrets appear
 once, and users may delete keys by full token or eight-character prefix.
 
 ## Non-goals
