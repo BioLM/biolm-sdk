@@ -21,11 +21,12 @@ The response contains:
 
 - effective `account_type`, `account_id`, and `institute_id`
 - selected and current year/month fields
-- environments available to the effective account
+- environments available to the effective account as `{"id", "slug"}` objects
 - the accepted environment filter, if any
 - account or filtered-environment usage in `current_usage_amount`
 - active or filtered environment usage and label
-- `model_charges`, ordered by descending charge
+- `model_charges`, ordered by descending charge; each row contains nullable
+  `model_name` and numeric `total_biolm_charge`
 
 The backend owns date fallback rules and scope validation. Invalid, future, or
 out-of-range months fall back to the current month. An environment outside the
@@ -93,11 +94,17 @@ fallback.
 JSON output is the unmodified response. Human-readable output contains:
 
 1. the effective account, selected month, and accepted environment filter;
-2. account or filtered usage and environment usage in USD;
-3. a model-charge table with model name and USD charge.
+2. account or filtered usage and environment usage as raw backend amounts;
+3. a model-charge table using `model_name` and `total_biolm_charge`.
 
 Empty `model_charges` produces a clear "No model charges" message. Missing
-optional fields render as dashes rather than raising an exception.
+optional fields, including null model names, render as dashes rather than
+raising an exception. Environment choices and labels use `slug`; the endpoint
+does not return an environment `name`.
+
+The endpoint does not include a currency field. Table headings therefore use
+"Usage amount" and "Charge" rather than asserting USD. JSON preserves the raw
+numeric values and field names.
 
 ## Security and scoping
 
