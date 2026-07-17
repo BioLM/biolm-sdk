@@ -282,3 +282,105 @@ def test_each_command_uses_platform_client_context_manager(platform_client):
     factory.assert_called_once_with()
     factory.return_value.__enter__.assert_called_once_with()
     factory.return_value.__exit__.assert_called_once()
+
+
+def test_apikey_group_and_commands_registered():
+    result = invoke("--help")
+    assert result.exit_code == 0, result.output
+    assert "apikey create" in result.output
+    assert "apikey delete" in result.output
+
+
+def test_apikey_has_no_list_command(platform_client):
+    help_result = invoke("apikey", "--help")
+    list_result = invoke("apikey", "list")
+
+    assert help_result.exit_code == 0, help_result.output
+    assert "list" not in help_result.output
+    assert list_result.exit_code != 0
+    assert "No such command" in list_result.output
+
+
+def test_apikey_create_personal_default_prints_token_once(platform_client):
+    _, client = platform_client
+    client.create_api_key.return_value = {"token": "knox-secret-value"}
+
+    result = invoke("apikey", "create")
+
+    assert result.exit_code == 0, result.output
+    assert "knox-secret-value" in result.output
+    assert "once" in result.output.lower()
+    client.create_api_key.assert_called_once_with(account=None)
+
+
+def test_apikey_create_with_account_selects_owner(platform_client):
+    _, client = platform_client
+    client.create_api_key.return_value = {"token": "knox-secret-value"}
+
+    result = invoke("apikey", "create", "--account", "acme")
+
+    assert result.exit_code == 0, result.output
+    client.create_api_key.assert_called_once_with(account="acme")
+
+
+def test_apikey_create_json_outputs_raw_response(platform_client):
+    _, client = platform_client
+    payload = {"token": "knox-secret-value"}
+    client.create_api_key.return_value = payload
+
+    result = invoke("apikey", "create", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == payload
+
+
+def test_apikey_create_api_error_is_click_error(platform_client):
+    _, client = platform_client
+    client.create_api_key.side_effect = PlatformError("Token creation failed")
+
+    result = invoke("apikey", "create")
+
+    assert result.exit_code != 0
+    assert "Token creation failed" in result.output
+
+
+def test_apikey_delete_requires_confirmation_and_can_abort(platform_client):
+    _, client = platform_client
+
+    result = CliRunner().invoke(cli, ["apikey", "delete", "knox-secret-value"], input="n\n")
+
+    assert result.exit_code != 0
+    client.delete_api_key.assert_not_called()
+
+
+def test_apikey_delete_with_yes_skips_prompt_and_hides_token(platform_client):
+    _, client = platform_client
+    client.delete_api_key.return_value = None
+
+    result = invoke("apikey", "delete", "knox-secret-value", "--yes")
+
+    assert result.exit_code == 0, result.output
+    assert "knox-secret-value" not in result.output
+    client.delete_api_key.assert_called_once_with("knox-secret-value")
+
+
+def test_apikey_delete_confirmed_via_prompt(platform_client):
+    _, client = platform_client
+    client.delete_api_key.return_value = None
+
+    result = CliRunner().invoke(
+        cli, ["apikey", "delete", "knoxtok01"], input="y\n"
+    )
+
+    assert result.exit_code == 0, result.output
+    client.delete_api_key.assert_called_once_with("knoxtok01")
+
+
+def test_apikey_delete_api_error_is_click_error(platform_client):
+    _, client = platform_client
+    client.delete_api_key.side_effect = PlatformError("not found")
+
+    result = invoke("apikey", "delete", "knoxtok01", "--yes")
+
+    assert result.exit_code != 0
+    assert "not found" in result.output

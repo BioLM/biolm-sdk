@@ -545,3 +545,47 @@ class PlatformClient:
                 original.get("account_id"),
                 environment_id=original.get("environment_id"),
             )
+
+    def create_api_key(self, account: Optional[str] = None) -> Dict[str, str]:
+        """Create an API key and return its one-time secret.
+
+        The key is owned by the active server-side account context. Pass
+        ``account`` (an org slug or the personal label) to create the key under
+        a different account; the switch and creation happen in this one session
+        so organization ownership cannot silently fall back to personal. The
+        original context is restored afterward. The returned ``token`` is shown
+        only once and is not stored by the SDK.
+        """
+        if account is None:
+            return self._request("POST", "auth/generate_token/")
+
+        original = self.get_context()
+        orgs = self.list_organizations()
+        try:
+            personal = self._discover_personal()
+            resolved = self._resolve_account_slug(
+                account,
+                personal["label"],
+                int(personal["account_id"]),
+                orgs,
+            )
+            self.set_context(
+                resolved["account_type"],
+                int(resolved["account_id"]),
+                environment_id=None,
+            )
+            return self._request("POST", "auth/generate_token/")
+        finally:
+            self.set_context(
+                original.get("account_type", "user"),
+                original.get("account_id"),
+                environment_id=original.get("environment_id"),
+            )
+
+    def delete_api_key(self, token_or_prefix: str) -> None:
+        """Revoke an API key by full token or eight-character prefix."""
+        token = (token_or_prefix or "").strip()
+        if not token:
+            raise ValueError("token_or_prefix must not be blank.")
+        self._request("DELETE", "auth/delete_token/", json={"token": token})
+        return None

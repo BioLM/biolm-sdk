@@ -117,6 +117,15 @@ Budget commands operate on the active account context. ``biolm budget show``
 displays budget and usage fields, while ``biolm budget set`` sets a
 nonnegative account budget.
 
+API keys
+--------
+
+``biolm apikey create`` creates an API key for the active account, or the
+account named by ``--account``. The token is shown only once, so store it
+immediately. ``biolm apikey delete`` revokes a key by its full token or its
+eight-character prefix. There is no list command because the platform exposes
+no API-key listing endpoint.
+
 .. _cli-index-datasets:
 
 Datasets

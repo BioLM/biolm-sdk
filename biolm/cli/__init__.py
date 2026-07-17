@@ -256,7 +256,7 @@ class RichGroup(click.Group):
                 section = 'Authentication'
             elif name == 'hub':
                 section = 'Hub'
-            elif name in ['workspace', 'org', 'budget']:
+            elif name in ['workspace', 'org', 'budget', 'apikey']:
                 section = 'Platform'
             elif name == 'model':
                 section = 'Models'
@@ -971,6 +971,66 @@ def budget_set(amount, output_format):
     """Set the active account budget to nonnegative AMOUNT."""
     data = _platform_request(lambda client: client.set_budget(amount))
     _display_record("Account budget updated", data, output_format)
+
+
+@cli.group(cls=RichGroup)
+def apikey():
+    """Create and revoke BioLM platform API keys."""
+    pass
+
+
+@apikey.command("create")
+@click.option(
+    "--account",
+    "account",
+    help="Account slug (or personal label) that will own the key.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def apikey_create(account, output_format):
+    """Create an API key for the active or selected account."""
+    data = _platform_request(lambda client: client.create_api_key(account=account))
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    _display_record("API key created", data, output_format)
+    console.print(
+        "[warning]Store this token now; it is shown only once.[/warning]"
+    )
+
+
+@apikey.command("delete")
+@click.argument("token_or_prefix")
+@click.option(
+    "--yes",
+    "assume_yes",
+    is_flag=True,
+    help="Skip the confirmation prompt.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def apikey_delete(token_or_prefix, assume_yes, output_format):
+    """Revoke an API key by full token or eight-character prefix."""
+    if not assume_yes:
+        click.confirm("Revoke this API key?", abort=True)
+    _platform_request(lambda client: client.delete_api_key(token_or_prefix))
+    if output_format == "json":
+        _print_json({"status": "deleted"})
+        return
+    console.print("[success]API key revoked.[/success]")
 
 
 # Helper functions for model commands

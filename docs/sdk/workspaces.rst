@@ -34,6 +34,13 @@ The same client exposes the underlying platform resources:
   ``create_organization()``, and ``invite_to_organization()``
 - Environments: ``list_environments()`` and ``create_environment()``
 - Active-account budgets: ``get_budget()`` and ``set_budget()``
+- API keys: ``create_api_key(account=None)`` and
+  ``delete_api_key(token_or_prefix)``
+
+``create_api_key()`` returns the one-time token secret and owns the key with the
+active account, or the account named by ``account``. The secret is not stored by
+the SDK. ``delete_api_key()`` revokes a key by full token or eight-character
+prefix. The platform has no API-key listing endpoint.
 
 Session-scoped usage
 --------------------
@@ -64,7 +71,7 @@ Platform API reference
    :undoc-members:
 
 .. autoclass:: biolm.platform.PlatformClient
-   :members: list_workspaces, current_workspace, get_workspace, switch_workspace, create_workspace, list_organizations, get_organization, create_organization, invite_to_organization, list_environments, create_environment, get_budget, set_budget
+   :members: list_workspaces, current_workspace, get_workspace, switch_workspace, create_workspace, list_organizations, get_organization, create_organization, invite_to_organization, list_environments, create_environment, get_budget, set_budget, create_api_key, delete_api_key
 
 Workspace documentation
 -----------------------

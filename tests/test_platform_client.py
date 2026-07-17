@@ -87,6 +87,9 @@ class FakeConsole:
         self._next_session = 0
         self.fail_status: Optional[int] = None
         self.fail_body: Any = {"error": "boom"}
+        # Knox API keys: each entry tracks ownership derived from session context.
+        self.api_keys: List[Dict[str, Any]] = []
+        self._next_token = 0
 
     @property
     def session(self) -> Dict[str, Any]:
@@ -266,6 +269,34 @@ class FakeConsole:
             self.budget["total_budget"] = float(body["workspace_budget"])
             response = {"workspace_budget": float(body["workspace_budget"])}
             return self._json(request, 200, response, session_id=sid)
+
+        if path.endswith("/auth/generate_token/") and method == "POST":
+            self._next_token += 1
+            token = "knoxtok{:02d}-{}".format(self._next_token, "s" * 56)
+            self.api_keys.append(
+                {
+                    "token": token,
+                    "owner_type": session["account_type"],
+                    "owner_id": int(session["account_id"]),
+                }
+            )
+            return self._json(request, 200, {"token": token}, session_id=sid)
+
+        if path.endswith("/auth/delete_token/") and method == "DELETE":
+            assert body is not None
+            supplied = str(body.get("token", ""))
+            prefix = supplied[:8]
+            before = len(self.api_keys)
+            self.api_keys = [
+                k for k in self.api_keys if not k["token"].startswith(prefix)
+            ]
+            if len(self.api_keys) == before:
+                return self._json(request, 404, {"error": "not_found"}, session_id=sid)
+            return httpx.Response(
+                204,
+                request=request,
+                headers={"Set-Cookie": "sessionid={}; Path=/".format(sid)},
+            )
 
         return self._json(request, 404, {"error": "not found", "path": path}, session_id=sid)
 
@@ -642,6 +673,87 @@ def test_http_error_raises_platform_error(client: PlatformClient, fake: FakeCons
     err = excinfo.value
     assert err.status_code == 403
     assert "forbidden" in str(err).lower() or "nope" in str(err).lower()
+
+
+def test_create_api_key_uses_current_context_and_returns_secret(
+    client: PlatformClient, fake: FakeConsole
+):
+    # Default fake context is org 10.
+    result = client.create_api_key()
+
+    assert set(result) == {"token"}
+    assert result["token"]
+    assert len(fake.api_keys) == 1
+    assert fake.api_keys[0]["owner_type"] == "organization"
+    assert fake.api_keys[0]["owner_id"] == 10
+    assert fake.api_keys[0]["token"] == result["token"]
+
+
+def test_create_api_key_for_personal_account_switches_and_restores(
+    client: PlatformClient, fake: FakeConsole
+):
+    before = dict(fake.session)
+
+    result = client.create_api_key(account="astewart")
+
+    assert result["token"]
+    assert fake.api_keys[0]["owner_type"] == "user"
+    assert fake.api_keys[0]["owner_id"] == 1
+    assert fake.session == before  # context restored
+
+
+def test_create_api_key_for_org_account_scopes_ownership_and_restores(
+    client: PlatformClient, fake: FakeConsole
+):
+    before = dict(fake.session)
+
+    result = client.create_api_key(account="acme")
+
+    assert result["token"]
+    assert fake.api_keys[0]["owner_type"] == "organization"
+    assert fake.api_keys[0]["owner_id"] == 20
+    assert fake.session == before  # context restored
+
+
+def test_create_api_key_unknown_account_raises(client: PlatformClient):
+    with pytest.raises(WorkspaceNotFoundError):
+        client.create_api_key(account="does-not-exist")
+
+
+def test_delete_api_key_accepts_full_token(client: PlatformClient, fake: FakeConsole):
+    created = client.create_api_key()
+    token = created["token"]
+
+    result = client.delete_api_key(token)
+
+    assert result is None
+    assert fake.api_keys == []
+
+
+def test_delete_api_key_accepts_eight_char_prefix(
+    client: PlatformClient, fake: FakeConsole
+):
+    created = client.create_api_key()
+    prefix = created["token"][:8]
+
+    client.delete_api_key(prefix)
+
+    assert fake.api_keys == []
+
+
+def test_delete_api_key_blank_fails_before_request(
+    client: PlatformClient, fake: FakeConsole
+):
+    with pytest.raises(ValueError):
+        client.delete_api_key("   ")
+
+    delete_reqs = [r for r in fake.requests if r[0] == "DELETE"]
+    assert not delete_reqs
+
+
+def test_delete_api_key_missing_raises_platform_error(client: PlatformClient):
+    with pytest.raises(PlatformError):
+        client.delete_api_key("nomatch0")
 
 
 def test_exports_from_package_and_workspaces_compat():
