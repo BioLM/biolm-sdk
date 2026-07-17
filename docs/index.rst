@@ -118,3 +118,10 @@ Welcome to BioLM SDK Documentation
 
    changelog
    notes/migration-1.0
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Internal
+   :hidden:
+
+   notes/snippet-doctests

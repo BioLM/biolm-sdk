@@ -37,6 +37,13 @@ Documentation Structure
 - ``docs/api-reference/`` — full module tree (sphinx-apidoc from ``biolm/``)
 - ``docs/reference/cli.rst`` — monolithic CLI dump (legacy; prefer ``docs/cli/``)
 
+**Guide snippet doctests:** Offline-safe shapes from the guide (config
+construction, ``biolm.io``, ``prepare_items_for_api``, imports) live in
+``docs/notes/snippet-doctests.rst`` and run via ``make docs-doctest``. Prefer
+adding a ``.. testcode::`` block there when you introduce a new construct-only
+example. Live API / CLI network examples stay as narrative ``code-block`` and
+are not executed.
+
 Where to Write Documentation
 -----------------------------
 

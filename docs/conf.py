@@ -54,6 +54,7 @@ def _sphinx_builder_name():
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.doctest",
     "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinx.ext.autosectionlabel",
@@ -65,6 +66,26 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx_click",
 ]
+
+# Offline-safe guide snippet checks (see docs/notes/snippet-doctests.rst).
+# Network-backed examples stay as narrative ``code-block`` and are not executed.
+doctest_global_setup = """
+import os
+import tempfile
+from pathlib import Path
+
+# Avoid accidental auth lookups during construct-only snippets.
+os.environ.setdefault("BIOLM_TOKEN", "doctest-dummy-token")
+
+_DOCTEST_TMP = Path(tempfile.mkdtemp(prefix="biolm-docs-doctest-"))
+"""
+
+doctest_global_cleanup = """
+import shutil
+shutil.rmtree(_DOCTEST_TMP, ignore_errors=True)
+"""
+
+doctest_test_doctest_blocks = False
 
 # These extensions hook HTML page rendering and break ``sphinx-build -b json``.
 _JSON_INCOMPATIBLE_EXTENSIONS = (

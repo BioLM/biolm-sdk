@@ -12,7 +12,11 @@ _SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from generate_docs_manifest import collect_item_slugs, infer_kind  # noqa: E402
+from generate_docs_manifest import (  # noqa: E402
+    collect_item_slugs,
+    infer_kind,
+    should_include_slug,
+)
 
 
 class TestInferKind:
@@ -53,3 +57,11 @@ class TestCollectItemSlugs:
             "sdk/models/examples",
             "cli/login",
         ]
+
+
+class TestShouldIncludeSlug:
+    def test_skips_snippet_doctests(self):
+        assert should_include_slug("notes/snippet-doctests") is False
+
+    def test_includes_guide_pages(self):
+        assert should_include_slug("guide/pipeline-workflows") is True
