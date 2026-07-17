@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.1.0 (2026-07-17)
+
+### Features
+
+- Add platform workspace management ([#18](https://github.com/BioLM/biolm-sdk/pull/18),
+  [`ca1377c`](https://github.com/BioLM/biolm-sdk/commit/ca1377c4cff5a18e1bb6f5824484ad09248f17a9))
+
+- Add platform workspace, protocol, and usage management
+  ([#18](https://github.com/BioLM/biolm-sdk/pull/18),
+  [`ca1377c`](https://github.com/BioLM/biolm-sdk/commit/ca1377c4cff5a18e1bb6f5824484ad09248f17a9))
+
+
 ## v1.0.3 (2026-07-15)
 
 ### Bug Fixes
