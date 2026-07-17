@@ -593,6 +593,18 @@ def test_get_organization_resolves_exact_identifier(
     assert fake.requests[-1][1].endswith("/console/api/orgs/{}/".format(expected_id))
 
 
+def test_get_organization_falls_back_to_numeric_name_or_slug(
+    client: PlatformClient,
+    fake: FakeConsole,
+):
+    fake.orgs.append({"id": 30, "name": "Numeric Org", "slug": "999"})
+
+    org = client.get_organization("999")
+
+    assert org["id"] == 30
+    assert fake.requests[-1][1].endswith("/console/api/orgs/30/")
+
+
 def test_get_organization_missing_raises_specific_platform_error(
     client: PlatformClient,
 ):

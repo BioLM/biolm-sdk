@@ -304,6 +304,13 @@ class PlatformClient:
             candidates = [
                 org for org in organizations if int(org["id"]) == target_id
             ]
+            if not candidates:
+                text = str(identifier)
+                candidates = [
+                    org
+                    for org in organizations
+                    if org.get("name") == text or org.get("slug") == text
+                ]
         else:
             candidates = [
                 org
