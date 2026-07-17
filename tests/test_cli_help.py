@@ -117,6 +117,7 @@ def test_final_top_level_help_hierarchy():
     ):
         assert section in result.output
     assert "status" in result.output
+    assert "whoami" in result.output
     assert "account" in result.output
     assert "workspace" in result.output
     assert "Platform" not in result.output

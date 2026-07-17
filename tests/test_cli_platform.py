@@ -30,6 +30,7 @@ def test_platform_groups_and_commands_are_registered():
     result = invoke("--help")
     assert result.exit_code == 0, result.output
     assert "status" in result.output
+    assert "whoami" in result.output
     assert "account" in result.output
     assert "workspace" in result.output
     assert "Account" in result.output
@@ -45,6 +46,158 @@ def test_platform_groups_and_commands_are_registered():
     assert "\n│ logout" not in result.output
     assert "\n│ version" not in result.output
     assert "Platform" not in result.output
+
+
+def _current_user_payload():
+    return {
+        "id": 1,
+        "username": "alice",
+        "email": "alice@example.com",
+        "first_name": "Alice",
+        "last_name": "Example",
+        "billing_address": "123 Secret Street",
+        "billing_email": "billing@example.com",
+        "stripe_customer_id": "cus_secret",
+    }
+
+
+def test_whoami_organization_json_allowlists_identity_and_context(platform_client):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.return_value = {
+        "account_type": "organization",
+        "account_id": 7,
+        "environment_id": 22,
+        "account_details": {"name": "Acme Labs", "slug": "acme"},
+    }
+
+    result = invoke("whoami", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == {
+        "id": 1,
+        "username": "alice",
+        "email": "alice@example.com",
+        "first_name": "Alice",
+        "last_name": "Example",
+        "account_type": "organization",
+        "account_id": 7,
+        "account_name": "Acme Labs",
+        "account_slug": "acme",
+        "environment_id": 22,
+    }
+    client.get_current_user.assert_called_once_with()
+    client.get_context.assert_called_once_with()
+
+
+def test_whoami_personal_json_uses_username_as_account_slug(platform_client):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.return_value = {
+        "account_type": "user",
+        "account_id": 1,
+        "environment_id": 11,
+        "account_details": {"name": "Ignored", "slug": "ignored"},
+    }
+
+    result = invoke("whoami", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    identity = json.loads(result.output)
+    assert identity["account_name"] is None
+    assert identity["account_slug"] == "alice"
+    assert "billing_address" not in identity
+    assert "stripe_customer_id" not in identity
+
+
+def test_whoami_table_shows_principal_and_active_context(platform_client):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.return_value = {
+        "account_type": "organization",
+        "account_id": 7,
+        "environment_id": 22,
+        "account_details": {"name": "Acme Labs", "slug": "acme"},
+    }
+
+    result = invoke("whoami")
+
+    assert result.exit_code == 0, result.output
+    for expected in (
+        "alice",
+        "alice@example.com",
+        "Alice Example",
+        "organization",
+        "Acme Labs",
+        "acme",
+        "22",
+    ):
+        assert expected in result.output
+
+
+def test_whoami_api_failure_is_nonzero_and_does_not_leak_billing_fields(
+    platform_client,
+):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.side_effect = PlatformError("Authentication required")
+
+    result = invoke("whoami", "--format", "json")
+
+    assert result.exit_code != 0
+    assert "Authentication required" in result.output
+    assert "billing_address" not in result.output
+    assert "billing@example.com" not in result.output
+    assert "cus_secret" not in result.output
+
+
+def test_status_logged_out_keeps_endpoints_and_marks_context_unavailable():
+    with (
+        patch("biolm.cli.PlatformClient", side_effect=PlatformError("logged out")),
+        patch("biolm.cli.get_auth_status"),
+    ):
+        result = invoke("status")
+
+    assert result.exit_code == 0, result.output
+    assert "Model API URL" in result.output
+    assert "Platform Domain" in result.output
+    assert "Account" in result.output
+    assert "Workspace" in result.output
+    assert "unavailable" in result.output.lower()
+
+
+def test_status_shows_active_workspace():
+    client = MagicMock()
+    client.current_workspace.return_value = ORG
+    with (
+        patch("biolm.cli.PlatformClient", return_value=client),
+        patch("biolm.cli.get_auth_status"),
+    ):
+        result = invoke("status")
+
+    assert result.exit_code == 0, result.output
+    assert "Model API URL" in result.output
+    assert "acme" in result.output
+    assert "acme/research" in result.output
+    client.current_workspace.assert_called_once_with()
+    client.close.assert_called_once_with()
+
+
+def test_status_workspace_failure_keeps_endpoints_and_is_nonfatal():
+    client = MagicMock()
+    client.current_workspace.side_effect = PlatformError("service unavailable")
+    with (
+        patch("biolm.cli.PlatformClient", return_value=client),
+        patch("biolm.cli.get_auth_status"),
+    ):
+        result = invoke("status")
+
+    assert result.exit_code == 0, result.output
+    assert "Model API URL" in result.output
+    assert "Platform Domain" in result.output
+    assert "Workspace" in result.output
+    assert "unavailable" in result.output.lower()
+    client.close.assert_called_once_with()
 
 
 def test_org_create_is_unavailable_on_legacy_and_canonical_paths(platform_client):

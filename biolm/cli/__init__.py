@@ -256,7 +256,7 @@ class RichGroup(click.Group):
             # Determine section based on command name/type
             if ctx.parent is not None:
                 section = 'Commands'
-            elif name in ['status', 'account']:
+            elif name in ['status', 'whoami', 'account']:
                 section = 'Account'
             elif name == 'workspace':
                 section = 'Workspace'
@@ -428,6 +428,44 @@ def display_env_vars_table():
     console.print(table)
 
 
+def _display_status_context() -> None:
+    """Best-effort platform context that never makes status fail."""
+    unavailable = "[text.muted]unavailable[/text.muted]"
+    account_value = unavailable
+    workspace_value = unavailable
+    client = None
+    try:
+        client = PlatformClient()
+        try:
+            active = client.current_workspace()
+        except PlatformError:
+            pass
+        else:
+            account_value = "{} {} ({})".format(
+                active.account_type,
+                active.account,
+                active.account_id,
+            )
+            workspace_value = active.path
+    except PlatformError:
+        pass
+    finally:
+        if client is not None:
+            client.close()
+
+    table = Table(
+        title="[brand]Active Platform Context[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bright",
+    )
+    table.add_column("Setting", style="brand", no_wrap=True)
+    table.add_column("Value")
+    table.add_row("Account", account_value)
+    table.add_row("Workspace", workspace_value)
+    console.print(table)
+
+
 @cli.command()
 def status():
     """Show authentication status, API endpoints, and where credentials are stored.
@@ -438,6 +476,8 @@ def status():
     display_env_vars_table()
     console.print()  # Add spacing before auth status
     get_auth_status()
+    console.print()
+    _display_status_context()
 
 
 @cli.group(cls=RichGroup)
@@ -701,6 +741,86 @@ def _workspace_data(workspace_value: Workspace) -> Dict[str, Any]:
 def _print_json(value: Any) -> None:
     """Write JSON without Rich markup or additional prose."""
     click.echo(json.dumps(value, indent=2, default=str))
+
+
+def _identity_data(
+    user: Dict[str, Any], context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Compose the stable public identity representation."""
+    account_type = context.get("account_type")
+    account_details = context.get("account_details") or {}
+    is_personal = account_type == "user"
+    return {
+        "id": user.get("id"),
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "first_name": user.get("first_name"),
+        "last_name": user.get("last_name"),
+        "account_type": account_type,
+        "account_id": context.get("account_id"),
+        "account_name": None if is_personal else account_details.get("name"),
+        "account_slug": (
+            user.get("username") if is_personal else account_details.get("slug")
+        ),
+        "environment_id": context.get("environment_id"),
+    }
+
+
+def _identity_display_value(value: Any) -> str:
+    return "—" if value is None or value == "" else str(value)
+
+
+def _display_identity(data: Dict[str, Any], output_format: str) -> None:
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    display_name = " ".join(
+        part
+        for part in (data.get("first_name"), data.get("last_name"))
+        if part
+    )
+    table = Table(
+        title="[brand]Authenticated Identity[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Field", style="brand")
+    table.add_column("Value")
+    rows = (
+        ("Username", data.get("username")),
+        ("Email", data.get("email")),
+        ("Display name", display_name),
+        ("Account type", data.get("account_type")),
+        ("Account ID", data.get("account_id")),
+        ("Account name", data.get("account_name")),
+        ("Account slug", data.get("account_slug")),
+        ("Environment ID", data.get("environment_id")),
+    )
+    for label, value in rows:
+        table.add_row(label, _identity_display_value(value))
+    console.print(table)
+
+
+@cli.command()
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def whoami(output_format):
+    """Show the authenticated principal and active account context."""
+    data = _platform_request(
+        lambda client: _identity_data(
+            client.get_current_user(),
+            client.get_context(),
+        )
+    )
+    _display_identity(data, output_format)
 
 
 def _display_workspace(workspace_value: Workspace, output_format: str) -> None:
