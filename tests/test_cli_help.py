@@ -95,8 +95,33 @@ def test_version_command_is_callable_but_hidden_from_help():
 def test_help_descriptions_are_not_truncated():
     """Command summaries should use the full first docstring line, not Click's 45-char cut."""
     runner = CliRunner()
-    result = runner.invoke(cli, ["--help"])
+    result = runner.invoke(cli, ["account", "--help"])
 
     assert result.exit_code == 0, result.output
     assert "Log out and remove saved OAuth credentials from" in result.output
     assert "Log out and remove saved OAuth credentials..." not in result.output
+
+
+def test_final_top_level_help_hierarchy():
+    """Top-level help lists canonical sections and direct names only."""
+    result = CliRunner().invoke(cli, ["--help"])
+
+    assert result.exit_code == 0, result.output
+    for section in (
+        "Account",
+        "Workspace",
+        "Hub",
+        "Models",
+        "Protocols",
+        "Datasets",
+    ):
+        assert section in result.output
+    assert "status" in result.output
+    assert "account" in result.output
+    assert "workspace" in result.output
+    assert "Platform" not in result.output
+    assert "\n│ version" not in result.output
+    assert "\n│ login" not in result.output
+    assert "usage show" not in result.output
+    assert "org create" not in result.output
+    assert "workspace list" not in result.output

@@ -256,7 +256,7 @@ class RichGroup(click.Group):
             # Determine section based on command name/type
             if ctx.parent is not None:
                 section = 'Commands'
-            elif name in ['login', 'logout', 'status', 'org', 'budget', 'apikey', 'usage']:
+            elif name in ['status', 'account']:
                 section = 'Account'
             elif name == 'workspace':
                 section = 'Workspace'
@@ -440,7 +440,13 @@ def status():
     get_auth_status()
 
 
-@cli.command()
+@cli.group(cls=RichGroup)
+def account():
+    """Manage BioLM account authentication, usage, budget, API keys, and organizations."""
+    pass
+
+
+@account.command()
 @click.option(
     "--client-id",
     envvar="BIOLMAI_OAUTH_CLIENT_ID",
@@ -463,13 +469,13 @@ def login(client_id, scope):
     .. code-block:: bash
 
         # Login with default client ID
-        biolm login
+        biolm account login
 
         # Login with custom client ID
-        biolm login --client-id your-client-id
+        biolm account login --client-id your-client-id
 
         # Login with custom scope (supported: read, write, introspection)
-        biolm login --scope "read write"
+        biolm account login --scope "read write"
     """
     # Check if credentials already exist and are valid
     if are_credentials_valid():
@@ -531,11 +537,11 @@ def login(client_id, scope):
         raise click.Abort()
 
 
-@cli.command()
+@account.command()
 def logout():
     """Log out and remove saved OAuth credentials from ``~/.biolm/credentials``.
 
-    After logout you must run ``biolm login`` again before calling authenticated commands.
+    After logout you must run ``biolm account login`` again before calling authenticated commands.
     """
     try:
         os.remove(ACCESS_TOK_PATH)
@@ -546,6 +552,10 @@ def logout():
     except Exception as e:
         console.print(f"[error]✗ Logout failed: {e}[/error]")
         raise click.Abort()
+
+
+_hidden_leaf_alias(cli, "login", login)
+_hidden_leaf_alias(cli, "logout", logout)
 
 
 @cli.group(cls=RichGroup)
@@ -841,145 +851,6 @@ def workspace_create(name, account_slug, output_format):
     _display_workspace(workspace_value, output_format)
 
 
-@cli.group(cls=RichGroup)
-def org():
-    """List and manage BioLM organizations."""
-    pass
-
-
-@org.command("list")
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["table", "json"]),
-    default="table",
-    show_default=True,
-    help="Output format.",
-)
-def org_list(output_format):
-    """List organizations available to the authenticated user."""
-    organizations = _platform_request(lambda client: client.list_organizations())
-    if output_format == "json":
-        _print_json(organizations)
-        return
-
-    table = Table(
-        title="[brand]Organizations[/brand]",
-        box=box.ROUNDED,
-        show_header=True,
-        header_style="brand.bold",
-    )
-    table.add_column("ID", justify="right")
-    table.add_column("Name")
-    table.add_column("Slug", style="brand")
-    for organization in organizations:
-        table.add_row(
-            str(organization.get("id", "")),
-            str(organization.get("name", "")),
-            str(organization.get("slug", "")),
-        )
-    console.print(table)
-
-
-@org.command("show")
-@click.argument("org_id", type=click.INT)
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["table", "json"]),
-    default="table",
-    show_default=True,
-    help="Output format.",
-)
-def org_show(org_id, output_format):
-    """Show organization ORG_ID."""
-    data = _platform_request(lambda client: client.get_organization(org_id))
-    _display_record("Organization", data, output_format)
-
-
-@org.command("create")
-@click.argument("name")
-@click.option("--slug", required=True, help="Unique organization slug.")
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["table", "json"]),
-    default="table",
-    show_default=True,
-    help="Output format.",
-)
-def org_create(name, slug, output_format):
-    """Create an organization named NAME."""
-    data = _platform_request(
-        lambda client: client.create_organization(name, slug)
-    )
-    _display_record("Organization created", data, output_format)
-
-
-@org.command("invite")
-@click.argument("org_id", type=click.INT)
-@click.argument("email")
-@click.option(
-    "--role",
-    type=click.Choice(["member", "admin", "billing_admin"]),
-    default="member",
-    show_default=True,
-    help="Organization role.",
-)
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["table", "json"]),
-    default="table",
-    show_default=True,
-    help="Output format.",
-)
-def org_invite(org_id, email, role, output_format):
-    """Invite EMAIL to organization ORG_ID."""
-    data = _platform_request(
-        lambda client: client.invite_to_organization(org_id, email, role=role)
-    )
-    _display_record("Organization invitation", data, output_format)
-
-
-@cli.group(cls=RichGroup)
-def budget():
-    """Inspect and set the active account budget."""
-    pass
-
-
-@budget.command("show")
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["table", "json"]),
-    default="table",
-    show_default=True,
-    help="Output format.",
-)
-def budget_show(output_format):
-    """Show budget and usage fields for the active account."""
-    data = _platform_request(lambda client: client.get_budget())
-    _display_record("Account budget", data, output_format)
-
-
-# Let negative numeric arguments reach FloatRange; extra unknown options still fail.
-@budget.command("set", context_settings={"ignore_unknown_options": True})
-@click.argument("amount", type=click.FloatRange(min=0.0))
-@click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["table", "json"]),
-    default="table",
-    show_default=True,
-    help="Output format.",
-)
-def budget_set(amount, output_format):
-    """Set the active account budget to nonnegative AMOUNT."""
-    data = _platform_request(lambda client: client.set_budget(amount))
-    _display_record("Account budget updated", data, output_format)
-
-
 def _usage_display_value(value):
     """Render absent usage fields consistently."""
     return "—" if value is None or value == "" else str(value)
@@ -1052,13 +923,7 @@ def _display_usage_summary(data: Dict[str, Any], output_format: str) -> None:
     console.print(models)
 
 
-@cli.group(cls=RichGroup)
-def usage():
-    """Inspect monthly BioLM platform usage."""
-    pass
-
-
-@usage.command("show")
+@account.command("usage")
 @click.option("--year", type=click.IntRange(min=1), help="Billing year.")
 @click.option(
     "--month",
@@ -1082,7 +947,7 @@ def usage():
     show_default=True,
     help="Output format.",
 )
-def usage_show(year, month, environment_id, account, output_format):
+def account_usage(year, month, environment_id, account, output_format):
     """Show monthly usage for the active or selected account."""
     data = _platform_request(
         lambda client: client.get_usage_summary(
@@ -1095,13 +960,69 @@ def usage_show(year, month, environment_id, account, output_format):
     _display_usage_summary(data, output_format)
 
 
-@cli.group(cls=RichGroup)
-def apikey():
+def _run_budget_show(output_format):
+    """Show budget and usage fields for the active account."""
+    data = _platform_request(lambda client: client.get_budget())
+    _display_record("Account budget", data, output_format)
+
+
+@account.group(cls=RichGroup, invoke_without_command=True)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+@click.pass_context
+def budget(ctx, output_format):
+    """Inspect and set the active account budget.
+
+    Invoked without a subcommand, shows the current budget.
+    """
+    if ctx.invoked_subcommand is None:
+        _run_budget_show(output_format)
+
+
+# Let negative numeric arguments reach FloatRange; extra unknown options still fail.
+@budget.command("set", context_settings={"ignore_unknown_options": True})
+@click.argument("amount", type=click.FloatRange(min=0.0))
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def budget_set(amount, output_format):
+    """Set the active account budget to nonnegative AMOUNT."""
+    data = _platform_request(lambda client: client.set_budget(amount))
+    _display_record("Account budget updated", data, output_format)
+
+
+@click.command("show", cls=RichCommand)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def budget_show(output_format):
+    """Show budget and usage fields for the active account."""
+    _run_budget_show(output_format)
+
+
+@account.group("api-key", cls=RichGroup)
+def api_key():
     """Create and revoke BioLM platform API keys."""
     pass
 
 
-@apikey.command("create")
+@api_key.command("create")
 @click.option(
     "--account",
     "account",
@@ -1115,7 +1036,7 @@ def apikey():
     show_default=True,
     help="Output format.",
 )
-def apikey_create(account, output_format):
+def api_key_create(account, output_format):
     """Create an API key for the active or selected account."""
     data = _platform_request(lambda client: client.create_api_key(account=account))
     if output_format == "json":
@@ -1128,7 +1049,7 @@ def apikey_create(account, output_format):
     )
 
 
-@apikey.command("delete")
+@api_key.command("delete")
 @click.argument("token_or_prefix")
 @click.option(
     "--yes",
@@ -1144,7 +1065,7 @@ def apikey_create(account, output_format):
     show_default=True,
     help="Output format.",
 )
-def apikey_delete(token_or_prefix, assume_yes, output_format):
+def api_key_delete(token_or_prefix, assume_yes, output_format):
     """Revoke an API key by full token or eight-character prefix."""
     if not assume_yes:
         click.confirm("Revoke this API key?", abort=True)
@@ -1153,6 +1074,130 @@ def apikey_delete(token_or_prefix, assume_yes, output_format):
         _print_json({"status": "deleted"})
         return
     console.print("[success]API key revoked.[/success]")
+
+
+@account.group(cls=RichGroup)
+def org():
+    """List and manage BioLM organizations."""
+    pass
+
+
+@org.command("list")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_list(output_format):
+    """List organizations available to the authenticated user."""
+    organizations = _platform_request(lambda client: client.list_organizations())
+    if output_format == "json":
+        _print_json(organizations)
+        return
+
+    table = Table(
+        title="[brand]Organizations[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("ID", justify="right")
+    table.add_column("Name")
+    table.add_column("Slug", style="brand")
+    for organization in organizations:
+        table.add_row(
+            str(organization.get("id", "")),
+            str(organization.get("name", "")),
+            str(organization.get("slug", "")),
+        )
+    console.print(table)
+
+
+@org.command("show")
+@click.argument("organization")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_show(organization, output_format):
+    """Show organization by exact name or slug."""
+    data = _platform_request(
+        lambda client: client.get_organization(organization)
+    )
+    _display_record("Organization", data, output_format)
+
+
+@org.command("invite")
+@click.argument("organization")
+@click.argument("email")
+@click.option(
+    "--role",
+    type=click.Choice(["member", "admin", "billing_admin"]),
+    default="member",
+    show_default=True,
+    help="Organization role.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_invite(organization, email, role, output_format):
+    """Invite EMAIL to an organization by exact name or slug."""
+    data = _platform_request(
+        lambda client: client.invite_to_organization(
+            organization, email, role=role
+        )
+    )
+    _display_record("Organization invitation", data, output_format)
+
+
+# Hidden compatibility aliases for pre-hierarchy command paths.
+_usage_alias = RichGroup(
+    "usage",
+    hidden=True,
+    help="Inspect monthly BioLM platform usage.",
+)
+cli.add_command(_usage_alias)
+_hidden_leaf_alias(_usage_alias, "show", account_usage)
+
+_budget_alias = RichGroup(
+    "budget",
+    hidden=True,
+    help="Inspect and set the active account budget.",
+)
+cli.add_command(_budget_alias)
+_hidden_leaf_alias(_budget_alias, "show", budget_show)
+_hidden_leaf_alias(_budget_alias, "set", budget_set)
+
+_apikey_alias = RichGroup(
+    "apikey",
+    hidden=True,
+    help="Create and revoke BioLM platform API keys.",
+)
+cli.add_command(_apikey_alias)
+_hidden_leaf_alias(_apikey_alias, "create", api_key_create)
+_hidden_leaf_alias(_apikey_alias, "delete", api_key_delete)
+
+_org_alias = RichGroup(
+    "org",
+    hidden=True,
+    help="List and manage BioLM organizations.",
+)
+cli.add_command(_org_alias)
+_hidden_leaf_alias(_org_alias, "list", org_list)
+_hidden_leaf_alias(_org_alias, "show", org_show)
+_hidden_leaf_alias(_org_alias, "invite", org_invite)
 
 
 # Helper functions for model commands
