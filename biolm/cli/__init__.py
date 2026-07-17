@@ -1,6 +1,7 @@
 """Console script for biolm."""
 from __future__ import annotations
 
+import copy
 import os
 import sys
 from pathlib import Path
@@ -249,15 +250,18 @@ class RichGroup(click.Group):
         # Organize commands into sections
         commands_by_section = {}
         for name, cmd in self.commands.items():
+            if cmd.hidden:
+                continue
+
             # Determine section based on command name/type
             if ctx.parent is not None:
                 section = 'Commands'
-            elif name in ['login', 'logout', 'status', 'version']:
-                section = 'Authentication'
+            elif name in ['login', 'logout', 'status', 'org', 'budget', 'apikey', 'usage']:
+                section = 'Account'
+            elif name == 'workspace':
+                section = 'Workspace'
             elif name == 'hub':
                 section = 'Hub'
-            elif name in ['workspace', 'org', 'budget', 'apikey', 'usage']:
-                section = 'Platform'
             elif name == 'model':
                 section = 'Models'
             elif name == 'protocol':
@@ -269,16 +273,8 @@ class RichGroup(click.Group):
             
             if section not in commands_by_section:
                 commands_by_section[section] = []
-            
-            # If it's a group, expand to show subcommands
-            if isinstance(cmd, click.Group) and cmd.commands:
-                for sub_name, sub_cmd in sorted(cmd.commands.items()):
-                    sub_help = _command_help_line(sub_cmd)
-                    # Format as "group subcommand"
-                    full_name = f"{name} {sub_name}"
-                    commands_by_section[section].append((full_name, sub_cmd))
-            else:
-                commands_by_section[section].append((name, cmd))
+
+            commands_by_section[section].append((name, cmd))
         
         # Write Options section with box
         opts = []
@@ -311,7 +307,7 @@ class RichGroup(click.Group):
             console.print()
         
         # Write command sections in order with boxes
-        section_order = ['Authentication', 'Hub', 'Platform', 'Models', 'Protocols', 'Datasets', 'Commands']
+        section_order = ['Account', 'Workspace', 'Hub', 'Models', 'Protocols', 'Datasets', 'Commands']
         for section in section_order:
             if section in commands_by_section:
                 # Create box content
@@ -338,6 +334,17 @@ class RichGroup(click.Group):
         """Write usage line with Rich formatting."""
         console.print(f"[text]Usage:[/text] [brand.bright]{ctx.command_path}[/brand.bright] [OPTIONS] COMMAND [ARGS]...")
         console.print()
+
+
+def _hidden_leaf_alias(parent, name, target):
+    """Register a hidden copy of a leaf command under ``parent``."""
+    if isinstance(target, click.Group):
+        raise TypeError("hidden aliases must target leaf commands")
+    alias = copy.copy(target)
+    alias.name = name
+    alias.hidden = True
+    parent.add_command(alias, name)
+    return alias
 
 
 @click.command()
@@ -376,7 +383,7 @@ def cli(ctx, debug, color):
         ctx.command.format_help(ctx, click.HelpFormatter())
 
 
-@cli.command()
+@cli.command(hidden=True)
 def version():
     """Print the installed ``biolm`` package version."""
     console.print(f"[brand.bright]biolm[/brand.bright] {BIOLM_VERSION}")
