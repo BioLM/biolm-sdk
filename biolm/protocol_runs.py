@@ -7,15 +7,16 @@ kept for backwards compatibility when migrating to the ``biolm`` namespace.
 import io
 import json
 import logging
-import os
 import time
 import zipfile
+from http.cookies import SimpleCookie
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import httpx
 
 from biolm.core.const import BIOLMAI_BASE_DOMAIN
+from biolm.core.http import CredentialsProvider
 
 _DEFAULT_TIMEOUT = 30
 _UPLOAD_TIMEOUT = 120
@@ -25,13 +26,35 @@ logger = logging.getLogger(__name__)
 
 
 def _auth_headers(api_key: Optional[str] = None) -> Dict[str, str]:
-    token = api_key or os.environ.get("BIOLM_TOKEN") or os.environ.get("BIOLMAI_TOKEN")
-    if not token:
+    try:
+        headers = CredentialsProvider.get_auth_headers(api_key)
+    except AssertionError as exc:
         raise ValueError(
-            "No API key found. Set the BIOLM_TOKEN environment variable or pass api_key= to ProtocolClient().\n"
-            "Get a token at https://biolm.ai/console/user/api-keys/"
-        )
-    return {"Authorization": f"Token {token}"}
+            "No BioLM credentials found. Set BIOLM_TOKEN, pass api_key= to "
+            "ProtocolClient(), or run `biolm login`."
+        ) from exc
+
+    authorization = next(
+        (value for key, value in headers.items() if key.lower() == "authorization"),
+        None,
+    )
+    if authorization:
+        return {"Authorization": authorization}
+
+    cookie_header = next(
+        (value for key, value in headers.items() if key.lower() == "cookie"),
+        "",
+    )
+    cookies = SimpleCookie()
+    cookies.load(cookie_header)
+    access = cookies.get("access")
+    if access and access.value:
+        return {"Authorization": f"Bearer {access.value}"}
+
+    raise ValueError(
+        "BioLM credentials do not contain a usable API or OAuth access token. "
+        "Set BIOLM_TOKEN or run `biolm login`."
+    )
 
 
 class ProtocolRunError(Exception):
@@ -210,13 +233,14 @@ class ProtocolRun:
 
     def cancel(self) -> Dict[str, Any]:
         """Cancel this run (idempotent; may error if already terminal)."""
-        url = self._client._url(f"runs/{self.run_id}/")
+        url = self._client._url(f"runs/{self.run_id}/cancel/")
         with httpx.Client(timeout=_DEFAULT_TIMEOUT) as http:
             resp = http.delete(url, headers=self._client._headers())
         if not resp.is_success:
             raise ProtocolRunError(f"DELETE {url} returned {resp.status_code}: {resp.text[:500]}")
-        self.status = "cancelled"
-        return resp.json()
+        data = resp.json()
+        self.status = data.get("status", self.status)
+        return data
 
     def download(
         self,

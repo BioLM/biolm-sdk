@@ -19,7 +19,7 @@ with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "Click>=6.0",
+    "Click>=8.0",
     "requests",
     "httpx>=0.23.0",
     "httpcore",

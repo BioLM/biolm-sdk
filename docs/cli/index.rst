@@ -65,17 +65,21 @@ Define, validate, and execute multi-step workflows described in YAML.
    :class: cli-command-table
 
    * - :clicmd:`biolm protocol list <../protocol.html#biolm-protocol-list>`
-     - List platform protocols (listing UI coming soon; use ``show``/``validate`` for local YAML).
+     - List accessible registered protocols, with search, pagination, and JSON output.
    * - :clicmd:`biolm protocol show <../protocol.html#biolm-protocol-show>`
      - Render a readable report from a YAML file or a protocol ID on the platform.
    * - :clicmd:`biolm protocol run <../protocol.html#biolm-protocol-run>`
-     - Execute a protocol YAML file on the platform (execution support coming soon).
+     - Submit inputs to a registered protocol slug and optionally wait for results.
    * - :clicmd:`biolm protocol validate <../protocol.html#biolm-protocol-validate>`
      - Validate YAML syntax, JSON schema, task graph, and template expressions.
    * - :clicmd:`biolm protocol init <../protocol.html#biolm-protocol-init>`
      - Scaffold a blank or example-based protocol YAML file.
    * - :clicmd:`biolm protocol log <../protocol.html#biolm-protocol-log>`
      - Push protocol run results to MLflow using the outputs section of the protocol.
+
+Use ``status`` and ``wait`` to monitor an existing run, ``cancel`` to request
+cancellation, ``results`` to inspect its final JSON, and ``download`` to fetch
+CSV or JSONL result archives.
 
 .. _cli-index-workspaces:
 

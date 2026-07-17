@@ -39,6 +39,7 @@ from biolm.models.examples import get_example, list_models, get_model_details
 from biolm.io import load_fasta, load_csv, load_pdb, load_json, to_fasta, to_csv, to_pdb, to_json
 from biolm.models import Model
 from biolm.platform import PlatformClient, PlatformError, Workspace
+from biolm.protocol_runs import ProtocolClient, ProtocolRunError
 
 console = create_console()
 
@@ -249,7 +250,9 @@ class RichGroup(click.Group):
         commands_by_section = {}
         for name, cmd in self.commands.items():
             # Determine section based on command name/type
-            if name in ['login', 'logout', 'status', 'version']:
+            if ctx.parent is not None:
+                section = 'Commands'
+            elif name in ['login', 'logout', 'status', 'version']:
                 section = 'Authentication'
             elif name == 'hub':
                 section = 'Hub'
@@ -2472,20 +2475,76 @@ def protocol():
     pass
 
 
-@protocol.command()
-def list():
-    """List protocols registered on the BioLM platform (platform listing coming soon).
+def _protocol_request(callback):
+    """Run one protocol API operation with consistent CLI errors."""
+    try:
+        return callback(ProtocolClient())
+    except (ProtocolRunError, TimeoutError, ValueError, OSError) as exc:
+        raise click.ClickException(str(exc))
 
-    Today, inspect local YAML files with ``biolm protocol show`` or validate them with
-    ``biolm protocol validate``.
-    """
-    console.print(Panel(
-        "[text.muted]Protocol commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to list and manage BioLM protocols.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+
+@protocol.command("list")
+@click.option("--search", help="Filter protocols by name or slug.")
+@click.option("--page", type=click.IntRange(min=1), default=1, show_default=True)
+@click.option(
+    "--page-size",
+    type=click.IntRange(min=1, max=100),
+    default=20,
+    show_default=True,
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_list(search, page, page_size, output_format):
+    """List protocols registered on the BioLM platform."""
+    payload = _protocol_request(
+        lambda client: client.list(search=search, page=page, page_size=page_size)
+    )
+    if output_format == "json":
+        _print_json(payload)
+        return
+
+    protocols = payload.get("results") or []
+    if not protocols:
+        console.print("[text.muted]No protocols found.[/text.muted]")
+        return
+
+    table = Table(
+        title="[brand]Protocols[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Slug", style="brand", no_wrap=True)
+    table.add_column("Version", justify="right")
+    table.add_column("Name")
+    table.add_column("Details")
+    for item in protocols:
+        access = "public" if item.get("is_public") else "private"
+        inputs = ", ".join(str(value) for value in item.get("input_fields") or [])
+        details = "{} / {}".format(item.get("owner_type", ""), access)
+        if inputs:
+            details = "{}\ninputs: {}".format(details, inputs)
+        table.add_row(
+            str(item.get("slug", "")),
+            str(item.get("version", "")),
+            str(item.get("name", "")),
+            details,
+        )
+    console.print(table)
+    count = int(payload.get("count", len(protocols)))
+    console.print(
+        "[text.muted]Showing {} of {} protocol{}.[/text.muted]".format(
+            len(protocols),
+            count,
+            "" if count == 1 else "s",
+        )
+    )
 
 
 @protocol.command()
@@ -2607,20 +2666,252 @@ def show(protocol_source):
         sys.exit(0)
 
 
-@protocol.command()
-@click.argument('protocol_file', type=click.Path(exists=True))
-def run(protocol_file):
-    """Execute a protocol defined in a YAML file (execution support coming soon).
+def _load_protocol_inputs(inputs_file) -> Dict[str, Any]:
+    """Load a protocol input object from an optional JSON stream."""
+    if inputs_file is None:
+        return {}
+    try:
+        value = json.load(inputs_file)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise click.ClickException("Could not read protocol inputs as JSON: {}".format(exc))
+    if not isinstance(value, dict):
+        raise click.ClickException("Protocol inputs must be a JSON object.")
+    return value
 
-    Validates the file path today; full remote execution will run the task graph on the platform.
-    """
-    console.print(Panel(
-        "[text.muted]Protocol commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to execute protocols from YAML files.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
-        box=box.ROUNDED,
-    ))
+
+def _protocol_run_data(run) -> Dict[str, Any]:
+    """Return the stable CLI summary of a submitted protocol run."""
+    return {
+        "run_id": run.run_id,
+        "protocol_slug": run.protocol_slug,
+        "protocol_version": run.protocol_version,
+        "status": run.status,
+    }
+
+
+def _positive_float(ctx, param, value):
+    """Validate positive protocol wait timing options."""
+    if value is not None and value <= 0:
+        raise click.BadParameter("must be greater than zero", ctx=ctx, param=param)
+    return value
+
+
+@protocol.command("run")
+@click.argument("slug")
+@click.option(
+    "-i",
+    "--inputs",
+    "inputs_file",
+    type=click.File("r"),
+    help="JSON object containing protocol inputs. Use '-' for stdin.",
+)
+@click.option("--version", type=click.IntRange(min=1), help="Protocol version.")
+@click.option("--name", "run_name", help="Human-readable run name.")
+@click.option(
+    "--environment-id",
+    type=click.IntRange(min=1),
+    help="Environment ID to attribute the run to.",
+)
+@click.option(
+    "--wait",
+    "wait_for_completion",
+    is_flag=True,
+    help="Wait for completion and print the full run result.",
+)
+@click.option(
+    "--timeout",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=3600.0,
+    show_default=True,
+    help="Total wait deadline in seconds.",
+)
+@click.option(
+    "--poll-interval",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=5.0,
+    show_default=True,
+    help="REST fallback polling interval in seconds.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_run(
+    slug,
+    inputs_file,
+    version,
+    run_name,
+    environment_id,
+    wait_for_completion,
+    timeout,
+    poll_interval,
+    output_format,
+):
+    """Submit a run of registered protocol SLUG."""
+    inputs = _load_protocol_inputs(inputs_file)
+    run = _protocol_request(
+        lambda client: client.submit(
+            slug,
+            inputs,
+            version=version,
+            run_name=run_name,
+            environment_id=environment_id,
+        )
+    )
+
+    if wait_for_completion:
+        try:
+            run.wait(
+                timeout=timeout,
+                show_progress=output_format != "json",
+                poll_interval=poll_interval,
+            )
+            data = run.results()
+        except (ProtocolRunError, TimeoutError, ValueError) as exc:
+            raise click.ClickException(str(exc))
+    else:
+        data = _protocol_run_data(run)
+
+    if output_format == "json":
+        _print_json(data)
+    else:
+        _display_record("Protocol run", data, output_format)
+
+
+@protocol.command("status")
+@click.argument("run_id")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_status(run_id, output_format):
+    """Show a current progress snapshot for protocol RUN_ID."""
+    data = _protocol_request(lambda client: client.get_run(run_id).progress())
+    _display_record("Protocol run status", data, output_format)
+
+
+@protocol.command("wait")
+@click.argument("run_id")
+@click.option(
+    "--timeout",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=3600.0,
+    show_default=True,
+    help="Total wait deadline in seconds.",
+)
+@click.option(
+    "--poll-interval",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=5.0,
+    show_default=True,
+    help="REST fallback polling interval in seconds.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_wait(run_id, timeout, poll_interval, output_format):
+    """Wait for protocol RUN_ID and print its final detail."""
+
+    def wait_for_run(client):
+        run = client.get_run(run_id)
+        run.wait(
+            timeout=timeout,
+            show_progress=output_format != "json",
+            poll_interval=poll_interval,
+        )
+        return run.results()
+
+    data = _protocol_request(wait_for_run)
+    _display_record("Protocol run", data, output_format)
+
+
+@protocol.command("cancel")
+@click.argument("run_id")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_cancel(run_id, output_format):
+    """Request cancellation of protocol RUN_ID."""
+    data = _protocol_request(lambda client: client.get_run(run_id).cancel())
+    _display_record("Protocol cancellation", data, output_format)
+
+
+@protocol.command("results")
+@click.argument("run_id")
+@click.option(
+    "--output",
+    type=click.Path(dir_okay=False),
+    help="Write the full run detail as JSON instead of printing it.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="json",
+    show_default=True,
+    help="Terminal output format.",
+)
+def protocol_results(run_id, output, output_format):
+    """Show or save results for protocol RUN_ID."""
+    data = _protocol_request(lambda client: client.get_run(run_id).results())
+    if output:
+        try:
+            Path(output).write_text(json.dumps(data, indent=2, default=str) + "\n")
+        except OSError as exc:
+            raise click.ClickException(str(exc))
+        click.echo("Results written to {}".format(output))
+        return
+    _display_record("Protocol run results", data, output_format)
+
+
+@protocol.command("download")
+@click.argument("run_id")
+@click.option(
+    "--output-dir",
+    type=click.Path(file_okay=False),
+    default=".",
+    show_default=True,
+    help="Directory for the downloaded zip.",
+)
+@click.option(
+    "--file-type",
+    type=click.Choice(["csv", "jsonl"]),
+    default="csv",
+    show_default=True,
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing download.")
+def protocol_download(run_id, output_dir, file_type, overwrite):
+    """Download result artifacts for successful protocol RUN_ID."""
+    path = _protocol_request(
+        lambda client: client.get_run(run_id).download(
+            output_dir=output_dir,
+            file_type=file_type,
+            overwrite=overwrite,
+        )
+    )
+    click.echo("Downloaded results to {}".format(path))
 
 
 @protocol.command()

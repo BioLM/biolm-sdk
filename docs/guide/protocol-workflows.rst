@@ -14,7 +14,7 @@ and collect a results table instead of wiring API calls together by hand.
 
 This guide walks the full lifecycle: **author → validate → submit → wait →
 results**. Authoring and validation happen locally against your YAML; submission
-and monitoring happen on the platform through the Python SDK.
+and monitoring happen on the platform through the CLI or Python SDK.
 
 .. contents::
    :local:
@@ -108,9 +108,32 @@ Each error carries a ``message``, a JSONPath-like ``path``, and an
 Submit, wait, and collect results
 ==================================
 
-Once the platform has a registered protocol, run it from Python. Submission
-uses the platform **slug**, not the local YAML path, and ``inputs`` is a plain
-dict whose keys match the ``inputs`` section of the protocol.
+Once the platform has a registered protocol, run it from the CLI or Python.
+Submission uses the platform **slug**, not the local YAML path. Input keys must
+match the protocol's ``inputs`` section.
+
+From the CLI
+------------
+
+Discover protocols, submit a JSON input object, and optionally wait for the
+result:
+
+.. code-block:: bash
+
+   biolm protocol list --search design
+   biolm protocol run my-protocol-slug -i inputs.json
+   biolm protocol run my-protocol-slug -i inputs.json --wait
+
+Without ``--wait``, the command returns a run ID immediately. Use that ID to
+monitor or manage the run:
+
+.. code-block:: bash
+
+   biolm protocol status ALY_123
+   biolm protocol wait ALY_123
+   biolm protocol results ALY_123 --output results.json
+   biolm protocol download ALY_123 --output-dir results/
+   biolm protocol cancel ALY_123
 
 The one-liner: :func:`biolm.run_protocol`
 -------------------------------------------
@@ -134,8 +157,8 @@ returns the results dict:
 
     print(results)
 
-Authentication comes from the ``BIOLM_TOKEN`` environment variable (or an
-explicit ``api_key=`` argument). See :doc:`authentication` for token setup.
+Authentication comes from ``BIOLM_TOKEN``, an explicit ``api_key=`` argument,
+or saved OAuth credentials from ``biolm login``. See :doc:`authentication`.
 
 Full control: :class:`~biolm.ProtocolClient` and :class:`~biolm.ProtocolRun`
 ----------------------------------------------------------------------------
@@ -148,7 +171,7 @@ with :class:`~biolm.ProtocolClient` and drive the returned
 
     from biolm import ProtocolClient
 
-    client = ProtocolClient()  # reads BIOLM_TOKEN
+    client = ProtocolClient()  # BIOLM_TOKEN or saved OAuth credentials
 
     run = client.submit(
         "my-protocol-slug",
@@ -195,16 +218,6 @@ dashboard, cancelling a run, downloading artifacts, converting results to a
 DataFrame, or reconnecting to an existing ``run_id``. Under the hood
 ``run_protocol`` is exactly ``client.submit(...).wait(...)`` followed by
 ``run.results()``.
-
-.. note::
-
-   ``biolm protocol run`` and ``biolm protocol list`` are placeholders today and
-   print a "coming soon" message — they do **not** submit or enumerate runs.
-   Regardless of what older README snippets suggest, use the Python API above
-   (:func:`~biolm.run_protocol` or :class:`~biolm.ProtocolClient`) to submit,
-   wait, and retrieve results. The working CLI subcommands are ``init``,
-   ``show``, ``validate``, and ``log``.
-
 
 Logging results to MLflow
 ==================================

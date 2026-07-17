@@ -110,7 +110,10 @@ class TestProtocolClient:
         client = ProtocolClient()  # no api_key= kwarg
 
         mock_cls, mock_http = _patch_httpx_client("get", _mock_response(200, {}))
-        with patch("httpx.Client", mock_cls):
+        with patch(
+            "biolm.core.http.CredentialsProvider.get_auth_headers",
+            side_effect=AssertionError("No credentials found"),
+        ), patch("httpx.Client", mock_cls):
             with pytest.raises(ValueError, match="BIOLM_TOKEN"):
                 client._get("")
 
@@ -158,6 +161,24 @@ class TestProtocolClient:
         call_kwargs = mock_http.get.call_args
         headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers", {})
         assert headers.get("Authorization") == "Token kwarg-token-456"
+
+    def test_saved_oauth_credentials_use_bearer_auth(self, monkeypatch):
+        """Saved OAuth access tokens are promoted to a Bearer header."""
+        monkeypatch.delenv("BIOLMAI_TOKEN", raising=False)
+        monkeypatch.delenv("BIOLM_TOKEN", raising=False)
+        client = ProtocolClient()
+        resp = _mock_response(200, {"count": 0, "results": []})
+        mock_cls, mock_http = _patch_httpx_client("get", resp)
+
+        with patch(
+            "biolm.core.http.CredentialsProvider.get_auth_headers",
+            return_value={"Cookie": "access=oauth-access;refresh=oauth-refresh"},
+        ), patch("httpx.Client", mock_cls):
+            client._get("")
+
+        call_kwargs = mock_http.get.call_args
+        headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers", {})
+        assert headers == {"Authorization": "Bearer oauth-access"}
 
     # ------------------------------------------------------------------
     # list()
@@ -455,17 +476,22 @@ class TestProtocolRun:
     # cancel()
     # ------------------------------------------------------------------
 
-    def test_cancel_sets_status(self):
-        """cancel() calls DELETE and sets run.status = 'cancelled'."""
+    def test_cancel_requests_cancellation(self):
+        """cancel() uses the cancel endpoint and keeps the server-reported status."""
         run, _ = self._make_run(status="running")
-        resp = _mock_response(200, {"detail": "cancelled"})
+        resp = _mock_response(
+            202,
+            {"run_id": _RUN_ID, "status": "cancellation_requested"},
+        )
         mock_cls, mock_http = _patch_httpx_client("delete", resp)
 
         with patch("httpx.Client", mock_cls):
-            run.cancel()
+            result = run.cancel()
 
-        assert run.status == "cancelled"
-        assert mock_http.delete.called
+        assert result["status"] == "cancellation_requested"
+        assert run.status == "cancellation_requested"
+        called_url = mock_http.delete.call_args[0][0]
+        assert called_url.endswith(f"/runs/{_RUN_ID}/cancel/")
 
     def test_cancel_http_error(self):
         """cancel() raises ProtocolRunError when the server returns 400."""

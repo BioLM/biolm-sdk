@@ -119,7 +119,8 @@ Multi-step jobs defined in YAML — validate locally, submit to the platform, po
 
 ```bash
 biolm protocol validate design.yaml
-biolm protocol run design.yaml -i inputs.json
+biolm protocol list --search design
+biolm protocol run my-protocol-slug -i inputs.json --wait
 ```
 
 ```python
