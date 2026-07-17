@@ -47,7 +47,11 @@ Top-level help will list direct commands and groups without expanding every
 group's children. Group help will list that group's direct children. This
 produces a short top-level menu and lets the hierarchy provide the organization.
 
-The help renderer will omit hidden commands and remove the `Platform` category.
+`RichGroup` currently lists every registered command and does not honor
+`hidden=True`. The help renderer must skip hidden commands and remove the
+`Platform` category. Top-level help sections should follow user domains such as
+Account, Workspace, Hub, Models, Protocols, and Datasets.
+
 `biolm --version` is canonical. The `biolm version` compatibility command will
 remain callable but hidden from help and documentation.
 
@@ -69,9 +73,11 @@ biolm org invite ORGANIZATION EMAIL
 biolm version
 ```
 
-Aliases will call the same implementation as their canonical commands and will
-not print deprecation warnings. The removed `biolm org create` command will not
-receive an alias.
+Each alias is a separate Click `Command` or `Group` with `hidden=True` that
+shares the canonical callback and parameters. Sharing one command object under
+two names is not sufficient because hiding one name would hide both. Aliases
+will not print deprecation warnings. The removed `biolm org create` command
+will not receive an alias.
 
 ## Status and identity
 
@@ -117,10 +123,14 @@ will fetch the caller's organizations, compare the supplied value exactly
 against both fields, and resolve the result to the numeric ID required by the
 backend detail and invitation endpoints.
 
-Resolution fails before mutation when no organization matches. If name and slug
-matches identify different organizations, the client reports an ambiguous
-identifier instead of guessing. Numeric IDs remain accepted by the Python SDK
-for compatibility but are not documented in CLI help.
+Resolution fails before mutation when no organization matches. Because
+organization names and slugs use separate uniqueness constraints, an exact
+name match and an exact slug match can identify different organizations. In
+that case the client reports an ambiguous identifier instead of guessing.
+
+Numeric organization IDs remain accepted by the Python SDK and by both the
+canonical CLI and hidden aliases so existing scripts that pass an ID continue
+to work. CLI help and documentation describe name or slug input only.
 
 ## Error handling
 
