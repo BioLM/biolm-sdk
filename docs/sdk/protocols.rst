@@ -28,6 +28,16 @@ Validate a protocol file:
 
    biolm protocol validate my-protocol.yaml
 
+Submit inputs to the registered protocol slug:
+
+.. code-block:: bash
+
+   biolm protocol run my-protocol-slug -i inputs.json --wait
+
+The CLI submits JSON inputs, not the local YAML file. Use ``protocol list`` to
+discover registered slugs and ``status``, ``wait``, ``cancel``, ``results``, or
+``download`` to manage a run by ID.
+
 Validate from Python:
 
 .. code-block:: python
@@ -78,6 +88,7 @@ API
 .. autoclass:: biolm.protocol_runs.ProtocolRun
    :members: wait, results, cancel, download
    :undoc-members:
+   :noindex:
 
 See also
 --------

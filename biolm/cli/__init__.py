@@ -1,6 +1,7 @@
 """Console script for biolm."""
 from __future__ import annotations
 
+import copy
 import os
 import sys
 from pathlib import Path
@@ -38,6 +39,8 @@ from biolm.core.const import (
 from biolm.models.examples import get_example, list_models, get_model_details
 from biolm.io import load_fasta, load_csv, load_pdb, load_json, to_fasta, to_csv, to_pdb, to_json
 from biolm.models import Model
+from biolm.platform import PlatformClient, PlatformError, Workspace
+from biolm.protocol_runs import ProtocolClient, ProtocolRunError
 
 console = create_console()
 
@@ -247,13 +250,18 @@ class RichGroup(click.Group):
         # Organize commands into sections
         commands_by_section = {}
         for name, cmd in self.commands.items():
+            if cmd.hidden:
+                continue
+
             # Determine section based on command name/type
-            if name in ['login', 'logout', 'status', 'version']:
-                section = 'Authentication'
+            if ctx.parent is not None:
+                section = 'Commands'
+            elif name in ['status', 'whoami', 'account']:
+                section = 'Account'
+            elif name == 'workspace':
+                section = 'Workspace'
             elif name == 'hub':
                 section = 'Hub'
-            elif name == 'workspace':
-                section = 'Workspaces'
             elif name == 'model':
                 section = 'Models'
             elif name == 'protocol':
@@ -265,16 +273,8 @@ class RichGroup(click.Group):
             
             if section not in commands_by_section:
                 commands_by_section[section] = []
-            
-            # If it's a group, expand to show subcommands
-            if isinstance(cmd, click.Group) and cmd.commands:
-                for sub_name, sub_cmd in sorted(cmd.commands.items()):
-                    sub_help = _command_help_line(sub_cmd)
-                    # Format as "group subcommand"
-                    full_name = f"{name} {sub_name}"
-                    commands_by_section[section].append((full_name, sub_cmd))
-            else:
-                commands_by_section[section].append((name, cmd))
+
+            commands_by_section[section].append((name, cmd))
         
         # Write Options section with box
         opts = []
@@ -307,7 +307,7 @@ class RichGroup(click.Group):
             console.print()
         
         # Write command sections in order with boxes
-        section_order = ['Authentication', 'Hub', 'Workspaces', 'Models', 'Protocols', 'Datasets', 'Commands']
+        section_order = ['Account', 'Workspace', 'Hub', 'Models', 'Protocols', 'Datasets', 'Commands']
         for section in section_order:
             if section in commands_by_section:
                 # Create box content
@@ -334,6 +334,17 @@ class RichGroup(click.Group):
         """Write usage line with Rich formatting."""
         console.print(f"[text]Usage:[/text] [brand.bright]{ctx.command_path}[/brand.bright] [OPTIONS] COMMAND [ARGS]...")
         console.print()
+
+
+def _hidden_leaf_alias(parent, name, target):
+    """Register a hidden copy of a leaf command under ``parent``."""
+    if isinstance(target, click.Group):
+        raise TypeError("hidden aliases must target leaf commands")
+    alias = copy.copy(target)
+    alias.name = name
+    alias.hidden = True
+    parent.add_command(alias, name)
+    return alias
 
 
 @click.command()
@@ -372,7 +383,7 @@ def cli(ctx, debug, color):
         ctx.command.format_help(ctx, click.HelpFormatter())
 
 
-@cli.command()
+@cli.command(hidden=True)
 def version():
     """Print the installed ``biolm`` package version."""
     console.print(f"[brand.bright]biolm[/brand.bright] {BIOLM_VERSION}")
@@ -417,6 +428,44 @@ def display_env_vars_table():
     console.print(table)
 
 
+def _display_status_context() -> None:
+    """Best-effort platform context that never makes status fail."""
+    unavailable = "[text.muted]unavailable[/text.muted]"
+    account_value = unavailable
+    workspace_value = unavailable
+    client = None
+    try:
+        client = PlatformClient()
+        try:
+            active = client.current_workspace()
+        except PlatformError:
+            pass
+        else:
+            account_value = "{} {} ({})".format(
+                active.account_type,
+                active.account,
+                active.account_id,
+            )
+            workspace_value = active.path
+    except PlatformError:
+        pass
+    finally:
+        if client is not None:
+            client.close()
+
+    table = Table(
+        title="[brand]Active Platform Context[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bright",
+    )
+    table.add_column("Setting", style="brand", no_wrap=True)
+    table.add_column("Value")
+    table.add_row("Account", account_value)
+    table.add_row("Workspace", workspace_value)
+    console.print(table)
+
+
 @cli.command()
 def status():
     """Show authentication status, API endpoints, and where credentials are stored.
@@ -427,9 +476,17 @@ def status():
     display_env_vars_table()
     console.print()  # Add spacing before auth status
     get_auth_status()
+    console.print()
+    _display_status_context()
 
 
-@cli.command()
+@cli.group(cls=RichGroup)
+def account():
+    """Manage BioLM account authentication, usage, budget, API keys, and organizations."""
+    pass
+
+
+@account.command()
 @click.option(
     "--client-id",
     envvar="BIOLMAI_OAUTH_CLIENT_ID",
@@ -452,13 +509,13 @@ def login(client_id, scope):
     .. code-block:: bash
 
         # Login with default client ID
-        biolm login
+        biolm account login
 
         # Login with custom client ID
-        biolm login --client-id your-client-id
+        biolm account login --client-id your-client-id
 
         # Login with custom scope (supported: read, write, introspection)
-        biolm login --scope "read write"
+        biolm account login --scope "read write"
     """
     # Check if credentials already exist and are valid
     if are_credentials_valid():
@@ -520,11 +577,11 @@ def login(client_id, scope):
         raise click.Abort()
 
 
-@cli.command()
+@account.command()
 def logout():
     """Log out and remove saved OAuth credentials from ``~/.biolm/credentials``.
 
-    After logout you must run ``biolm login`` again before calling authenticated commands.
+    After logout you must run ``biolm account login`` again before calling authenticated commands.
     """
     try:
         os.remove(ACCESS_TOK_PATH)
@@ -535,6 +592,10 @@ def logout():
     except Exception as e:
         console.print(f"[error]✗ Logout failed: {e}[/error]")
         raise click.Abort()
+
+
+_hidden_leaf_alias(cli, "login", login)
+_hidden_leaf_alias(cli, "logout", logout)
 
 
 @cli.group(cls=RichGroup)
@@ -651,62 +712,612 @@ def hub_unset():
 
 @cli.group(cls=RichGroup)
 def workspace():
-    """List, inspect, create, and delete BioLM workspaces on the platform.
+    """List, inspect, create, and switch BioLM platform workspaces.
 
-    Workspaces scope projects, data access, and protocol runs for teams and organizations.
+    A workspace is an account and environment pair, addressed as ``account/environment``.
     """
     pass
 
 
-@workspace.command()
-def list():
-    """List workspaces you can access, including names, IDs, and basic metadata."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to list and manage BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+def _platform_request(callback):
+    """Run one platform operation with deterministic client cleanup."""
+    try:
+        with PlatformClient() as client:
+            return callback(client)
+    except PlatformError as exc:
+        raise click.ClickException(str(exc))
+
+
+def _workspace_data(workspace_value: Workspace) -> Dict[str, Any]:
+    """Return the stable public CLI representation of a workspace."""
+    return {
+        "path": workspace_value.path,
+        "account_type": workspace_value.account_type,
+        "account_id": workspace_value.account_id,
+        "environment_id": workspace_value.environment_id,
+    }
+
+
+def _print_json(value: Any) -> None:
+    """Write JSON without Rich markup or additional prose."""
+    click.echo(json.dumps(value, indent=2, default=str))
+
+
+def _identity_data(
+    user: Dict[str, Any], context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Compose the stable public identity representation."""
+    account_type = context.get("account_type")
+    account_details = context.get("account_details") or {}
+    is_personal = account_type == "user"
+    return {
+        "id": user.get("id"),
+        "username": user.get("username"),
+        "email": user.get("email"),
+        "first_name": user.get("first_name"),
+        "last_name": user.get("last_name"),
+        "account_type": account_type,
+        "account_id": context.get("account_id"),
+        "account_name": None if is_personal else account_details.get("name"),
+        "account_slug": (
+            user.get("username") if is_personal else account_details.get("slug")
+        ),
+        "environment_id": context.get("environment_id"),
+    }
+
+
+def _identity_display_value(value: Any) -> str:
+    return "—" if value is None or value == "" else str(value)
+
+
+def _display_identity(data: Dict[str, Any], output_format: str) -> None:
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    display_name = " ".join(
+        part
+        for part in (data.get("first_name"), data.get("last_name"))
+        if part
+    )
+    table = Table(
+        title="[brand]Authenticated Identity[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Field", style="brand")
+    table.add_column("Value")
+    rows = (
+        ("Username", data.get("username")),
+        ("Email", data.get("email")),
+        ("Display name", display_name),
+        ("Account type", data.get("account_type")),
+        ("Account ID", data.get("account_id")),
+        ("Account name", data.get("account_name")),
+        ("Account slug", data.get("account_slug")),
+        ("Environment ID", data.get("environment_id")),
+    )
+    for label, value in rows:
+        table.add_row(label, _identity_display_value(value))
+    console.print(table)
 
 
-@workspace.command()
-@click.argument('workspace_id', required=False)
-def show(workspace_id):
-    """Show details for a workspace by ID, or for the current workspace when no ID is given."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to manage BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+@cli.command()
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def whoami(output_format):
+    """Show the authenticated principal and active account context."""
+    data = _platform_request(
+        lambda client: _identity_data(
+            client.get_current_user(),
+            client.get_context(),
+        )
+    )
+    _display_identity(data, output_format)
+
+
+def _display_workspace(workspace_value: Workspace, output_format: str) -> None:
+    data = _workspace_data(workspace_value)
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    table = Table(
+        title="[brand]Workspace[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Path", style="brand")
+    table.add_column("Account type")
+    table.add_column("Account ID", justify="right")
+    table.add_column("Environment ID", justify="right")
+    table.add_row(
+        str(data["path"]),
+        str(data["account_type"]),
+        str(data["account_id"]),
+        str(data["environment_id"]),
+    )
+    console.print(table)
 
 
-@workspace.command()
-@click.argument('name')
-def create(name):
-    """Create a new workspace with the given name for organizing projects and protocol runs."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to create BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+def _display_record(title: str, data: Dict[str, Any], output_format: str) -> None:
+    """Display all fields returned by a platform endpoint."""
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    table = Table(
+        title="[brand]{}[/brand]".format(title),
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Field", style="brand")
+    table.add_column("Value")
+    for key, value in data.items():
+        label = str(key).replace("_", " ").strip().title()
+        if isinstance(value, (dict, builtins.list)):
+            rendered = json.dumps(value, default=str)
+        else:
+            rendered = str(value)
+        table.add_row(label, rendered)
+    console.print(table)
 
 
-@workspace.command()
-@click.argument('workspace_id')
-def delete(workspace_id):
-    """Delete a workspace by ID. This permanently removes the workspace and its resources."""
-    console.print(Panel(
-        "[text.muted]Workspace commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to delete BioLM workspaces.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+@workspace.command("list")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_list(output_format):
+    """List workspaces available to the authenticated user."""
+    workspaces = _platform_request(lambda client: client.list_workspaces())
+    data = [_workspace_data(item) for item in workspaces]
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    table = Table(
+        title="[brand]Workspaces[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Path", style="brand")
+    table.add_column("Account type")
+    table.add_column("Account ID", justify="right")
+    table.add_column("Environment ID", justify="right")
+    for item in data:
+        table.add_row(
+            str(item["path"]),
+            str(item["account_type"]),
+            str(item["account_id"]),
+            str(item["environment_id"]),
+        )
+    console.print(table)
+
+
+@workspace.command("show")
+@click.argument("path", required=False)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_show(path, output_format):
+    """Show the current workspace, or resolve an exact workspace PATH."""
+    if path is None:
+        workspace_value = _platform_request(lambda client: client.current_workspace())
+    else:
+        workspace_value = _platform_request(
+            lambda client: client.get_workspace(path)
+        )
+    _display_workspace(workspace_value, output_format)
+
+
+@workspace.command("switch")
+@click.argument("path")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_switch(path, output_format):
+    """Switch the active account and environment to workspace PATH."""
+    workspace_value = _platform_request(
+        lambda client: client.switch_workspace(path)
+    )
+    _display_workspace(workspace_value, output_format)
+
+
+@workspace.command("create")
+@click.argument("name")
+@click.option(
+    "--account",
+    "account_slug",
+    help="Account slug in which to create the environment.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def workspace_create(name, account_slug, output_format):
+    """Create a workspace environment named NAME."""
+    workspace_value = _platform_request(
+        lambda client: client.create_workspace(name, account=account_slug)
+    )
+    _display_workspace(workspace_value, output_format)
+
+
+def _usage_display_value(value):
+    """Render absent usage fields consistently."""
+    return "—" if value is None or value == "" else str(value)
+
+
+def _display_usage_summary(data: Dict[str, Any], output_format: str) -> None:
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    year = data.get("selected_year")
+    month = data.get("selected_month")
+    selected_month = (
+        "{:04d}-{:02d}".format(int(year), int(month))
+        if year is not None and month is not None
+        else "—"
+    )
+    account = "{} {}".format(
+        _usage_display_value(data.get("account_type")),
+        _usage_display_value(data.get("account_id")),
+    )
+    filter_env_id = data.get("filter_env_id")
+    environment = None
+    if filter_env_id is not None:
+        environment_label = data.get("environment_label")
+        environment = "{} ({})".format(
+            _usage_display_value(environment_label),
+            filter_env_id,
+        )
+
+    summary = Table(
+        title="[brand]Monthly usage[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    summary.add_column("Field", style="brand")
+    summary.add_column("Value")
+    summary.add_row("Account", account)
+    summary.add_row("Month", selected_month)
+    summary.add_row("Environment filter", _usage_display_value(environment))
+    summary.add_row(
+        "Usage amount",
+        _usage_display_value(data.get("current_usage_amount")),
+    )
+    summary.add_row(
+        "Environment usage",
+        _usage_display_value(data.get("environment_usage_amount")),
+    )
+    console.print(summary)
+
+    model_charges = data.get("model_charges") or []
+    if not model_charges:
+        console.print("[text.muted]No model charges.[/text.muted]")
+        return
+
+    models = Table(
+        title="[brand]Model charges[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    models.add_column("Model", style="brand")
+    models.add_column("Charge", justify="right")
+    for item in model_charges:
+        models.add_row(
+            _usage_display_value(item.get("model_name")),
+            _usage_display_value(item.get("total_biolm_charge")),
+        )
+    console.print(models)
+
+
+@account.command("usage")
+@click.option("--year", type=click.IntRange(min=1), help="Billing year.")
+@click.option(
+    "--month",
+    type=click.IntRange(min=1, max=12),
+    help="Billing month (1-12).",
+)
+@click.option(
+    "--environment-id",
+    type=click.IntRange(min=1),
+    help="Filter to an environment ID.",
+)
+@click.option(
+    "--account",
+    help="Account slug (or personal label) whose usage to inspect.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def account_usage(year, month, environment_id, account, output_format):
+    """Show monthly usage for the active or selected account."""
+    data = _platform_request(
+        lambda client: client.get_usage_summary(
+            year=year,
+            month=month,
+            environment_id=environment_id,
+            account=account,
+        )
+    )
+    _display_usage_summary(data, output_format)
+
+
+def _run_budget_show(output_format):
+    """Show budget and usage fields for the active account."""
+    data = _platform_request(lambda client: client.get_budget())
+    _display_record("Account budget", data, output_format)
+
+
+@account.group(cls=RichGroup, invoke_without_command=True)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+@click.pass_context
+def budget(ctx, output_format):
+    """Inspect and set the active account budget.
+
+    Invoked without a subcommand, shows the current budget.
+    """
+    if ctx.invoked_subcommand is None:
+        _run_budget_show(output_format)
+
+
+# Let negative numeric arguments reach FloatRange; extra unknown options still fail.
+@budget.command("set", context_settings={"ignore_unknown_options": True})
+@click.argument("amount", type=click.FloatRange(min=0.0))
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def budget_set(amount, output_format):
+    """Set the active account budget to nonnegative AMOUNT."""
+    data = _platform_request(lambda client: client.set_budget(amount))
+    _display_record("Account budget updated", data, output_format)
+
+
+@click.command("show", cls=RichCommand)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def budget_show(output_format):
+    """Show budget and usage fields for the active account."""
+    _run_budget_show(output_format)
+
+
+@account.group("api-key", cls=RichGroup)
+def api_key():
+    """Create and revoke BioLM platform API keys."""
+    pass
+
+
+@api_key.command("create")
+@click.option(
+    "--account",
+    "account",
+    help="Account slug (or personal label) that will own the key.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def api_key_create(account, output_format):
+    """Create an API key for the active or selected account."""
+    data = _platform_request(lambda client: client.create_api_key(account=account))
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    _display_record("API key created", data, output_format)
+    console.print(
+        "[warning]Store this token now; it is shown only once.[/warning]"
+    )
+
+
+@api_key.command("delete")
+@click.argument("token_or_prefix")
+@click.option(
+    "--yes",
+    "assume_yes",
+    is_flag=True,
+    help="Skip the confirmation prompt.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def api_key_delete(token_or_prefix, assume_yes, output_format):
+    """Revoke an API key by full token or eight-character prefix."""
+    if not assume_yes:
+        click.confirm("Revoke this API key?", abort=True)
+    _platform_request(lambda client: client.delete_api_key(token_or_prefix))
+    if output_format == "json":
+        _print_json({"status": "deleted"})
+        return
+    console.print("[success]API key revoked.[/success]")
+
+
+@account.group(cls=RichGroup)
+def org():
+    """List and manage BioLM organizations."""
+    pass
+
+
+@org.command("list")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_list(output_format):
+    """List organizations available to the authenticated user."""
+    organizations = _platform_request(lambda client: client.list_organizations())
+    if output_format == "json":
+        _print_json(organizations)
+        return
+
+    table = Table(
+        title="[brand]Organizations[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("ID", justify="right")
+    table.add_column("Name")
+    table.add_column("Slug", style="brand")
+    for organization in organizations:
+        table.add_row(
+            str(organization.get("id", "")),
+            str(organization.get("name", "")),
+            str(organization.get("slug", "")),
+        )
+    console.print(table)
+
+
+@org.command("show")
+@click.argument("organization")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_show(organization, output_format):
+    """Show organization by exact name or slug."""
+    data = _platform_request(
+        lambda client: client.get_organization(organization)
+    )
+    _display_record("Organization", data, output_format)
+
+
+@org.command("invite")
+@click.argument("organization")
+@click.argument("email")
+@click.option(
+    "--role",
+    type=click.Choice(["member", "admin", "billing_admin"]),
+    default="member",
+    show_default=True,
+    help="Organization role.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def org_invite(organization, email, role, output_format):
+    """Invite EMAIL to an organization by exact name or slug."""
+    data = _platform_request(
+        lambda client: client.invite_to_organization(
+            organization, email, role=role
+        )
+    )
+    _display_record("Organization invitation", data, output_format)
+
+
+# Hidden compatibility aliases for pre-hierarchy command paths.
+_usage_alias = RichGroup(
+    "usage",
+    hidden=True,
+    help="Inspect monthly BioLM platform usage.",
+)
+cli.add_command(_usage_alias)
+_hidden_leaf_alias(_usage_alias, "show", account_usage)
+
+_budget_alias = RichGroup(
+    "budget",
+    hidden=True,
+    help="Inspect and set the active account budget.",
+)
+cli.add_command(_budget_alias)
+_hidden_leaf_alias(_budget_alias, "show", budget_show)
+_hidden_leaf_alias(_budget_alias, "set", budget_set)
+
+_apikey_alias = RichGroup(
+    "apikey",
+    hidden=True,
+    help="Create and revoke BioLM platform API keys.",
+)
+cli.add_command(_apikey_alias)
+_hidden_leaf_alias(_apikey_alias, "create", api_key_create)
+_hidden_leaf_alias(_apikey_alias, "delete", api_key_delete)
+
+_org_alias = RichGroup(
+    "org",
+    hidden=True,
+    help="List and manage BioLM organizations.",
+)
+cli.add_command(_org_alias)
+_hidden_leaf_alias(_org_alias, "list", org_list)
+_hidden_leaf_alias(_org_alias, "show", org_show)
+_hidden_leaf_alias(_org_alias, "invite", org_invite)
 
 
 # Helper functions for model commands
@@ -2211,20 +2822,76 @@ def protocol():
     pass
 
 
-@protocol.command()
-def list():
-    """List protocols registered on the BioLM platform (platform listing coming soon).
+def _protocol_request(callback):
+    """Run one protocol API operation with consistent CLI errors."""
+    try:
+        return callback(ProtocolClient())
+    except (ProtocolRunError, TimeoutError, ValueError, OSError) as exc:
+        raise click.ClickException(str(exc))
 
-    Today, inspect local YAML files with ``biolm protocol show`` or validate them with
-    ``biolm protocol validate``.
-    """
-    console.print(Panel(
-        "[text.muted]Protocol commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to list and manage BioLM protocols.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
+
+@protocol.command("list")
+@click.option("--search", help="Filter protocols by name or slug.")
+@click.option("--page", type=click.IntRange(min=1), default=1, show_default=True)
+@click.option(
+    "--page-size",
+    type=click.IntRange(min=1, max=100),
+    default=20,
+    show_default=True,
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_list(search, page, page_size, output_format):
+    """List protocols registered on the BioLM platform."""
+    payload = _protocol_request(
+        lambda client: client.list(search=search, page=page, page_size=page_size)
+    )
+    if output_format == "json":
+        _print_json(payload)
+        return
+
+    protocols = payload.get("results") or []
+    if not protocols:
+        console.print("[text.muted]No protocols found.[/text.muted]")
+        return
+
+    table = Table(
+        title="[brand]Protocols[/brand]",
         box=box.ROUNDED,
-    ))
+        show_header=True,
+        header_style="brand.bold",
+    )
+    table.add_column("Slug", style="brand", no_wrap=True)
+    table.add_column("Version", justify="right")
+    table.add_column("Name")
+    table.add_column("Details")
+    for item in protocols:
+        access = "public" if item.get("is_public") else "private"
+        inputs = ", ".join(str(value) for value in item.get("input_fields") or [])
+        details = "{} / {}".format(item.get("owner_type", ""), access)
+        if inputs:
+            details = "{}\ninputs: {}".format(details, inputs)
+        table.add_row(
+            str(item.get("slug", "")),
+            str(item.get("version", "")),
+            str(item.get("name", "")),
+            details,
+        )
+    console.print(table)
+    count = int(payload.get("count", len(protocols)))
+    console.print(
+        "[text.muted]Showing {} of {} protocol{}.[/text.muted]".format(
+            len(protocols),
+            count,
+            "" if count == 1 else "s",
+        )
+    )
 
 
 @protocol.command()
@@ -2346,20 +3013,252 @@ def show(protocol_source):
         sys.exit(0)
 
 
-@protocol.command()
-@click.argument('protocol_file', type=click.Path(exists=True))
-def run(protocol_file):
-    """Execute a protocol defined in a YAML file (execution support coming soon).
+def _load_protocol_inputs(inputs_file) -> Dict[str, Any]:
+    """Load a protocol input object from an optional JSON stream."""
+    if inputs_file is None:
+        return {}
+    try:
+        value = json.load(inputs_file)
+    except (OSError, json.JSONDecodeError) as exc:
+        raise click.ClickException("Could not read protocol inputs as JSON: {}".format(exc))
+    if not isinstance(value, dict):
+        raise click.ClickException("Protocol inputs must be a JSON object.")
+    return value
 
-    Validates the file path today; full remote execution will run the task graph on the platform.
-    """
-    console.print(Panel(
-        "[text.muted]Protocol commands are coming soon![/text.muted]\n\n"
-        "This feature will allow you to execute protocols from YAML files.",
-        title="[brand]Coming Soon[/brand]",
-        border_style="brand",
-        box=box.ROUNDED,
-    ))
+
+def _protocol_run_data(run) -> Dict[str, Any]:
+    """Return the stable CLI summary of a submitted protocol run."""
+    return {
+        "run_id": run.run_id,
+        "protocol_slug": run.protocol_slug,
+        "protocol_version": run.protocol_version,
+        "status": run.status,
+    }
+
+
+def _positive_float(ctx, param, value):
+    """Validate positive protocol wait timing options."""
+    if value is not None and value <= 0:
+        raise click.BadParameter("must be greater than zero", ctx=ctx, param=param)
+    return value
+
+
+@protocol.command("run")
+@click.argument("slug")
+@click.option(
+    "-i",
+    "--inputs",
+    "inputs_file",
+    type=click.File("r"),
+    help="JSON object containing protocol inputs. Use '-' for stdin.",
+)
+@click.option("--version", type=click.IntRange(min=1), help="Protocol version.")
+@click.option("--name", "run_name", help="Human-readable run name.")
+@click.option(
+    "--environment-id",
+    type=click.IntRange(min=1),
+    help="Environment ID to attribute the run to.",
+)
+@click.option(
+    "--wait",
+    "wait_for_completion",
+    is_flag=True,
+    help="Wait for completion and print the full run result.",
+)
+@click.option(
+    "--timeout",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=3600.0,
+    show_default=True,
+    help="Total wait deadline in seconds.",
+)
+@click.option(
+    "--poll-interval",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=5.0,
+    show_default=True,
+    help="REST fallback polling interval in seconds.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_run(
+    slug,
+    inputs_file,
+    version,
+    run_name,
+    environment_id,
+    wait_for_completion,
+    timeout,
+    poll_interval,
+    output_format,
+):
+    """Submit a run of registered protocol SLUG."""
+    inputs = _load_protocol_inputs(inputs_file)
+    run = _protocol_request(
+        lambda client: client.submit(
+            slug,
+            inputs,
+            version=version,
+            run_name=run_name,
+            environment_id=environment_id,
+        )
+    )
+
+    if wait_for_completion:
+        try:
+            run.wait(
+                timeout=timeout,
+                show_progress=output_format != "json",
+                poll_interval=poll_interval,
+            )
+            data = run.results()
+        except (ProtocolRunError, TimeoutError, ValueError) as exc:
+            raise click.ClickException(str(exc))
+    else:
+        data = _protocol_run_data(run)
+
+    if output_format == "json":
+        _print_json(data)
+    else:
+        _display_record("Protocol run", data, output_format)
+
+
+@protocol.command("status")
+@click.argument("run_id")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_status(run_id, output_format):
+    """Show a current progress snapshot for protocol RUN_ID."""
+    data = _protocol_request(lambda client: client.get_run(run_id).progress())
+    _display_record("Protocol run status", data, output_format)
+
+
+@protocol.command("wait")
+@click.argument("run_id")
+@click.option(
+    "--timeout",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=3600.0,
+    show_default=True,
+    help="Total wait deadline in seconds.",
+)
+@click.option(
+    "--poll-interval",
+    type=click.FLOAT,
+    callback=_positive_float,
+    default=5.0,
+    show_default=True,
+    help="REST fallback polling interval in seconds.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_wait(run_id, timeout, poll_interval, output_format):
+    """Wait for protocol RUN_ID and print its final detail."""
+
+    def wait_for_run(client):
+        run = client.get_run(run_id)
+        run.wait(
+            timeout=timeout,
+            show_progress=output_format != "json",
+            poll_interval=poll_interval,
+        )
+        return run.results()
+
+    data = _protocol_request(wait_for_run)
+    _display_record("Protocol run", data, output_format)
+
+
+@protocol.command("cancel")
+@click.argument("run_id")
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def protocol_cancel(run_id, output_format):
+    """Request cancellation of protocol RUN_ID."""
+    data = _protocol_request(lambda client: client.get_run(run_id).cancel())
+    _display_record("Protocol cancellation", data, output_format)
+
+
+@protocol.command("results")
+@click.argument("run_id")
+@click.option(
+    "--output",
+    type=click.Path(dir_okay=False),
+    help="Write the full run detail as JSON instead of printing it.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="json",
+    show_default=True,
+    help="Terminal output format.",
+)
+def protocol_results(run_id, output, output_format):
+    """Show or save results for protocol RUN_ID."""
+    data = _protocol_request(lambda client: client.get_run(run_id).results())
+    if output:
+        try:
+            Path(output).write_text(json.dumps(data, indent=2, default=str) + "\n")
+        except OSError as exc:
+            raise click.ClickException(str(exc))
+        click.echo("Results written to {}".format(output))
+        return
+    _display_record("Protocol run results", data, output_format)
+
+
+@protocol.command("download")
+@click.argument("run_id")
+@click.option(
+    "--output-dir",
+    type=click.Path(file_okay=False),
+    default=".",
+    show_default=True,
+    help="Directory for the downloaded zip.",
+)
+@click.option(
+    "--file-type",
+    type=click.Choice(["csv", "jsonl"]),
+    default="csv",
+    show_default=True,
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing download.")
+def protocol_download(run_id, output_dir, file_type, overwrite):
+    """Download result artifacts for successful protocol RUN_ID."""
+    path = _protocol_request(
+        lambda client: client.get_run(run_id).download(
+            output_dir=output_dir,
+            file_type=file_type,
+            overwrite=overwrite,
+        )
+    )
+    click.echo("Downloaded results to {}".format(path))
 
 
 @protocol.command()

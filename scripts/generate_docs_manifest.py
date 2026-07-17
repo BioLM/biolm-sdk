@@ -21,6 +21,7 @@ SKIP_SLUGS = frozenset(
         "genindex",
         "py-modindex",
         "ORPHANS_AND_DUPLICATES",
+        "notes/snippet-doctests",
     }
 )
 SKIP_SLUG_PREFIXES = ("_modules/",)
@@ -151,6 +152,9 @@ def build_nav_item(
     depth: int,
     max_depth: int,
 ) -> dict[str, Any] | None:
+    if not should_include_slug(slug):
+        return None
+
     meta = load_page_meta(build_dir, slug)
     if meta is None:
         return None

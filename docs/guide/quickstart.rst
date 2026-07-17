@@ -4,7 +4,9 @@
 Quickstart
 ==========
 
-Authenticate before calling the API: set ``BIOLM_TOKEN`` or run ``biolm login``. See :sdklink:`authentication details <../../guide/authentication.html>`.
+Authenticate before calling the API: set ``BIOLM_TOKEN`` or run
+``biolm account login``. Confirm the active identity with ``biolm whoami``. See
+:sdklink:`authentication details <../../guide/authentication.html>`.
 
 Install the package:
 

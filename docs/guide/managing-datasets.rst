@@ -34,14 +34,14 @@ Dataset commands live behind an optional extra, so install it and authenticate f
 .. code-block:: bash
 
     pip install "biolm-sdk[mlflow]"
-    biolm login
+    biolm account login
 
 The ``[mlflow]`` extra pulls in the MLflow client the commands are built on; without
 it every ``biolm dataset`` call stops with a clear "MLflow Not Available" message.
-``biolm login`` establishes the platform credentials the commands reuse — see
-:doc:`authentication` for the full login flow. All commands talk to the hosted
-tracking server at ``https://mlflow.biolm.ai/`` by default; override it per command
-with ``--mlflow-uri`` if you run your own MLflow.
+``biolm account login`` establishes the platform credentials the commands
+reuse — see :doc:`authentication` for the full login flow. All commands talk to
+the hosted tracking server at ``https://mlflow.biolm.ai/`` by default; override
+it per command with ``--mlflow-uri`` if you run your own MLflow.
 
 Datasets are organized under MLflow *experiments*. Yours default to
 ``{username}/datasets``, so you never have to name an experiment for everyday use.
@@ -79,7 +79,7 @@ than a formatted panel.
 
 
 Uploading files
-==============
+===============
 
 Uploading attaches one or more files to a dataset, creating the dataset on the fly
 if the ID does not exist yet:
@@ -107,7 +107,7 @@ rather than replacing it, so you can accumulate files across several calls.
 
 
 Downloading artifacts
-====================
+=====================
 
 Pulling a dataset back down is the mirror image of upload:
 
@@ -136,20 +136,30 @@ experiment, download stops with a "Dataset Not Found" error rather than writing 
 empty directory, so a typo fails fast instead of looking like an empty result.
 
 
-A note on workspaces
-===================
+Workspaces, datasets, and volumes
+=================================
 
-You may see a ``biolm workspace`` command group alongside ``biolm dataset``. It is
-currently a stub and does not yet manage real remote storage, so reach for
-``biolm dataset`` for anything you actually need to persist on the platform today.
+Workspaces, datasets, and runtime volumes serve different purposes:
+
+- A workspace is the active organization or personal account plus environment
+  context, written as ``{account}/{environment}``.
+- A dataset is a collection of MLflow artifacts that the SDK can upload,
+  inspect, and download.
+- A runtime volume is Modal-backed storage mounted server-side into Jupyter or
+  protocol runs. It is not a local SDK storage API.
+
+Use ``biolm workspace`` to select platform context, ``biolm dataset`` for
+MLflow-backed artifacts, and protocol downloads or exports to bring runtime
+results onto your machine.
 
 
-Where to go next
-===============
+Dataset next steps
+==================
 
 - :doc:`sequence-and-structure-data` — read sequences and structures from local
   FASTA, CSV, and PDB files (the local-data counterpart to this page).
 - :doc:`protocol-workflows` — run platform protocols, whose inputs and outputs pair
   naturally with datasets.
-- :doc:`authentication` — set up the ``biolm login`` credentials these commands rely on.
+- :doc:`authentication` — set up the ``biolm account login`` credentials these
+  commands rely on.
 - :doc:`../cli/dataset` — the complete ``biolm dataset`` command reference.

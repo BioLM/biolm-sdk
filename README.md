@@ -39,7 +39,7 @@ pip install biolm-sdk
 ```bash
 export BIOLM_TOKEN=<token>
 # or
-biolm login
+biolm account login
 ```
 
 Check everything is wired up:
@@ -119,7 +119,8 @@ Multi-step jobs defined in YAML — validate locally, submit to the platform, po
 
 ```bash
 biolm protocol validate design.yaml
-biolm protocol run design.yaml -i inputs.json
+biolm protocol list --search design
+biolm protocol run my-protocol-slug -i inputs.json --wait
 ```
 
 ```python
@@ -218,7 +219,8 @@ Generators work as `items` — the client consumes them batch-by-batch without l
 | YAML workflows | `run_protocol()`, `ProtocolClient` | `biolm protocol` |
 | Design pipelines | `biolm.pipeline` *(optional extra)* | — |
 | Local model gateway | `biolm.hub` | `biolm hub` |
-| Cloud workspaces & datasets | `Workspace`, `Volume` | `biolm workspace`, `biolm dataset` |
+| Platform accounts, usage & environments | `PlatformClient`, `Workspace` | `biolm account`, `biolm workspace`, `biolm whoami` |
+| MLflow-backed datasets | `biolm.plugins.mlflow` *(optional extra)* | `biolm dataset` |
 | Finetuning (XGBoost, DSM) | `Finetune` | — |
 | File I/O | `biolm.io` (FASTA, CSV, PDB, JSON) | built into `biolm model run` |
 

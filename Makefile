@@ -1,4 +1,4 @@
-.PHONY: clean clean-build clean-pyc clean-test coverage dist docs docs-iframe docs-json docs-publish help install lint lint/flake8
+.PHONY: clean clean-build clean-pyc clean-test coverage dist docs docs-iframe docs-json docs-publish docs-doctest help install lint lint/flake8
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -139,6 +139,13 @@ docs-publish: ## build lean JSON export for GitHub Pages deployment
 		mkdir -p "docs/_build/publish/$$(dirname "$$rel")"; \
 		cp "$$src" "docs/_build/publish/$$rel"; \
 	done
+
+docs-doctest: ## run offline-safe Sphinx doctests for guide snippet shapes
+	mkdir -p docs/_static docs/api-reference
+	rm -f docs/api-reference/modules.rst docs/api-reference/biolmai.rst docs/api-reference/biolmai.*.rst
+	sphinx-apidoc -o docs/api-reference biolm
+	$(MAKE) -C docs clean
+	$(MAKE) -C docs doctest
 
 servedocs: docs ## compile the docs watching for changes
 	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .

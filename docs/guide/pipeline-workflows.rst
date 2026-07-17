@@ -48,7 +48,7 @@ half-imports and leaves you with a confusing traceback:
         pip install 'biolm[pipeline]'
 
 Authentication is the same as everywhere else in the SDK: set ``BIOLM_TOKEN``
-(or run ``biolm login``). See :doc:`authentication`.
+(or run ``biolm account login``). See :doc:`authentication`.
 
 
 Choosing a pipeline class
@@ -115,7 +115,7 @@ a thermostability prediction feeds a threshold filter and a top-N ranking:
     pipeline = DataPipeline(sequences=my_sequences)
     pipeline.add_prediction("temberture-regression", extractions="prediction", columns="tm")
     pipeline.add_filter(ThresholdFilter("tm", min_value=48.0))
-    pipeline.add_filter(RankingFilter("tm", top_n=10))
+    pipeline.add_filter(RankingFilter("tm", n=10))
 
     pipeline.run()                 # returns dict[str, StageResult]
     df = pipeline.results()        # the surviving sequences as a DataFrame

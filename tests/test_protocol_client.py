@@ -110,7 +110,10 @@ class TestProtocolClient:
         client = ProtocolClient()  # no api_key= kwarg
 
         mock_cls, mock_http = _patch_httpx_client("get", _mock_response(200, {}))
-        with patch("httpx.Client", mock_cls):
+        with patch(
+            "biolm.core.http.CredentialsProvider.get_auth_headers",
+            side_effect=AssertionError("No credentials found"),
+        ), patch("httpx.Client", mock_cls):
             with pytest.raises(ValueError, match="BIOLM_TOKEN"):
                 client._get("")
 
@@ -158,6 +161,24 @@ class TestProtocolClient:
         call_kwargs = mock_http.get.call_args
         headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers", {})
         assert headers.get("Authorization") == "Token kwarg-token-456"
+
+    def test_saved_oauth_credentials_use_bearer_auth(self, monkeypatch):
+        """Saved OAuth access tokens are promoted to a Bearer header."""
+        monkeypatch.delenv("BIOLMAI_TOKEN", raising=False)
+        monkeypatch.delenv("BIOLM_TOKEN", raising=False)
+        client = ProtocolClient()
+        resp = _mock_response(200, {"count": 0, "results": []})
+        mock_cls, mock_http = _patch_httpx_client("get", resp)
+
+        with patch(
+            "biolm.core.http.CredentialsProvider.get_auth_headers",
+            return_value={"Cookie": "access=oauth-access;refresh=oauth-refresh"},
+        ), patch("httpx.Client", mock_cls):
+            client._get("")
+
+        call_kwargs = mock_http.get.call_args
+        headers = call_kwargs.kwargs.get("headers") or call_kwargs[1].get("headers", {})
+        assert headers == {"Authorization": "Bearer oauth-access"}
 
     # ------------------------------------------------------------------
     # list()
@@ -351,10 +372,19 @@ class TestProtocolClient:
             mock_run.results.return_value = results_payload
             mock_submit.return_value = mock_run
 
-            result = client.run_and_wait(_SLUG, inputs={"sequence": "MKTAY"}, show_progress=False)
+            result = client.run_and_wait(
+                _SLUG,
+                inputs={"sequence": "MKTAY"},
+                show_progress=False,
+                poll_interval=0.25,
+            )
 
         mock_submit.assert_called_once_with(_SLUG, {"sequence": "MKTAY"}, run_name=None)
-        mock_run.wait.assert_called_once()
+        mock_run.wait.assert_called_once_with(
+            timeout=3600.0,
+            show_progress=False,
+            poll_interval=0.25,
+        )
         mock_run.results.assert_called_once()
         assert result == results_payload.get("results", {})
 
@@ -446,17 +476,22 @@ class TestProtocolRun:
     # cancel()
     # ------------------------------------------------------------------
 
-    def test_cancel_sets_status(self):
-        """cancel() calls DELETE and sets run.status = 'cancelled'."""
+    def test_cancel_requests_cancellation(self):
+        """cancel() uses the cancel endpoint and keeps the server-reported status."""
         run, _ = self._make_run(status="running")
-        resp = _mock_response(200, {"detail": "cancelled"})
+        resp = _mock_response(
+            202,
+            {"run_id": _RUN_ID, "status": "cancellation_requested"},
+        )
         mock_cls, mock_http = _patch_httpx_client("delete", resp)
 
         with patch("httpx.Client", mock_cls):
-            run.cancel()
+            result = run.cancel()
 
-        assert run.status == "cancelled"
-        assert mock_http.delete.called
+        assert result["status"] == "cancellation_requested"
+        assert run.status == "cancellation_requested"
+        called_url = mock_http.delete.call_args[0][0]
+        assert called_url.endswith(f"/runs/{_RUN_ID}/cancel/")
 
     def test_cancel_http_error(self):
         """cancel() raises ProtocolRunError when the server returns 400."""
@@ -525,22 +560,306 @@ class TestProtocolRun:
             with pytest.raises(ProtocolRunError, match="cancelled"):
                 run.wait(show_progress=False)
 
-    def test_wait_ws_loss_raises(self):
-        """wait() raises ProtocolRunError if _listen_ws raises before terminal status."""
+    def test_wait_ws_loss_falls_back_to_polling(self):
+        """wait() polls REST if the WebSocket connection fails."""
         run, _ = self._make_run()
 
         progress_snap = {"status": "running", "channel_id": "telemetry_abc"}
 
         def fake_listen(ws_url, show_progress=True, timeout=3600.0):
-            raise ProtocolRunError(
-                f"WebSocket connection lost for run {run.run_id}: connection refused. "
-                "Last known status: running"
-            )
+            raise ConnectionError("connection refused")
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
 
         with patch.object(run, "progress", return_value=progress_snap), \
-             patch.object(run, "_listen_ws", side_effect=fake_listen):
-            with pytest.raises(ProtocolRunError, match="WebSocket connection lost"):
+             patch.object(run, "_listen_ws", side_effect=fake_listen), \
+             patch.object(run, "refresh", side_effect=fake_refresh) as mock_refresh:
+            result = run.wait(show_progress=False)
+
+        assert result is run
+        mock_refresh.assert_called_once_with()
+
+    def test_wait_missing_websockets_falls_back_to_polling(self):
+        """wait() treats an unavailable optional websockets package as REST-only."""
+        import sys
+
+        run, _ = self._make_run()
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "refresh", side_effect=fake_refresh), patch.dict(
+            sys.modules, {"websockets": None}
+        ):
+            result = run.wait(show_progress=False)
+
+        assert result is run
+        assert run.status == "succeeded"
+
+    def test_wait_clean_ws_close_falls_back_to_polling(self):
+        """wait() polls REST when WebSocket iteration ends before terminal status."""
+        run, _ = self._make_run()
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", return_value=None), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ) as mock_refresh:
+            result = run.wait(show_progress=False)
+
+        assert result is run
+        mock_refresh.assert_called_once_with()
+
+    def test_wait_malformed_ws_event_falls_back_to_polling(self):
+        """wait() polls REST when malformed WebSocket data aborts the listener."""
+        run, _ = self._make_run()
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
+
+        malformed = ValueError("malformed telemetry event")
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=malformed), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ):
+            result = run.wait(show_progress=False)
+
+        assert result is run
+
+    @pytest.mark.parametrize("terminal_status", ["failed", "cancelled"])
+    def test_wait_polling_checks_terminal_errors(self, terminal_status):
+        """wait() uses existing terminal error behavior for REST-discovered states."""
+        run, _ = self._make_run()
+
+        def fake_refresh():
+            run.status = terminal_status
+            run._failure_error = "OOM" if terminal_status == "failed" else None
+            return run
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=ConnectionError), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ):
+            with pytest.raises(ProtocolRunError, match=terminal_status):
                 run.wait(show_progress=False)
+
+    def test_wait_rejects_nonpositive_poll_interval(self):
+        """wait() rejects intervals that would create a busy polling loop."""
+        run, _ = self._make_run()
+
+        with patch.object(run, "progress") as mock_progress:
+            with pytest.raises(ValueError, match="poll_interval"):
+                run.wait(poll_interval=0)
+
+        mock_progress.assert_not_called()
+
+    def test_wait_logs_ws_failure_at_debug(self, caplog):
+        """WebSocket failure is diagnosed at DEBUG (with exc_info) while fallback succeeds."""
+        import logging
+
+        run, _ = self._make_run()
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
+
+        with caplog.at_level(logging.DEBUG, logger="biolm.protocol_runs"):
+            with patch.object(
+                run,
+                "progress",
+                return_value={"status": "running", "channel_id": "telemetry_abc"},
+            ), patch.object(
+                run, "_listen_ws", side_effect=ConnectionError("boom")
+            ), patch.object(run, "refresh", side_effect=fake_refresh):
+                result = run.wait(show_progress=False)
+
+        assert result is run
+        debug_records = [
+            r
+            for r in caplog.records
+            if r.levelno == logging.DEBUG and run.run_id in r.getMessage()
+        ]
+        assert debug_records, "expected a DEBUG record diagnosing the WS failure"
+        assert any("boom" in r.getMessage() for r in debug_records)
+        assert any(r.exc_info is not None for r in debug_records)
+
+    def test_wait_polling_sleeps_poll_interval_then_clamps(self):
+        """Steady-state polling sleeps poll_interval, then clamps to the final remaining time."""
+        run, _ = self._make_run()
+        now = [0.0]
+        sleeps = []
+        statuses = iter(["running", "running", "running", "succeeded"])
+
+        def fake_refresh():
+            run.status = next(statuses)
+            return run
+
+        def fake_sleep(seconds):
+            sleeps.append(seconds)
+            now[0] += seconds
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=ConnectionError), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ), patch("time.monotonic", side_effect=lambda: now[0]), patch(
+            "time.sleep", side_effect=fake_sleep
+        ):
+            result = run.wait(timeout=12, poll_interval=5, show_progress=False)
+
+        assert result is run
+        assert sleeps == [5, 5, 2]
+
+    def test_wait_fallback_no_progress_output(self, capsys):
+        """REST fallback remains silent when show_progress is false."""
+        run, _ = self._make_run()
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=ConnectionError), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ):
+            run.wait(show_progress=False)
+
+        assert capsys.readouterr().out == ""
+
+    def test_wait_timeout_final_refresh_accepts_terminal_race(self):
+        """A final refresh accepts completion reached exactly at the deadline."""
+        run, _ = self._make_run()
+        now = [0.0]
+
+        def consume_deadline(*args, **kwargs):
+            now[0] = 10.0
+            raise TimeoutError("websocket timed out")
+
+        def fake_refresh():
+            run.status = "succeeded"
+            return run
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=consume_deadline), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ) as mock_refresh, patch("time.monotonic", side_effect=lambda: now[0]), patch(
+            "time.sleep"
+        ) as mock_sleep:
+            result = run.wait(timeout=10, poll_interval=5, show_progress=False)
+
+        assert result is run
+        mock_refresh.assert_called_once_with()
+        mock_sleep.assert_not_called()
+
+    def test_wait_ws_timeout_final_refresh_then_times_out(self):
+        """An exhausted WebSocket deadline gets one final nonterminal refresh."""
+        run, _ = self._make_run()
+        now = [0.0]
+
+        def consume_deadline(*args, **kwargs):
+            now[0] = 10.0
+            raise TimeoutError("websocket timed out")
+
+        def fake_refresh():
+            run.status = "running"
+            return run
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=consume_deadline), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ) as mock_refresh, patch("time.monotonic", side_effect=lambda: now[0]), patch(
+            "time.sleep"
+        ) as mock_sleep:
+            with pytest.raises(TimeoutError, match="did not complete within 10s"):
+                run.wait(timeout=10, poll_interval=5, show_progress=False)
+
+        mock_refresh.assert_called_once_with()
+        mock_sleep.assert_not_called()
+
+    def test_wait_polling_propagates_refresh_failure(self):
+        """REST errors remain visible instead of being replaced by WebSocket errors."""
+        run, _ = self._make_run()
+        rest_error = ProtocolRunError("GET run detail returned 503")
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=ConnectionError), patch.object(
+            run, "refresh", side_effect=rest_error
+        ):
+            with pytest.raises(ProtocolRunError, match="503"):
+                run.wait(show_progress=False)
+
+    def test_wait_timeout_does_not_reset_after_ws_failure(self):
+        """Polling receives only the deadline remaining after WebSocket failure."""
+        run, _ = self._make_run()
+        now = [0.0]
+        sleeps = []
+        refresh_count = 0
+
+        def monotonic():
+            return now[0]
+
+        def fake_listen(*args, **kwargs):
+            now[0] = 7.0
+            raise TimeoutError("websocket timed out")
+
+        def fake_refresh():
+            nonlocal refresh_count
+            refresh_count += 1
+            run.status = "running"
+            return run
+
+        def fake_sleep(seconds):
+            sleeps.append(seconds)
+            now[0] += seconds
+
+        with patch.object(
+            run,
+            "progress",
+            return_value={"status": "running", "channel_id": "telemetry_abc"},
+        ), patch.object(run, "_listen_ws", side_effect=fake_listen), patch.object(
+            run, "refresh", side_effect=fake_refresh
+        ), patch("time.monotonic", side_effect=monotonic), patch(
+            "time.sleep", side_effect=fake_sleep
+        ):
+            with pytest.raises(TimeoutError, match="did not complete within 10s"):
+                run.wait(timeout=10, poll_interval=5, show_progress=False)
+
+        assert sleeps == [3.0]
+        assert refresh_count == 2
 
     def test_wait_no_progress_output(self, capsys):
         """wait(show_progress=False) prints nothing to stdout."""
@@ -664,7 +983,25 @@ class TestTopLevel:
             run_name="top-level-test",
             timeout=3600.0,
             show_progress=False,
+            poll_interval=5.0,
         )
+
+    def test_top_level_forwards_poll_interval(self, monkeypatch):
+        """run_protocol(poll_interval=...) forwards the value to run_and_wait()."""
+        import biolmai
+
+        monkeypatch.setenv("BIOLMAI_TOKEN", _TOKEN)
+
+        with patch.object(ProtocolClient, "run_and_wait", return_value={}) as mock_raw:
+            biolmai.run_protocol(
+                _SLUG,
+                inputs={"sequence": "MKTAY"},
+                api_key=_TOKEN,
+                show_progress=False,
+                poll_interval=0.25,
+            )
+
+        assert mock_raw.call_args.kwargs.get("poll_interval") == 0.25
 
 
 # ===========================================================================

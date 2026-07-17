@@ -18,6 +18,7 @@ Welcome to BioLM SDK Documentation
    guide/quickstart
    guide/installation
    guide/authentication
+   guide/account-management
    guide/concepts
    guide/sdk-overview
    guide/faq
@@ -77,9 +78,11 @@ Welcome to BioLM SDK Documentation
    :caption: CLI
    :hidden:
 
+   cli/account
    cli/login
    cli/logout
    cli/status
+   cli/whoami
    cli/hub
    cli/workspace
    cli/model
@@ -115,3 +118,10 @@ Welcome to BioLM SDK Documentation
 
    changelog
    notes/migration-1.0
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Internal
+   :hidden:
+
+   notes/snippet-doctests
