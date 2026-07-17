@@ -43,16 +43,18 @@ jobs:
           pip install -r requirements_docs.txt
           pip install -e ".[pipeline]"
 
+      # doctest cleans docs/_build, so it must run before docs-publish.
+      # Otherwise the publish tree is wiped before Upload artifact.
+      - name: Run guide snippet doctests
+        env:
+          BIOLM_THREADS: "8"
+        run: make docs-doctest
+
       - name: Build documentation (JSON export)
         env:
           # Prevent docs build from failing if an org/repo env sets BIOLM_THREADS too high.
           BIOLM_THREADS: "8"
         run: make docs-publish
-
-      - name: Run guide snippet doctests
-        env:
-          BIOLM_THREADS: "8"
-        run: make docs-doctest
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
