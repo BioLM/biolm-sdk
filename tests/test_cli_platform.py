@@ -384,3 +384,136 @@ def test_apikey_delete_api_error_is_click_error(platform_client):
 
     assert result.exit_code != 0
     assert "not found" in result.output
+
+
+def _usage_payload():
+    return {
+        "account_type": "organization",
+        "account_id": 20,
+        "institute_id": 501,
+        "selected_year": 2025,
+        "selected_month": 6,
+        "current_year": 2026,
+        "current_month": 7,
+        "env_list": [{"id": 200, "slug": "prod"}],
+        "filter_env_id": 200,
+        "current_usage_amount": 12.5,
+        "environment_usage_amount": 3.0,
+        "environment_label": "prod",
+        "model_charges": [
+            {"model_name": "esm2-8m", "total_biolm_charge": 12.5},
+            {"model_name": None, "total_biolm_charge": 0.25},
+        ],
+    }
+
+
+def test_usage_group_and_show_command_registered():
+    result = invoke("--help")
+
+    assert result.exit_code == 0, result.output
+    assert "usage show" in result.output
+
+
+def test_usage_show_default_delegates_and_renders_summary(platform_client):
+    _, client = platform_client
+    client.get_usage_summary.return_value = _usage_payload()
+
+    result = invoke("usage", "show")
+
+    assert result.exit_code == 0, result.output
+    client.get_usage_summary.assert_called_once_with(
+        year=None,
+        month=None,
+        environment_id=None,
+        account=None,
+    )
+    assert "organization" in result.output
+    assert "2025-06" in result.output
+    assert "12.5" in result.output
+    assert "esm2-8m" in result.output
+    assert "0.25" in result.output
+    assert "—" in result.output
+
+
+def test_usage_show_filters_and_json_passthrough(platform_client):
+    _, client = platform_client
+    payload = _usage_payload()
+    client.get_usage_summary.return_value = payload
+
+    result = invoke(
+        "usage",
+        "show",
+        "--year",
+        "2025",
+        "--month",
+        "6",
+        "--environment-id",
+        "200",
+        "--account",
+        "acme",
+        "--format",
+        "json",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == payload
+    client.get_usage_summary.assert_called_once_with(
+        year=2025,
+        month=6,
+        environment_id=200,
+        account="acme",
+    )
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ("--year", "0"),
+        ("--month", "0"),
+        ("--month", "13"),
+        ("--environment-id", "0"),
+    ],
+)
+def test_usage_show_rejects_invalid_ranges_before_request(platform_client, args):
+    _, client = platform_client
+
+    result = invoke("usage", "show", *args)
+
+    assert result.exit_code != 0
+    client.get_usage_summary.assert_not_called()
+
+
+def test_usage_show_empty_model_charges(platform_client):
+    _, client = platform_client
+    payload = _usage_payload()
+    payload["model_charges"] = []
+    client.get_usage_summary.return_value = payload
+
+    result = invoke("usage", "show")
+
+    assert result.exit_code == 0, result.output
+    assert "No model charges" in result.output
+
+
+def test_usage_show_does_not_imply_rejected_environment_filter(platform_client):
+    _, client = platform_client
+    payload = _usage_payload()
+    payload["filter_env_id"] = None
+    payload["environment_label"] = "prod"
+    client.get_usage_summary.return_value = payload
+
+    result = invoke("usage", "show")
+
+    assert result.exit_code == 0, result.output
+    assert "Environment filter" in result.output
+    assert "prod" not in result.output
+
+
+def test_usage_show_api_error_is_click_error(platform_client):
+    _, client = platform_client
+    client.get_usage_summary.side_effect = PlatformError("Usage unavailable")
+
+    result = invoke("usage", "show")
+
+    assert result.exit_code != 0
+    assert "Usage unavailable" in result.output

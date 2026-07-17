@@ -117,6 +117,17 @@ Budget commands operate on the active account context. ``biolm budget show``
 displays budget and usage fields, while ``biolm budget set`` sets a
 nonnegative account budget.
 
+Monthly usage
+-------------
+
+``biolm usage show`` displays the effective account, selected month, usage
+amounts, and charges grouped by model. It defaults to the current month and
+personal account. Use ``--year`` and ``--month`` for another month,
+``--environment-id`` to filter an environment, ``--account`` for an
+organization or personal account, and ``--format json`` for the unmodified API
+response. The platform exposes neither a billing-history list nor a stable
+live-activity API through this command.
+
 API keys
 --------
 

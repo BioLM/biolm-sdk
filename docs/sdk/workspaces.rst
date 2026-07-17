@@ -34,8 +34,15 @@ The same client exposes the underlying platform resources:
   ``create_organization()``, and ``invite_to_organization()``
 - Environments: ``list_environments()`` and ``create_environment()``
 - Active-account budgets: ``get_budget()`` and ``set_budget()``
+- Monthly usage: ``get_usage_summary(year=None, month=None,
+  environment_id=None, account=None)``
 - API keys: ``create_api_key(account=None)`` and
   ``delete_api_key(token_or_prefix)``
+
+``get_usage_summary()`` returns the platform's monthly usage dictionary,
+including effective account scope, environment usage, and model charges. It
+uses the current month and account by default. Pass ``account`` to select an
+organization or personal account within the same client session.
 
 ``create_api_key()`` returns the one-time token secret and owns the key with the
 active account, or the account named by ``account``. The secret is not stored by
@@ -58,6 +65,7 @@ use it as a context manager:
        target = platform.get_workspace("acme/research")
        platform.switch_workspace(target)
        created = platform.create_workspace("experiments", account="acme")
+       usage = platform.get_usage_summary(year=2026, month=7, account="acme")
 
 The client handles OAuth/token credentials and persists the session cookies
 needed for account-context switches. Run ``biolm login`` once when using OAuth;
@@ -71,7 +79,7 @@ Platform API reference
    :undoc-members:
 
 .. autoclass:: biolm.platform.PlatformClient
-   :members: list_workspaces, current_workspace, get_workspace, switch_workspace, create_workspace, list_organizations, get_organization, create_organization, invite_to_organization, list_environments, create_environment, get_budget, set_budget, create_api_key, delete_api_key
+   :members: list_workspaces, current_workspace, get_workspace, switch_workspace, create_workspace, list_organizations, get_organization, create_organization, invite_to_organization, list_environments, create_environment, get_budget, set_budget, get_usage_summary, create_api_key, delete_api_key
 
 Workspace documentation
 -----------------------

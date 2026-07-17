@@ -90,6 +90,8 @@ class FakeConsole:
         # Knox API keys: each entry tracks ownership derived from session context.
         self.api_keys: List[Dict[str, Any]] = []
         self._next_token = 0
+        self.usage_queries: List[Dict[str, str]] = []
+        self.usage_fail_status: Optional[int] = None
 
     @property
     def session(self) -> Dict[str, Any]:
@@ -269,6 +271,46 @@ class FakeConsole:
             self.budget["total_budget"] = float(body["workspace_budget"])
             response = {"workspace_budget": float(body["workspace_budget"])}
             return self._json(request, 200, response, session_id=sid)
+
+        if path.endswith("/usage-summary/") and method == "GET":
+            if self.usage_fail_status is not None:
+                fail_status = self.usage_fail_status
+                self.usage_fail_status = None
+                return self._json(
+                    request,
+                    fail_status,
+                    {"error": "usage unavailable"},
+                    session_id=sid,
+                )
+            params = dict(request.url.params)
+            self.usage_queries.append(params)
+            return self._json(
+                request,
+                200,
+                {
+                    "account_type": session["account_type"],
+                    "account_id": session["account_id"],
+                    "institute_id": 501,
+                    "selected_year": int(params.get("year", 2026)),
+                    "selected_month": int(params.get("month", 7)),
+                    "current_year": 2026,
+                    "current_month": 7,
+                    "env_list": [{"id": 200, "slug": "prod"}],
+                    "filter_env_id": (
+                        int(params["env"]) if params.get("env") else None
+                    ),
+                    "current_usage_amount": 12.5,
+                    "environment_usage_amount": 3.0,
+                    "environment_label": "prod",
+                    "model_charges": [
+                        {
+                            "model_name": "esm2-8m",
+                            "total_biolm_charge": 12.5,
+                        }
+                    ],
+                },
+                session_id=sid,
+            )
 
         if path.endswith("/auth/generate_token/") and method == "POST":
             self._next_token += 1
@@ -673,6 +715,101 @@ def test_http_error_raises_platform_error(client: PlatformClient, fake: FakeCons
     err = excinfo.value
     assert err.status_code == 403
     assert "forbidden" in str(err).lower() or "nope" in str(err).lower()
+
+
+def test_usage_summary_sends_year_month_and_environment_query(
+    client: PlatformClient, fake: FakeConsole
+):
+    result = client.get_usage_summary(
+        year=2025,
+        month=6,
+        environment_id=200,
+    )
+
+    assert result["selected_year"] == 2025
+    assert result["selected_month"] == 6
+    assert result["filter_env_id"] == 200
+    assert fake.usage_queries == [{"year": "2025", "month": "6", "env": "200"}]
+
+
+def test_usage_summary_omits_unspecified_query_values(
+    client: PlatformClient, fake: FakeConsole
+):
+    result = client.get_usage_summary()
+
+    assert result["account_type"] == "organization"
+    assert result["account_id"] == 10
+    assert fake.usage_queries == [{}]
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "message"),
+    [
+        ({"year": 0}, "year"),
+        ({"month": 0}, "month"),
+        ({"month": 13}, "month"),
+        ({"environment_id": 0}, "environment_id"),
+    ],
+)
+def test_usage_summary_rejects_invalid_ranges_before_request(
+    client: PlatformClient,
+    fake: FakeConsole,
+    kwargs: Dict[str, int],
+    message: str,
+):
+    before = len(fake.requests)
+
+    with pytest.raises(ValueError, match=message):
+        client.get_usage_summary(**kwargs)
+
+    assert len(fake.requests) == before
+
+
+def test_usage_summary_for_named_org_switches_and_restores_context(
+    client: PlatformClient, fake: FakeConsole
+):
+    before = dict(fake.session)
+
+    result = client.get_usage_summary(account="acme")
+
+    assert result["account_type"] == "organization"
+    assert result["account_id"] == 20
+    assert fake.session == before
+
+
+def test_usage_summary_for_personal_account_switches_and_restores_context(
+    client: PlatformClient, fake: FakeConsole
+):
+    before = dict(fake.session)
+
+    result = client.get_usage_summary(account="astewart")
+
+    assert result["account_type"] == "user"
+    assert result["account_id"] == 1
+    assert fake.session == before
+
+
+def test_usage_summary_restores_context_after_request_error(
+    client: PlatformClient, fake: FakeConsole
+):
+    before = dict(fake.session)
+    fake.usage_fail_status = 503
+
+    with pytest.raises(PlatformError):
+        client.get_usage_summary(account="acme")
+
+    assert fake.session == before
+
+
+def test_usage_summary_unknown_account_raises_and_restores_context(
+    client: PlatformClient, fake: FakeConsole
+):
+    before = dict(fake.session)
+
+    with pytest.raises(WorkspaceNotFoundError):
+        client.get_usage_summary(account="does-not-exist")
+
+    assert fake.session == before
 
 
 def test_create_api_key_uses_current_context_and_returns_secret(

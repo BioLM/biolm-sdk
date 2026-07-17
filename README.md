@@ -219,7 +219,7 @@ Generators work as `items` — the client consumes them batch-by-batch without l
 | YAML workflows | `run_protocol()`, `ProtocolClient` | `biolm protocol` |
 | Design pipelines | `biolm.pipeline` *(optional extra)* | — |
 | Local model gateway | `biolm.hub` | `biolm hub` |
-| Platform accounts & environments | `PlatformClient`, `Workspace` | `biolm workspace`, `biolm org`, `biolm budget`, `biolm apikey` |
+| Platform accounts, usage & environments | `PlatformClient`, `Workspace` | `biolm workspace`, `biolm org`, `biolm budget`, `biolm usage`, `biolm apikey` |
 | MLflow-backed datasets | `biolm.plugins.mlflow` *(optional extra)* | `biolm dataset` |
 | Finetuning (XGBoost, DSM) | `Finetune` | — |
 | File I/O | `biolm.io` (FASTA, CSV, PDB, JSON) | built into `biolm model run` |

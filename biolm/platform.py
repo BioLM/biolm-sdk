@@ -228,13 +228,19 @@ class PlatformClient:
         method: str,
         path: str,
         json: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> Any:
         endpoint = self._url(path)
         method_upper = method.upper()
         if method_upper in _UNSAFE_METHODS:
             self._ensure_csrf()
         try:
-            response = self._client.request(method_upper, endpoint, json=json)
+            response = self._client.request(
+                method_upper,
+                endpoint,
+                json=json,
+                params=params,
+            )
         except httpx.HTTPError as exc:
             raise PlatformError(
                 "Platform request {} {} failed: {}".format(
@@ -305,6 +311,54 @@ class PlatformClient:
             "account-budget/",
             json={"workspace_budget": float(workspace_budget)},
         )
+
+    def get_usage_summary(
+        self,
+        year: Optional[int] = None,
+        month: Optional[int] = None,
+        environment_id: Optional[int] = None,
+        account: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Return monthly usage for the current or named account."""
+        if year is not None and int(year) <= 0:
+            raise ValueError("year must be greater than zero.")
+        if month is not None and not 1 <= int(month) <= 12:
+            raise ValueError("month must be between 1 and 12.")
+        if environment_id is not None and int(environment_id) <= 0:
+            raise ValueError("environment_id must be greater than zero.")
+
+        params: Dict[str, int] = {}
+        if year is not None:
+            params["year"] = int(year)
+        if month is not None:
+            params["month"] = int(month)
+        if environment_id is not None:
+            params["env"] = int(environment_id)
+        if account is None:
+            return self._request("GET", "usage-summary/", params=params)
+
+        original = self.get_context()
+        orgs = self.list_organizations()
+        try:
+            personal = self._discover_personal()
+            resolved = self._resolve_account_slug(
+                account,
+                personal["label"],
+                int(personal["account_id"]),
+                orgs,
+            )
+            self.set_context(
+                resolved["account_type"],
+                int(resolved["account_id"]),
+                environment_id=None,
+            )
+            return self._request("GET", "usage-summary/", params=params)
+        finally:
+            self.set_context(
+                original.get("account_type", "user"),
+                original.get("account_id"),
+                environment_id=original.get("environment_id"),
+            )
 
     def _account_label(
         self,

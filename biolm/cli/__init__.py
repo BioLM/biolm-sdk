@@ -256,7 +256,7 @@ class RichGroup(click.Group):
                 section = 'Authentication'
             elif name == 'hub':
                 section = 'Hub'
-            elif name in ['workspace', 'org', 'budget', 'apikey']:
+            elif name in ['workspace', 'org', 'budget', 'apikey', 'usage']:
                 section = 'Platform'
             elif name == 'model':
                 section = 'Models'
@@ -971,6 +971,121 @@ def budget_set(amount, output_format):
     """Set the active account budget to nonnegative AMOUNT."""
     data = _platform_request(lambda client: client.set_budget(amount))
     _display_record("Account budget updated", data, output_format)
+
+
+def _usage_display_value(value):
+    """Render absent usage fields consistently."""
+    return "—" if value is None or value == "" else str(value)
+
+
+def _display_usage_summary(data: Dict[str, Any], output_format: str) -> None:
+    if output_format == "json":
+        _print_json(data)
+        return
+
+    year = data.get("selected_year")
+    month = data.get("selected_month")
+    selected_month = (
+        "{:04d}-{:02d}".format(int(year), int(month))
+        if year is not None and month is not None
+        else "—"
+    )
+    account = "{} {}".format(
+        _usage_display_value(data.get("account_type")),
+        _usage_display_value(data.get("account_id")),
+    )
+    filter_env_id = data.get("filter_env_id")
+    environment = None
+    if filter_env_id is not None:
+        environment_label = data.get("environment_label")
+        environment = "{} ({})".format(
+            _usage_display_value(environment_label),
+            filter_env_id,
+        )
+
+    summary = Table(
+        title="[brand]Monthly usage[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    summary.add_column("Field", style="brand")
+    summary.add_column("Value")
+    summary.add_row("Account", account)
+    summary.add_row("Month", selected_month)
+    summary.add_row("Environment filter", _usage_display_value(environment))
+    summary.add_row(
+        "Usage amount",
+        _usage_display_value(data.get("current_usage_amount")),
+    )
+    summary.add_row(
+        "Environment usage",
+        _usage_display_value(data.get("environment_usage_amount")),
+    )
+    console.print(summary)
+
+    model_charges = data.get("model_charges") or []
+    if not model_charges:
+        console.print("[text.muted]No model charges.[/text.muted]")
+        return
+
+    models = Table(
+        title="[brand]Model charges[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bold",
+    )
+    models.add_column("Model", style="brand")
+    models.add_column("Charge", justify="right")
+    for item in model_charges:
+        models.add_row(
+            _usage_display_value(item.get("model_name")),
+            _usage_display_value(item.get("total_biolm_charge")),
+        )
+    console.print(models)
+
+
+@cli.group(cls=RichGroup)
+def usage():
+    """Inspect monthly BioLM platform usage."""
+    pass
+
+
+@usage.command("show")
+@click.option("--year", type=click.IntRange(min=1), help="Billing year.")
+@click.option(
+    "--month",
+    type=click.IntRange(min=1, max=12),
+    help="Billing month (1-12).",
+)
+@click.option(
+    "--environment-id",
+    type=click.IntRange(min=1),
+    help="Filter to an environment ID.",
+)
+@click.option(
+    "--account",
+    help="Account slug (or personal label) whose usage to inspect.",
+)
+@click.option(
+    "--format",
+    "output_format",
+    type=click.Choice(["table", "json"]),
+    default="table",
+    show_default=True,
+    help="Output format.",
+)
+def usage_show(year, month, environment_id, account, output_format):
+    """Show monthly usage for the active or selected account."""
+    data = _platform_request(
+        lambda client: client.get_usage_summary(
+            year=year,
+            month=month,
+            environment_id=environment_id,
+            account=account,
+        )
+    )
+    _display_usage_summary(data, output_format)
 
 
 @cli.group(cls=RichGroup)
