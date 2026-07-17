@@ -48,7 +48,7 @@ half-imports and leaves you with a confusing traceback:
         pip install 'biolm[pipeline]'
 
 Authentication is the same as everywhere else in the SDK: set ``BIOLM_TOKEN``
-(or run ``biolm login``). See :doc:`authentication`.
+(or run ``biolm account login``). See :doc:`authentication`.
 
 
 Choosing a pipeline class

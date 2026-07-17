@@ -77,9 +77,11 @@ Welcome to BioLM SDK Documentation
    :caption: CLI
    :hidden:
 
+   cli/account
    cli/login
    cli/logout
    cli/status
+   cli/whoami
    cli/hub
    cli/workspace
    cli/model

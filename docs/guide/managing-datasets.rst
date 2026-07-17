@@ -34,14 +34,14 @@ Dataset commands live behind an optional extra, so install it and authenticate f
 .. code-block:: bash
 
     pip install "biolm-sdk[mlflow]"
-    biolm login
+    biolm account login
 
 The ``[mlflow]`` extra pulls in the MLflow client the commands are built on; without
 it every ``biolm dataset`` call stops with a clear "MLflow Not Available" message.
-``biolm login`` establishes the platform credentials the commands reuse — see
-:doc:`authentication` for the full login flow. All commands talk to the hosted
-tracking server at ``https://mlflow.biolm.ai/`` by default; override it per command
-with ``--mlflow-uri`` if you run your own MLflow.
+``biolm account login`` establishes the platform credentials the commands
+reuse — see :doc:`authentication` for the full login flow. All commands talk to
+the hosted tracking server at ``https://mlflow.biolm.ai/`` by default; override
+it per command with ``--mlflow-uri`` if you run your own MLflow.
 
 Datasets are organized under MLflow *experiments*. Yours default to
 ``{username}/datasets``, so you never have to name an experiment for everyday use.
@@ -160,5 +160,6 @@ Dataset next steps
   FASTA, CSV, and PDB files (the local-data counterpart to this page).
 - :doc:`protocol-workflows` — run platform protocols, whose inputs and outputs pair
   naturally with datasets.
-- :doc:`authentication` — set up the ``biolm login`` credentials these commands rely on.
+- :doc:`authentication` — set up the ``biolm account login`` credentials these
+  commands rely on.
 - :doc:`../cli/dataset` — the complete ``biolm dataset`` command reference.

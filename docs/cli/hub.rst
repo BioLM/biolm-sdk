@@ -22,7 +22,7 @@ Connect the CLI and SDK to a running `biolm-hub <https://github.com/BioLM/biolm-
 
     bh serve
     biolm hub set
-    biolm login
+    biolm account login
     biolm model run esm2-8m encode -i seq.json
 
 By default ``biolm hub set`` points at ``http://127.0.0.1:8000`` and saves ``hub_api_url`` to

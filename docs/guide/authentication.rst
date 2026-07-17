@@ -50,14 +50,15 @@ For Python
     import os
     os.environ['BIOLM_TOKEN'] = '9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b'
 
-Alternatively, with :code:`biolm-sdk` installed, in your Terminal run :code:`biolm login`.
+Alternatively, with :code:`biolm-sdk` installed, run
+:code:`biolm account login` in your terminal.
 
 CLI authentication
 ------------------
 
 .. code-block:: bash
 
-    biolm login
+    biolm account login
 
 The command will:
 
@@ -76,7 +77,7 @@ The command will:
 
 .. code-block:: bash
 
-    biolm login
+    biolm account login
 
 If already logged in:
 
@@ -89,7 +90,7 @@ Custom OAuth client ID:
 
 .. code-block:: bash
 
-    biolm login --client-id YOUR_CLIENT_ID
+    biolm account login --client-id YOUR_CLIENT_ID
 
 Or set the ``BIOLM_OAUTH_CLIENT_ID`` environment variable (legacy: ``BIOLMAI_OAUTH_CLIENT_ID``).
 
@@ -97,7 +98,7 @@ Custom OAuth scopes (supported: read, write, introspection):
 
 .. code-block:: bash
 
-    biolm login --scope "read write"
+    biolm account login --scope "read write"
 
 Examples
 --------
@@ -106,19 +107,19 @@ Login with default settings:
 
 .. code-block:: bash
 
-    biolm login
+    biolm account login
 
 Login with custom client ID:
 
 .. code-block:: bash
 
-    biolm login --client-id abc123xyz
+    biolm account login --client-id abc123xyz
 
 Login with custom scope:
 
 .. code-block:: bash
 
-    biolm login --scope "read write"
+    biolm account login --scope "read write"
 
 Credentials file format
 -----------------------
@@ -127,6 +128,10 @@ Credentials are saved to :code:`~/.biolm/credentials` in JSON format with:
 
 - ``access`` — short-lived access token
 - ``refresh`` — refresh token for renewing access
-- OAuth metadata (``token_url``, ``client_id``, etc.) when using ``biolm login``
+- OAuth metadata (``token_url``, ``client_id``, etc.) when using
+  ``biolm account login``
+
+Run ``biolm whoami`` to inspect the authenticated principal and active account,
+or ``biolm account logout`` to remove saved OAuth credentials.
 
 See :doc:`../notes/migration-1.0` for the full list of renamed environment variables.

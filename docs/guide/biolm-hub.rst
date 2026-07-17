@@ -61,13 +61,13 @@ With no argument it defaults to ``http://127.0.0.1:8000`` — the address
 
     bh serve                 # in the biolm-hub repo (or a deployed gateway URL)
     biolm hub set            # defaults to http://127.0.0.1:8000
-    biolm login              # platform auth still goes to biolm.ai
+    biolm account login      # platform auth still goes to biolm.ai
     biolm model run esm2-8m encode -i seq.json
 
 After ``biolm hub set``, ``biolm model list``, ``show``, ``example``, and
 ``run`` all resolve against the hub's catalog, so you discover and call exactly
-the models your gateway serves. Note that ``biolm login`` still authenticates
-against ``biolm.ai`` — the hub set step only redirects inference.
+the models your gateway serves. Note that ``biolm account login`` still
+authenticates against ``biolm.ai`` — the hub set step only redirects inference.
 
 If you need to override the saved config for a single run — for example to point
 at a different gateway in CI without editing your config file — set

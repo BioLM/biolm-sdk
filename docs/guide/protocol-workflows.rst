@@ -158,7 +158,8 @@ returns the results dict:
     print(results)
 
 Authentication comes from ``BIOLM_TOKEN``, an explicit ``api_key=`` argument,
-or saved OAuth credentials from ``biolm login``. See :doc:`authentication`.
+or saved OAuth credentials from ``biolm account login``. See
+:doc:`authentication`.
 
 Full control: :class:`~biolm.ProtocolClient` and :class:`~biolm.ProtocolRun`
 ----------------------------------------------------------------------------
@@ -255,7 +256,7 @@ report an ``error_type`` per error:
   ``${{ ... }}`` **template expression** is empty or has unbalanced braces.
 
 **Authentication.** A missing token raises ``ValueError`` on the first API call.
-Set ``BIOLM_TOKEN`` (or run ``biolm login``), or pass ``api_key=`` to
+Set ``BIOLM_TOKEN`` (or run ``biolm account login``), or pass ``api_key=`` to
 :class:`~biolm.ProtocolClient`. See :doc:`authentication`.
 
 **Run failures.** A run that fails or is cancelled raises

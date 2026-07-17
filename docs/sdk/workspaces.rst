@@ -15,6 +15,7 @@ Workspace API
 
 ``PlatformClient`` provides:
 
+- ``get_current_user()`` — return the authenticated user's identity
 - ``list_workspaces()`` — list personal and organization workspaces
 - ``current_workspace()`` — inspect the active account/environment context
 - ``get_workspace(path)`` — resolve an exact ``account/environment`` path
@@ -38,6 +39,12 @@ The same client exposes the underlying platform resources:
   environment_id=None, account=None)``
 - API keys: ``create_api_key(account=None)`` and
   ``delete_api_key(token_or_prefix)``
+
+``get_organization(identifier)`` and
+``invite_to_organization(identifier, email, role="member")`` resolve
+``identifier`` against exact organization names and slugs before calling
+numeric-ID platform endpoints. Numeric IDs and all-digit strings remain
+accepted for compatibility; all-digit values prefer an exact ID match.
 
 ``get_usage_summary()`` returns the platform's monthly usage dictionary,
 including effective account scope, environment usage, and model charges. It
@@ -68,8 +75,8 @@ use it as a context manager:
        usage = platform.get_usage_summary(year=2026, month=7, account="acme")
 
 The client handles OAuth/token credentials and persists the session cookies
-needed for account-context switches. Run ``biolm login`` once when using OAuth;
-application code does not need to copy or manage those cookies.
+needed for account-context switches. Run ``biolm account login`` once when
+using OAuth; application code does not need to copy or manage those cookies.
 
 Platform API reference
 ----------------------
@@ -79,7 +86,7 @@ Platform API reference
    :undoc-members:
 
 .. autoclass:: biolm.platform.PlatformClient
-   :members: list_workspaces, current_workspace, get_workspace, switch_workspace, create_workspace, list_organizations, get_organization, create_organization, invite_to_organization, list_environments, create_environment, get_budget, set_budget, get_usage_summary, create_api_key, delete_api_key
+   :members: get_current_user, list_workspaces, current_workspace, get_workspace, switch_workspace, create_workspace, list_organizations, get_organization, create_organization, invite_to_organization, list_environments, create_environment, get_budget, set_budget, get_usage_summary, create_api_key, delete_api_key
 
 Workspace documentation
 -----------------------

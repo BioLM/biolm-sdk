@@ -31,6 +31,6 @@ that run from another shell:
 
 Use ``--format json`` for machine-readable list, run, status, wait, cancel, and
 results output. Authentication accepts ``BIOLM_TOKEN`` or saved OAuth
-credentials from ``biolm login``.
+credentials from ``biolm account login``.
 
 See :doc:`../protocol` for the complete generated command reference.

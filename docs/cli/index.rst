@@ -10,23 +10,27 @@ run models, execute protocols, and work with MLflow-backed datasets from the ter
 
 .. _cli-index-authentication:
 
-Authentication
---------------
+Account and authentication
+--------------------------
 
-Sign in, check status, and manage saved credentials.
+Sign in, inspect identity and usage, and manage account resources.
 
 .. list-table::
    :header-rows: 0
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm login <../login.html#biolm-login>`
+   * - :clicmd:`biolm account <../account.html#biolm-account>`
+     - Manage login, usage, budgets, API keys, and organizations.
+   * - :clicmd:`biolm account login <../login.html#biolm-account-login>`
      - Log in with OAuth (PKCE); credentials are saved to ``~/.biolm/credentials`` for later commands.
-   * - :clicmd:`biolm logout <../logout.html#biolm-logout>`
+   * - :clicmd:`biolm account logout <../logout.html#biolm-account-logout>`
      - Remove saved credentials so the CLI no longer has platform access until you log in again.
    * - :clicmd:`biolm status <../status.html#biolm-status>`
-     - Show auth state, environment variables, model API URL, hub mode, and credential path.
-   * - :clicmd:`biolm version <../../reference/cli.html#biolm-version>`
+     - Show endpoints, auth state, and the active account and workspace when available.
+   * - :clicmd:`biolm whoami <../whoami.html#biolm-whoami>`
+     - Show the authenticated principal and active account context.
+   * - ``biolm --version``
      - Print the installed ``biolm`` package version.
 
 .. _cli-index-models:
@@ -109,18 +113,19 @@ Organizations and budgets
 -------------------------
 
 Organization commands manage accounts available to the authenticated user:
-``biolm org list`` lists organizations, ``biolm org show`` inspects one,
-``biolm org create`` creates one, and ``biolm org invite`` invites a member
-with an organization role.
+``biolm account org list`` lists organizations, ``biolm account org show``
+inspects an exact organization name or slug, and ``biolm account org invite``
+invites a member with an organization role. Organization creation is available
+in the BioLM console, not the CLI.
 
-Budget commands operate on the active account context. ``biolm budget show``
-displays budget and usage fields, while ``biolm budget set`` sets a
+Budget commands operate on the active account context. ``biolm account budget``
+displays budget and usage fields, while ``biolm account budget set`` sets a
 nonnegative account budget.
 
 Monthly usage
 -------------
 
-``biolm usage show`` displays the effective account, selected month, usage
+``biolm account usage`` displays the effective account, selected month, usage
 amounts, and charges grouped by model. It defaults to the current month and
 personal account. Use ``--year`` and ``--month`` for another month,
 ``--environment-id`` to filter an environment, ``--account`` for an
@@ -131,11 +136,11 @@ live-activity API through this command.
 API keys
 --------
 
-``biolm apikey create`` creates an API key for the active account, or the
-account named by ``--account``. The token is shown only once, so store it
-immediately. ``biolm apikey delete`` revokes a key by its full token or its
-eight-character prefix. There is no list command because the platform exposes
-no API-key listing endpoint.
+``biolm account api-key create`` creates an API key for the active account, or
+the account named by ``--account``. The token is shown only once, so store it
+immediately. ``biolm account api-key delete`` revokes a key by its full token
+or its eight-character prefix. There is no list command because the platform
+exposes no API-key listing endpoint.
 
 .. _cli-index-datasets:
 
