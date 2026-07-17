@@ -14,7 +14,9 @@ import httpx
 import pytest
 
 from biolm.platform import (
+    AmbiguousOrganizationError,
     AmbiguousWorkspaceError,
+    OrganizationNotFoundError,
     PlatformClient,
     PlatformError,
     Workspace,
@@ -57,6 +59,14 @@ class FakeConsole:
         self.personal_details: Dict[str, Any] = {
             "id": 1,
             "username": "astewart",
+            "workspace_budget": 50.0,
+        }
+        self.current_user: Dict[str, Any] = {
+            "id": 1,
+            "username": "astewart",
+            "email": "astewart@example.com",
+            "first_name": "Alex",
+            "last_name": "Stewart",
             "workspace_budget": 50.0,
         }
         self.orgs: List[Dict[str, Any]] = [
@@ -190,6 +200,9 @@ class FakeConsole:
             status = self.fail_status
             self.fail_status = None
             return self._json(request, status, self.fail_body, session_id=sid)
+
+        if path == "/api/users/me/" and method == "GET":
+            return self._json(request, 200, dict(self.current_user), session_id=sid)
 
         if path.endswith("/account-context/") and method == "GET":
             return self._json(request, 200, self._context_payload(session), session_id=sid)
@@ -498,6 +511,30 @@ def test_get_and_set_context(client: PlatformClient, fake: FakeConsole):
     assert fake.session["account_type"] == "user"
 
 
+def test_get_current_user_uses_origin_api_and_returns_identity(
+    client: PlatformClient, fake: FakeConsole
+):
+    user = client.get_current_user()
+
+    assert user == fake.current_user
+    assert fake.requests[-1][0:2] == ("GET", "/api/users/me/")
+    headers = {key.lower(): value for key, value in fake.requests[-1][3].items()}
+    assert headers["authorization"] == "Token test-token"
+
+
+def test_get_current_user_maps_api_error_to_platform_error(
+    client: PlatformClient, fake: FakeConsole
+):
+    fake.fail_status = 401
+    fake.fail_body = {"detail": "invalid token"}
+
+    with pytest.raises(PlatformError) as excinfo:
+        client.get_current_user()
+
+    assert excinfo.value.status_code == 401
+    assert excinfo.value.response == {"detail": "invalid token"}
+
+
 def test_persistent_cookies_across_session_switches(client: PlatformClient, fake: FakeConsole):
     client.set_context("user", 1)
     client.list_environments()
@@ -533,6 +570,74 @@ def test_list_organizations_create_get_invite(client: PlatformClient, fake: Fake
     assert invited["success"] is True
     invite_reqs = [r for r in fake.requests if r[0] == "POST" and r[1].endswith("/invite/")]
     assert invite_reqs[-1][2] == {"email": "user@example.com", "role": "admin"}
+
+
+@pytest.mark.parametrize(
+    ("identifier", "expected_id"),
+    [
+        ("Acme", 20),
+        ("acme", 20),
+        (20, 20),
+        ("20", 20),
+    ],
+)
+def test_get_organization_resolves_exact_identifier(
+    client: PlatformClient,
+    fake: FakeConsole,
+    identifier: Any,
+    expected_id: int,
+):
+    org = client.get_organization(identifier)
+
+    assert org["id"] == expected_id
+    assert fake.requests[-1][1].endswith("/console/api/orgs/{}/".format(expected_id))
+
+
+def test_get_organization_missing_raises_specific_platform_error(
+    client: PlatformClient,
+):
+    with pytest.raises(OrganizationNotFoundError) as excinfo:
+        client.get_organization("missing")
+
+    assert isinstance(excinfo.value, PlatformError)
+
+
+def test_get_organization_rejects_name_slug_cross_collision(
+    client: PlatformClient,
+    fake: FakeConsole,
+):
+    fake.orgs[0]["name"] = "acme"
+
+    with pytest.raises(AmbiguousOrganizationError) as excinfo:
+        client.get_organization("acme")
+
+    assert isinstance(excinfo.value, PlatformError)
+
+
+def test_get_organization_deduplicates_name_and_slug_match(
+    client: PlatformClient,
+    fake: FakeConsole,
+):
+    fake.orgs[1]["name"] = "acme"
+
+    org = client.get_organization("acme")
+
+    assert org["id"] == 20
+
+
+def test_invite_to_organization_resolves_name_to_numeric_backend_route(
+    client: PlatformClient,
+    fake: FakeConsole,
+):
+    invited = client.invite_to_organization("Acme", "user@example.com")
+
+    assert invited["success"] is True
+    invite_request = next(
+        request
+        for request in reversed(fake.requests)
+        if request[0] == "POST" and request[1].endswith("/invite/")
+    )
+    assert invite_request[1].endswith("/console/api/orgs/20/invite/")
 
 
 def test_list_environments_and_create_environment(client: PlatformClient, fake: FakeConsole):

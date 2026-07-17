@@ -44,6 +44,14 @@ class AmbiguousWorkspaceError(PlatformError):
     """More than one workspace matched the requested path."""
 
 
+class OrganizationNotFoundError(PlatformError):
+    """No organization matched the requested identifier."""
+
+
+class AmbiguousOrganizationError(PlatformError):
+    """More than one organization matched the requested identifier."""
+
+
 @dataclass(frozen=True)
 class Workspace:
     """Immutable account + environment pair.
@@ -181,6 +189,8 @@ class PlatformClient:
         self.close()
 
     def _url(self, path: str) -> str:
+        if path.startswith(("http://", "https://")):
+            return path
         return path.lstrip("/")
 
     def _ensure_csrf(self) -> None:
@@ -258,6 +268,9 @@ class PlatformClient:
     def get_context(self) -> Dict[str, Any]:
         return self._request("GET", "account-context/")
 
+    def get_current_user(self) -> Dict[str, Any]:
+        return self._request("GET", "{}/api/users/me/".format(self._origin))
+
     def set_context(
         self,
         account_type: str,
@@ -280,18 +293,53 @@ class PlatformClient:
     def create_organization(self, name: str, slug: str) -> Dict[str, Any]:
         return self._request("POST", "orgs/", json={"name": name, "slug": slug})
 
-    def get_organization(self, org_id: int) -> Dict[str, Any]:
-        return self._request("GET", "orgs/{}/".format(int(org_id)))
+    def _resolve_organization(
+        self, identifier: Union[int, str]
+    ) -> Dict[str, Any]:
+        organizations = self.list_organizations()
+        if isinstance(identifier, int) or (
+            isinstance(identifier, str) and identifier.isdigit()
+        ):
+            target_id = int(identifier)
+            candidates = [
+                org for org in organizations if int(org["id"]) == target_id
+            ]
+        else:
+            candidates = [
+                org
+                for org in organizations
+                if org.get("name") == identifier or org.get("slug") == identifier
+            ]
+
+        matches = {int(org["id"]): org for org in candidates}
+        if not matches:
+            raise OrganizationNotFoundError(
+                "No organization found for identifier {!r}".format(identifier)
+            )
+        if len(matches) > 1:
+            raise AmbiguousOrganizationError(
+                "Ambiguous organization identifier {!r}: {} matches".format(
+                    identifier, len(matches)
+                )
+            )
+        return next(iter(matches.values()))
+
+    def get_organization(
+        self, identifier: Union[int, str]
+    ) -> Dict[str, Any]:
+        organization = self._resolve_organization(identifier)
+        return self._request("GET", "orgs/{}/".format(int(organization["id"])))
 
     def invite_to_organization(
         self,
-        org_id: int,
+        identifier: Union[int, str],
         email: str,
         role: str = "member",
     ) -> Dict[str, Any]:
+        organization = self._resolve_organization(identifier)
         return self._request(
             "POST",
-            "orgs/{}/invite/".format(int(org_id)),
+            "orgs/{}/invite/".format(int(organization["id"])),
             json={"email": email, "role": role},
         )
 
