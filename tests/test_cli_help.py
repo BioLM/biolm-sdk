@@ -51,13 +51,14 @@ def test_hidden_alias_helper_copies_only_leaf_commands():
         helper(parent, "unsafe", click.Group("group"))
 
 
-def test_top_level_help_lists_groups_without_expanding_children():
-    """Top-level help should show groups, not flattened child command paths."""
+def test_top_level_help_expands_child_command_paths():
+    """Top-level help lists full leaf paths, not just group names."""
     result = CliRunner().invoke(cli, ["--help"])
 
     assert result.exit_code == 0, result.output
-    assert "workspace list" not in result.output
-    assert "workspace show" not in result.output
+    assert "workspace list" in result.output
+    assert "workspace show" in result.output
+    assert "dataset create" in result.output
 
 
 def test_top_level_help_does_not_use_platform_section():
@@ -103,7 +104,7 @@ def test_help_descriptions_are_not_truncated():
 
 
 def test_final_top_level_help_hierarchy():
-    """Top-level help lists canonical sections and direct names only."""
+    """Top-level help lists leaf paths grouped under command-group panels."""
     result = CliRunner().invoke(cli, ["--help"])
 
     assert result.exit_code == 0, result.output
@@ -118,11 +119,12 @@ def test_final_top_level_help_hierarchy():
         assert section in result.output
     assert "status" in result.output
     assert "whoami" in result.output
-    assert "account" in result.output
-    assert "workspace" in result.output
+    assert "account login" in result.output
+    assert "workspace list" in result.output
+    assert "dataset create" in result.output
+    assert "dataset push" in result.output
     assert "Platform" not in result.output
     assert "\n│ version" not in result.output
     assert "\n│ login" not in result.output
     assert "usage show" not in result.output
     assert "org create" not in result.output
-    assert "workspace list" not in result.output

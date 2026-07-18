@@ -6,7 +6,7 @@ CLI
 ===
 
 Command-line interface for **biolm-sdk** (``biolm``). Authenticate once, then manage workspaces,
-run models, execute protocols, and work with MLflow-backed datasets from the terminal.
+run models, execute protocols, and work with local datasets from the terminal.
 
 .. _cli-index-authentication:
 
@@ -151,21 +151,27 @@ exposes no API-key listing endpoint.
 Datasets
 --------
 
-Upload, download, and inspect MLflow-backed datasets on the platform.
+Create and inspect local datasets; optionally push/pull via a backend plugin.
 
 .. list-table::
    :header-rows: 0
    :widths: 28 72
    :class: cli-command-table
 
+   * - :clicmd:`biolm dataset create <../dataset.html#biolm-dataset-create>`
+     - Create a new local dataset under the primary root.
+   * - :clicmd:`biolm dataset init <../dataset.html#biolm-dataset-init>`
+     - Adopt an existing directory by writing ``dataset.yaml``.
    * - :clicmd:`biolm dataset list <../dataset.html#biolm-dataset-list>`
-     - List datasets in your MLflow experiment with optional JSON or CSV export.
+     - List local datasets under configured discovery roots.
    * - :clicmd:`biolm dataset show <../dataset.html#biolm-dataset-show>`
-     - Show metadata, tags, metrics, and artifact listings for a dataset by ID.
-   * - :clicmd:`biolm dataset upload <../dataset.html#biolm-dataset-upload>`
-     - Upload a file or directory to a dataset (creates the dataset run if needed).
-   * - :clicmd:`biolm dataset download <../dataset.html#biolm-dataset-download>`
-     - Download all artifacts, or a single artifact path, to a local directory.
+     - Show metadata and files for a dataset by id or path.
+   * - :clicmd:`biolm dataset add <../dataset.html#biolm-dataset-add>`
+     - Copy files into a local dataset.
+   * - :clicmd:`biolm dataset push <../dataset.html#biolm-dataset-push>`
+     - Push a local dataset to a remote backend (e.g. ``--backend mlflow``).
+   * - :clicmd:`biolm dataset pull <../dataset.html#biolm-dataset-pull>`
+     - Pull a remote dataset into a local directory.
 
 .. _cli-index-hub:
 

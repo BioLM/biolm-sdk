@@ -9,6 +9,7 @@ Subpackages
 
    biolm.cli
    biolm.core
+   biolm.datasets
    biolm.hub
    biolm.io
    biolm.models

@@ -8,16 +8,17 @@ from datetime import datetime
 import pytest
 from click.testing import CliRunner
 
+from biolm.plugins.mlflow.protocols import MLflowNotAvailableError
 from biolm.plugins.mlflow.datasets import (
-    MLflowNotAvailableError,
     list_datasets,
     get_dataset,
     upload_dataset,
     download_dataset,
     _check_mlflow_available,
-    _get_mlflow_client,
-    _get_or_create_experiment,
 )
+from biolm.plugins.mlflow.dataset_backend import MLflowDatasetBackend
+from biolm.datasets import DatasetClient
+from biolm.datasets.backends import clear_backends, get_backend
 from biolm.cli import cli
 
 
@@ -363,214 +364,137 @@ class TestDatasetOperations:
             )
 
 
-class TestCLIDatasetCommands:
-    """Test CLI dataset commands."""
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.list_datasets")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_list(self, mock_auth, mock_list_datasets, mock_mlflow_check):
-        """Test CLI dataset list command."""
-        mock_auth.return_value = True
-        mock_list_datasets.return_value = [
-            {
-                "dataset_id": "ds-1",
-                "run_id": "run-1",
-                "name": "Dataset 1",
-                "status": "FINISHED",
-                "artifact_count": 5,
-            }
-        ]
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "list"])
-        
-        assert result.exit_code == 0
-        assert "Dataset 1" in result.output
-        assert "ds-1" in result.output
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.list_datasets")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_list_json(self, mock_auth, mock_list_datasets, mock_mlflow_check):
-        """Test CLI dataset list command with JSON output."""
-        mock_auth.return_value = True
-        mock_list_datasets.return_value = [
-            {
-                "dataset_id": "ds-1",
-                "run_id": "run-1",
-                "name": "Dataset 1",
-                "status": "FINISHED",
-                "artifact_count": 5,
-            }
-        ]
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "list", "--format", "json"])
-        
-        assert result.exit_code == 0
-        output_data = json.loads(result.output)
-        assert isinstance(output_data, list)
-        assert len(output_data) == 1
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.list_datasets")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_list_empty(self, mock_auth, mock_list_datasets, mock_mlflow_check):
-        """Test CLI dataset list command with no datasets."""
-        mock_auth.return_value = True
-        mock_list_datasets.return_value = []
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "list"])
-        
-        assert result.exit_code == 0
-        assert "No datasets found" in result.output
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.get_dataset")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_show(self, mock_auth, mock_get_dataset, mock_mlflow_check):
-        """Test CLI dataset show command."""
-        mock_auth.return_value = True
-        mock_get_dataset.return_value = {
-            "dataset_id": "ds-1",
-            "run_id": "run-1",
-            "name": "Dataset 1",
-            "status": "FINISHED",
-            "tags": {"type": "dataset"},
-            "params": {},
-            "metrics": {},
-            "artifacts": [],
-        }
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "show", "ds-1"])
-        
-        assert result.exit_code == 0
-        assert "Dataset 1" in result.output
-        assert "ds-1" in result.output
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.get_dataset")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_show_not_found(self, mock_auth, mock_get_dataset, mock_mlflow_check):
-        """Test CLI dataset show command with non-existent dataset."""
-        mock_auth.return_value = True
-        mock_get_dataset.return_value = None
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "show", "nonexistent"])
-        
-        assert result.exit_code == 1
-        assert "not found" in result.output.lower()
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+
+class TestMLflowDatasetBackend:
+    """Test push/pull adapter with mocked low-level helpers."""
+
+    def teardown_method(self):
+        clear_backends()
+
+    @patch("biolm.plugins.mlflow.dataset_backend.MLflowDatasetBackend.push")
+    def test_get_backend_mlflow(self, _mock_push):
+        backend = get_backend("mlflow")
+        assert backend.name == "mlflow"
+
     @patch("biolm.plugins.mlflow.datasets.upload_dataset")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_upload(self, mock_auth, mock_upload, mock_mlflow_check, tmp_path):
-        """Test CLI dataset upload command."""
-        mock_auth.return_value = True
-        mock_upload.return_value = {
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    @patch("biolm.plugins.mlflow.datasets._get_mlflow_client")
+    @patch("biolm.plugins.mlflow.datasets._get_or_create_experiment")
+    @patch("biolm.plugins.mlflow.datasets._get_default_experiment_name", return_value="datasets")
+    def test_backend_push(
+        self,
+        _exp_name,
+        mock_get_exp,
+        mock_client_fn,
+        mock_check,
+        mock_upload,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+        mock_upload.return_value = {"dataset_id": "ds-1", "run_id": "run-1", "status": "success"}
+        mock_get_exp.return_value = "exp-1"
+        mock_client = MagicMock()
+        mock_client.search_runs.return_value = []
+        mock_client_fn.return_value = mock_client
+
+        client = DatasetClient(primary_root=tmp_path / ".biolm" / "datasets")
+        ds = client.create("ds-1", tags=["t"])
+        (ds.path / "data" / "f.txt").write_text("x")
+
+        result = MLflowDatasetBackend().push(ds, experiment_name="datasets")
+        assert result["dataset_id"] == "ds-1"
+        mock_upload.assert_called_once()
+
+    @patch("biolm.plugins.mlflow.datasets.download_dataset")
+    @patch("biolm.plugins.mlflow.datasets.get_dataset")
+    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
+    def test_backend_pull(self, mock_check, mock_get, mock_download, tmp_path):
+        mock_get.return_value = {
             "dataset_id": "ds-1",
             "run_id": "run-1",
-            "status": "success",
+            "tags": {
+                "type": "dataset",
+                "dataset_id": "ds-1",
+                "biolm.dataset_type": "files",
+                "biolm.tags": '["a"]',
+            },
         }
-        
-        # Create test file
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("test content")
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, [
-            "dataset", "upload", "ds-1", str(test_file)
-        ])
-        
-        assert result.exit_code == 0
-        assert "Successfully uploaded" in result.output
-        mock_upload.assert_called_once()
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.download_dataset")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_download(self, mock_auth, mock_download, mock_mlflow_check, tmp_path):
-        """Test CLI dataset download command."""
-        mock_auth.return_value = True
         mock_download.return_value = {
             "dataset_id": "ds-1",
             "run_id": "run-1",
-            "output_path": str(tmp_path),
+            "output_path": str(tmp_path / "out"),
             "status": "success",
         }
-        
+        dest = tmp_path / "out"
+        result = MLflowDatasetBackend().pull("ds-1", dest)
+        assert result["dataset_id"] == "ds-1"
+        assert (dest / "dataset.yaml").is_file()
+
+
+class TestCLIPushPull:
+    """CLI push/pull against mocked backend."""
+
+    def teardown_method(self):
+        clear_backends()
+
+    @patch("biolm.cli.are_credentials_valid", return_value=True)
+    @patch.object(MLflowDatasetBackend, "push")
+    def test_cli_push(self, mock_push, mock_auth, tmp_path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+        mock_push.return_value = {"dataset_id": "ds-1", "run_id": "run-1", "backend": "mlflow"}
+
+        root = tmp_path / ".biolm" / "datasets"
+        client = DatasetClient(primary_root=root)
+        client.create("ds-1")
+
+        # Ensure get_backend returns our class instance that uses the patched method
+        clear_backends()
+        get_backend("mlflow")  # registers real class; method is patched on class
+
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "dataset", "download", "ds-1", str(tmp_path)
-        ])
-        
-        assert result.exit_code == 0
-        assert "Successfully downloaded" in result.output
-        mock_download.assert_called_once()
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.download_dataset")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_download_not_found(self, mock_auth, mock_download, mock_mlflow_check):
-        """Test CLI dataset download command with non-existent dataset."""
-        mock_auth.return_value = True
-        mock_download.side_effect = ValueError("Dataset 'nonexistent' not found")
-        
+        result = runner.invoke(cli, ["dataset", "push", "ds-1", "--backend", "mlflow"])
+        assert result.exit_code == 0, result.output
+        assert "Pushed" in result.output
+        mock_push.assert_called()
+
+    @patch("biolm.cli.are_credentials_valid", return_value=True)
+    @patch.object(MLflowDatasetBackend, "pull")
+    def test_cli_pull(self, mock_pull, mock_auth, tmp_path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+
+        def _pull(dataset_id, dest, **opts):
+            dest = Path(dest)
+            dest.mkdir(parents=True, exist_ok=True)
+            from biolm.datasets.schema import build_meta, write_dataset_yaml
+            write_dataset_yaml(dest, build_meta(dataset_id))
+            return {"dataset_id": dataset_id, "backend": "mlflow", "path": str(dest)}
+
+        mock_pull.side_effect = _pull
+        clear_backends()
+
         runner = CliRunner()
-        result = runner.invoke(cli, [
-            "dataset", "download", "nonexistent", "./downloads"
-        ])
-        
+        result = runner.invoke(
+            cli,
+            ["dataset", "pull", "remote-ds", "--backend", "mlflow"],
+        )
+        assert result.exit_code == 0, result.output
+        assert "Pulled" in result.output
+
+    @patch("biolm.cli.are_credentials_valid", return_value=False)
+    def test_cli_push_requires_auth(self, mock_auth, tmp_path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+        root = tmp_path / ".biolm" / "datasets"
+        DatasetClient(primary_root=root).create("ds-1")
+        runner = CliRunner()
+        result = runner.invoke(cli, ["dataset", "push", "ds-1", "--backend", "mlflow"])
         assert result.exit_code == 1
-        assert "not found" in result.output.lower()
-
-
-class TestErrorHandling:
-    """Test error handling."""
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_list_not_authenticated(self, mock_auth, mock_mlflow_check):
-        """Test CLI dataset list without authentication (are_credentials_valid returns False)."""
-        mock_auth.return_value = False
-
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "list"])
-
-        assert result.exit_code == 1
-        assert "Authentication" in result.output or "Not Authenticated" in result.output or "authenticate" in result.output.lower()
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_list_mlflow_not_available(self, mock_auth, mock_check):
-        """Test CLI dataset list without MLflow."""
-        mock_auth.return_value = True
-        mock_check.side_effect = MLflowNotAvailableError()
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, ["dataset", "list"])
-        
-        assert result.exit_code == 1
-        assert "MLflow" in result.output
-    
-    @patch("biolm.plugins.mlflow.datasets._check_mlflow_available")
-    @patch("biolm.plugins.mlflow.datasets.upload_dataset")
-    @patch("biolm.cli.are_credentials_valid")
-    def test_cli_dataset_upload_file_not_found(self, mock_auth, mock_upload, mock_mlflow_check):
-        """Test CLI dataset upload with non-existent file."""
-        mock_auth.return_value = True
-        mock_upload.side_effect = FileNotFoundError("File not found")
-        
-        runner = CliRunner()
-        result = runner.invoke(cli, [
-            "dataset", "upload", "ds-1", "/nonexistent/file.txt"
-        ])
-        
-        # Click may use exit code 2 for usage/file errors
-        assert result.exit_code != 0
-        assert "not found" in result.output.lower() or "error" in result.output.lower()
-
+        assert "Authentication" in result.output or "authenticate" in result.output.lower()
