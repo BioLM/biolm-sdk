@@ -40,6 +40,12 @@ try:
 except ImportError:
     _HAS_PIPELINE = False
 
+try:
+    from biolm.seqframe import SeqFrame
+    _HAS_SEQFRAME = True
+except ImportError:
+    _HAS_SEQFRAME = False
+
 from typing import Optional, Union, List, Any
 
 __all__ = [
@@ -77,6 +83,8 @@ __all__ = [
 ]
 if _HAS_PIPELINE:
     __all__.append('pipeline')
+if _HAS_SEQFRAME:
+    __all__.append('SeqFrame')
 
 
 def run_protocol(

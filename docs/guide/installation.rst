@@ -19,6 +19,7 @@ Optional extras:
 .. code-block:: console
 
     $ pip install "biolm-sdk[pipeline]"  # pipeline features
+    $ pip install "biolm-sdk[seqframe]"  # SeqFrame (Parquet + DuckDB sequence tables)
     $ pip install "biolm-sdk[mlflow]"    # MLflow datasets and protocol logging (CLI)
 
 For open-source models, install and run `biolm-hub <https://github.com/BioLM/biolm-hub>`_,

@@ -10,7 +10,8 @@ A **dataset** in the BioLM SDK is a self-describing directory: a ``dataset.yaml`
 plus whatever files you put beside it (usually under ``data/``). Datasets are
 discovered under ``~/.biolm/datasets`` and ``./.biolm/datasets`` (and optional
 extra roots). They are addressable by id so other workflows can refer to them
-later; typed openers (for example SeqFrame) are a follow-up.
+later. Open sequence tables with :doc:`seqframe` (``Dataset.open_seqframe()`` /
+``SeqFrame.from_dataset()`` when the dataset holds SeqFrame Parquet).
 
 Optional backends such as MLflow only extend ``push`` / ``pull``. Local create,
 list, show, and add work with no extras installed.

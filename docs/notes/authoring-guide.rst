@@ -98,6 +98,8 @@ Protocol Schema
 **Write here:**
 
 - ``docs/yaml/protocol-schema.rst`` — Protocol YAML structure, semantics, and JSON schema
+- ``docs/yaml/dataset-schema.rst`` — Local ``dataset.yaml`` field reference
+- ``docs/yaml/seqframe-schema.rst`` — SeqFrame Parquet key-value metadata (``seqframe.version`` / ``seqframe.schema``)
 - ``docs/sdk/protocols.rst`` — When to use protocols in Python/CLI (links to Reference)
 
 **Schema source:** ``schema/protocol_schema.json``

@@ -46,11 +46,14 @@ Top-level fields
 
 - ``description`` — human-readable context.
 - ``created_at`` — ISO-8601 timestamp (``create`` / ``init`` stamp this).
-- ``type`` — soft label (default ``files``). Reserved for future typed loaders
-  such as ``seqframe`` or ``protocol_results``; core does not interpret it beyond
-  filtering.
+- ``type`` — soft label (default ``files``). Use ``seqframe`` when the primary
+  artifact is a SeqFrame Parquet (opened via ``Dataset.open_seqframe()``). Other
+  reserved labels include ``protocol_results``; inventory filtering is the only
+  core interpretation of ``type``.
 - ``tags`` — list of strings for inventory filters.
-- ``attrs`` — arbitrary mapping of extra metadata.
+- ``attrs`` — arbitrary mapping of extra metadata. For SeqFrame datasets,
+  ``attrs.seqframe_path`` may point at the Parquet file relative to the dataset
+  root (set automatically by ``SeqFrame.to_dataset()``).
 
 What is not in the schema
 -------------------------

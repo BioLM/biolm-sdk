@@ -74,6 +74,16 @@ Datasets
    * - :sdklink:`DatasetClient, Dataset <../../api-reference/biolm.datasets.html>`
      - Local dataset inventory (``dataset.yaml``); optional push/pull backends.
 
+SeqFrame
+~~~~~~~~
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`SeqFrame <seqframe.html>`
+     - Sequence-centric Parquet/DuckDB dataframe (optional ``biolm-sdk[seqframe]``); opens datasets labeled ``type: seqframe``.
+
 Utilities
 ~~~~~~~~~
 
