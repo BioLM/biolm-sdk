@@ -44,7 +44,7 @@ exclude = ".venv"
 
 [build-system]
 requires = [
-    "setuptools>=68",
+    "setuptools>=77",
     "wheel",
     "pip>=23.3"
 ]
@@ -63,19 +63,19 @@ markers = [
 
 [project]
 name = "biolm-sdk"
-version = "1.0.1"
+version = "1.2.0"
 description = "BioLM Python client for the hosted platform and biolm-hub"
 authors = [
     { name="BioLM", email="support@biolm.ai" }
 ]
 requires-python = ">=3.8"
 readme = "README.md"
-license = { text = "Apache Software License 2.0" }
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 keywords = ["biolm", "bioai"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: Apache Software License",
     "Natural Language :: English",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -164,6 +164,12 @@ commit_message = "chore(release): {version} [skip ci]"
 tag_format = "v{version}"
 upload_to_pypi = false
 upload_to_vcs_release = true
+
+[tool.semantic_release.remote]
+type = "github"
+token = { env = "GH_TOKEN" }
+# Push via checkout SSH deploy key; keep GH_TOKEN only for GitHub Releases API.
+ignore_token_for_push = true
 
 [tool.semantic_release.branches.main]
 match = "main"

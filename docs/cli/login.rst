@@ -1,6 +1,6 @@
-``biolm login``
-=================
+``biolm account login``
+========================
 
 .. click:: biolm.cli:login
-   :prog: biolm login
+   :prog: biolm account login
    :nested: full

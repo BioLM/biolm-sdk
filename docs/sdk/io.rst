@@ -3,7 +3,7 @@
 
 Convert between biological file formats (FASTA, CSV, PDB, JSON) and BioLM API
 request/response structures. For writing API results to disk from clients, see
-:ref:`disk-output` in :doc:`../intro/client-interfaces`.
+:ref:`disk-output` in :doc:`../guide/client-interfaces`.
 
 Primary functions
 -----------------
@@ -278,4 +278,4 @@ See also
 --------
 
 - :doc:`../api-reference/biolm.io` — full ``biolm.io`` module reference
-- :ref:`disk-output` in :doc:`../intro/client-interfaces` — writing API results to disk
+- :ref:`disk-output` in :doc:`../guide/client-interfaces` — writing API results to disk

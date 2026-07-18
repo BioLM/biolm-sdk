@@ -30,7 +30,8 @@ def _silent_warn(message, category=None, stacklevel=1, source=None):
     msg_str = str(message) if message else ''
     if any(keyword in msg_str.lower() for keyword in ['urllib3', 'openssl', 'libressl', 'notopenssl']):
         return  # Silently ignore urllib3 warnings
-    _original_warn(message, category, stacklevel, source)
+    # Account for this wrapper frame so callers keep accurate warning locations.
+    _original_warn(message, category, stacklevel + 1, source)
 warnings.warn = _silent_warn
 
 # Try to import urllib3 early and disable ALL its warnings

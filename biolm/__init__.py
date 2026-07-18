@@ -1,7 +1,7 @@
 """Top-level package for BioLM."""
 __author__ = """Nikhil Haas"""
 __email__ = "nikhil@biolm.ai"
-__version__ = '1.0.1'
+__version__ = '1.2.0'
 
 from biolm.core.http import BioLMApi, BioLMApiClient
 from biolm.client import BioLM
@@ -14,7 +14,13 @@ from biolm.protocol_runs import (
     ProtocolRunError,
     ProtocolNotFoundError,
 )
-from biolm.workspaces import Workspace
+from biolm.platform import (
+    AmbiguousWorkspaceError,
+    PlatformClient,
+    PlatformError,
+    Workspace,
+    WorkspaceNotFoundError,
+)
 from biolm.volumes import Volume
 from biolm.models.examples import get_example, list_models
 from biolm.io import (
@@ -51,6 +57,10 @@ __all__ = [
     'Protocol',
     'Finetune',
     'Workspace',
+    'PlatformClient',
+    'PlatformError',
+    'WorkspaceNotFoundError',
+    'AmbiguousWorkspaceError',
     'Volume',
     'ProtocolClient',
     'ProtocolRun',
@@ -86,6 +96,7 @@ def run_protocol(
     base_url: Optional[str] = None,
     timeout: float = 3600.0,
     show_progress: bool = True,
+    poll_interval: float = 5.0,
 ) -> dict:
     """Submit a BioLM protocol run and block until results are ready."""
     client = ProtocolClient(api_key=api_key, base_url=base_url)
@@ -95,6 +106,7 @@ def run_protocol(
         run_name=run_name,
         timeout=timeout,
         show_progress=show_progress,
+        poll_interval=poll_interval,
     )
 
 

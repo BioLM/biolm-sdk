@@ -35,12 +35,15 @@ def test_terminal_is_dark_from_colorfgbg(monkeypatch):
     assert terminal_is_dark() is True
     monkeypatch.setenv("COLORFGBG", "0;15")
     assert terminal_is_dark() is False
+    # Solarized Dark often reports bg=8 (bright black) — still a dark background
+    monkeypatch.setenv("COLORFGBG", "12;8")
+    assert terminal_is_dark() is True
 
 
 def test_dark_theme_uses_readable_text_style():
     theme = build_theme(dark=True)
-    assert theme.styles["text"].color is None or theme.styles["text"].color.name == "default"
-    assert "bright_blue" in str(theme.styles["brand.bright"].color)
+    assert "bright_white" in str(theme.styles["text"].color)
+    assert "bright_cyan" in str(theme.styles["brand"].color)
 
 
 def test_light_theme_uses_hex_text():

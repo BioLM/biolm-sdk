@@ -1,6 +1,6 @@
-``biolm logout``
-==================
+``biolm account logout``
+=========================
 
 .. click:: biolm.cli:logout
-   :prog: biolm logout
+   :prog: biolm account logout
    :nested: full

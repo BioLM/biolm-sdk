@@ -54,6 +54,7 @@ def _sphinx_builder_name():
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
+    "sphinx.ext.doctest",
     "sphinx_copybutton",
     "sphinx_inline_tabs",
     "sphinx.ext.autosectionlabel",
@@ -65,6 +66,28 @@ extensions = [
     "sphinx-jsonschema",
     "sphinx_click",
 ]
+
+# Offline-safe guide snippet checks (see docs/notes/snippet-doctests.rst).
+# Network-backed examples stay as narrative ``code-block`` and are not executed.
+doctest_global_setup = """
+import os
+import tempfile
+from pathlib import Path
+
+# Avoid accidental auth lookups during construct-only snippets. Tox defines
+# BIOLM_TOKEN as an empty string when no secret is present, so ``setdefault``
+# alone is insufficient in CI.
+os.environ["BIOLM_TOKEN"] = os.environ.get("BIOLM_TOKEN") or "doctest-dummy-token"
+
+_DOCTEST_TMP = Path(tempfile.mkdtemp(prefix="biolm-docs-doctest-"))
+"""
+
+doctest_global_cleanup = """
+import shutil
+shutil.rmtree(_DOCTEST_TMP, ignore_errors=True)
+"""
+
+doctest_test_doctest_blocks = False
 
 # These extensions hook HTML page rendering and break ``sphinx-build -b json``.
 _JSON_INCOMPATIBLE_EXTENSIONS = (
@@ -570,23 +593,35 @@ redirects = {
     "model-docs/biolmtox/BioLMTox_API": "https://biolm.ai/models/biolmtox/",
     "model-docs/biolmtox/index": "https://biolm.ai/models/biolmtox/",
 
-    "getting-started/installation": "intro/installation",
-    "getting-started/authentication": "intro/authentication",
-    "getting-started/quickstart": "intro/quickstart",
-    "getting-started/concepts": "intro/concepts",
-    "getting-started/overview": "intro/overview",
+    "getting-started/installation": "guide/installation",
+    "getting-started/authentication": "guide/authentication",
+    "getting-started/quickstart": "guide/quickstart",
+    "getting-started/concepts": "guide/concepts",
+    "getting-started/overview": "guide/overview",
     "getting-started/migration-1.0": "notes/migration-1.0",
     "intro/migration-1.0": "notes/migration-1.0",
+    "intro/quickstart": "guide/quickstart",
+    "intro/installation": "guide/installation",
+    "intro/authentication": "guide/authentication",
+    "intro/concepts": "guide/concepts",
+    "intro/sdk-overview": "guide/sdk-overview",
+    "intro/client-interfaces": "guide/client-interfaces",
+    "intro/batching": "guide/batching",
+    "intro/error-handling": "guide/error-handling",
+    "intro/concurrency": "guide/concurrency",
+    "intro/rate-limiting": "guide/rate-limiting",
+    "intro/faq": "guide/faq",
+    "intro/overview": "guide/overview",
     "authoring-guide": "notes/authoring-guide",
-    "sdk/overview": "intro/sdk-overview",
-    "sdk/usage/usage": "intro/client-interfaces",
-    "sdk/usage/batching": "intro/batching",
-    "sdk/usage/error-handling": "intro/error-handling",
-    "sdk/usage/async-sync": "intro/concurrency",
-    "intro/async-sync": "intro/concurrency",
-    "sdk/usage/rate_limiting": "intro/rate-limiting",
+    "sdk/overview": "guide/sdk-overview",
+    "sdk/usage/usage": "guide/client-interfaces",
+    "sdk/usage/batching": "guide/batching",
+    "sdk/usage/error-handling": "guide/error-handling",
+    "sdk/usage/async-sync": "guide/concurrency",
+    "intro/async-sync": "guide/concurrency",
+    "sdk/usage/rate_limiting": "guide/rate-limiting",
     "sdk/usage/io": "sdk/io",
-    "sdk/faq": "intro/faq",
+    "sdk/faq": "guide/faq",
     "reference/protocol-schema": "yaml/protocol-schema",
     "reference/changelog": "changelog",
     "reference/sdk": "sdk/index",

@@ -9,6 +9,7 @@ Subpackages
 
    biolm.cli
    biolm.core
+   biolm.datasets
    biolm.hub
    biolm.io
    biolm.models
@@ -30,6 +31,14 @@ biolm.finetune module
 ---------------------
 
 .. automodule:: biolm.finetune
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+biolm.platform module
+---------------------
+
+.. automodule:: biolm.platform
    :members:
    :undoc-members:
    :show-inheritance:

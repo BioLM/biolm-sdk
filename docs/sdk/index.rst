@@ -57,12 +57,22 @@ Platform
    :header-rows: 0
    :widths: 28 72
 
-   * - :sdklink:`Workspace <../workspaces.html>`
-     - Workspace management (Python SDK upcoming).
+   * - :sdklink:`PlatformClient, Workspace <../workspaces.html>`
+     - Supported account/environment context, organization, environment, and budget APIs.
    * - :sdklink:`Volume <../volumes.html>`
-     - Volume storage (Python SDK upcoming).
+     - Deprecated compatibility placeholder; Modal volumes are runtime-only.
    * - :sdklink:`Finetune <../finetune.html>`
      - XGBoost and DSM finetuning workflows.
+
+Datasets
+~~~~~~~~
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+
+   * - :sdklink:`DatasetClient, Dataset <../../api-reference/biolm.datasets.html>`
+     - Local dataset inventory (``dataset.yaml``); optional push/pull backends.
 
 Utilities
 ~~~~~~~~~
@@ -109,10 +119,10 @@ Optional third-party backends under ``biolm.plugins``. Install extras as needed
    :widths: 28 72
 
    * - :sdklink:`biolm.plugins.mlflow <../../api-reference/biolm.plugins.mlflow.html>`
-     - Protocol result logging and MLflow-backed datasets.
+     - Protocol result logging and optional dataset push/pull backend.
    * - :sdklink:`protocol log <../cli/protocol.html>`
      - CLI: log protocol run results to MLflow.
    * - :sdklink:`dataset <../cli/dataset.html>`
-     - CLI: list, upload, and download MLflow-backed datasets.
+     - CLI: local datasets (create, list, add) and push/pull backends.
 
 Full module index: :sdklink:`biolm package <../../api-reference/biolm.html>`.

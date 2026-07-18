@@ -1,5 +1,6 @@
 """CSV format input/output utilities."""
 import csv
+import sys
 from pathlib import Path
 from typing import IO, Any, Dict, List, Optional, Union
 
@@ -91,7 +92,7 @@ def to_csv(
 
     Args:
         data: List of dictionaries to write.
-        file_path: Output file path (str, Path) or file-like object.
+        file_path: Output file path (str, Path), file-like object, or "-" for stdout.
         fieldnames: Optional list of column names; if not provided, inferred from the first item's keys (missing keys filled with empty strings).
 
     Raises:
@@ -104,8 +105,12 @@ def to_csv(
     if not data:
         raise ValueError("Cannot write empty data to CSV file")
     
+    # Handle stdout
+    if file_path == "-" or (isinstance(file_path, str) and file_path == "-"):
+        file_obj = sys.stdout
+        should_close = False
     # Handle file path vs file-like object
-    if isinstance(file_path, (str, Path)):
+    elif isinstance(file_path, (str, Path)):
         file_path = Path(file_path)
         file_obj = open(file_path, "w", encoding="utf-8", newline="")
         should_close = True

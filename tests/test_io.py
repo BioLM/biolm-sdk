@@ -169,6 +169,18 @@ class TestToFasta:
         assert ">seq1" in content
         assert "ACDEFGHIKLMNPQRSTVWY" in content
 
+    def test_to_fasta_stdout_dash(self, capsys, tmp_path, monkeypatch):
+        """Test writing FASTA to stdout when file_path is '-'."""
+        monkeypatch.chdir(tmp_path)
+        data = [{"sequence": "ACDEFGHIKLMNPQRSTVWY", "id": "seq1"}]
+
+        to_fasta(data, "-")
+
+        captured = capsys.readouterr()
+        assert ">seq1" in captured.out
+        assert "ACDEFGHIKLMNPQRSTVWY" in captured.out
+        assert not Path("-").exists()
+
     def test_to_fasta_missing_sequence_key(self, tmp_path):
         """Test writing FASTA with missing sequence key raises error."""
         data = [{"id": "seq1"}]  # Missing sequence
@@ -321,6 +333,18 @@ class TestToCsv:
         assert "sequence" in content
         assert "ACDEFGHIKLMNPQRSTVWY" in content
 
+    def test_to_csv_stdout_dash(self, capsys, tmp_path, monkeypatch):
+        """Test writing CSV to stdout when file_path is '-'."""
+        monkeypatch.chdir(tmp_path)
+        data = [{"sequence": "ACDEFGHIKLMNPQRSTVWY", "id": "seq1"}]
+
+        to_csv(data, "-")
+
+        captured = capsys.readouterr()
+        assert "sequence" in captured.out
+        assert "ACDEFGHIKLMNPQRSTVWY" in captured.out
+        assert not Path("-").exists()
+
     def test_to_csv_empty_data(self, tmp_path):
         """Test writing empty data raises error."""
         output_file = tmp_path / "output.csv"
@@ -447,6 +471,18 @@ class TestToPdb:
         content = file_obj.getvalue()
         assert "HEADER" in content
         assert "ATOM" in content
+
+    def test_to_pdb_stdout_dash(self, capsys, tmp_path, monkeypatch):
+        """Test writing PDB to stdout when file_path is '-'."""
+        monkeypatch.chdir(tmp_path)
+        data = [{"pdb": "HEADER    TEST\nATOM      1  N   MET A   1\nEND\n"}]
+
+        to_pdb(data, "-")
+
+        captured = capsys.readouterr()
+        assert "HEADER" in captured.out
+        assert "ATOM" in captured.out
+        assert not Path("-").exists()
 
     def test_to_pdb_missing_pdb_key(self, tmp_path):
         """Test writing PDB with missing pdb key raises error."""
