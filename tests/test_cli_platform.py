@@ -35,8 +35,11 @@ def test_platform_groups_and_commands_are_registered():
     assert "workspace" in result.output
     assert "Account" in result.output
     assert "Workspace" in result.output
-    assert "workspace list" not in result.output
-    assert "org list" not in result.output
+    # Root help expands leaf paths under each command-group panel.
+    assert "workspace list" in result.output
+    assert "account org list" in result.output
+    # Legacy short alias paths must not appear as help rows.
+    assert "org list" not in result.output.replace("account org list", "")
     assert "org create" not in result.output
     assert "budget show" not in result.output
     assert "apikey create" not in result.output
