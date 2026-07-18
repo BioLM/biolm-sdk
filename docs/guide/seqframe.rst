@@ -61,4 +61,7 @@ Write a SeqFrame into a local dataset (``type: seqframe``) and open it again:
 Resolution uses ``attrs.seqframe_path`` when set, otherwise exactly one
 ``.parquet`` file under the dataset.
 
+Parquet metadata (``seqframe.version`` / ``seqframe.schema``) is documented in
+:doc:`../yaml/seqframe-schema`.
+
 See :doc:`../api-reference/biolm.seqframe` and :doc:`../sdk/seqframe`.

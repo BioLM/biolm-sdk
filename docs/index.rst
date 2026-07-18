@@ -98,6 +98,7 @@ Welcome to BioLM SDK Documentation
    sdk/models
    sdk/protocols
    sdk/pipeline
+   sdk/seqframe
    sdk/workspaces
    sdk/volumes
    sdk/io
@@ -112,6 +113,7 @@ Welcome to BioLM SDK Documentation
 
    yaml/protocol-schema
    yaml/dataset-schema
+   yaml/seqframe-schema
 
 .. toctree::
    :maxdepth: 1

@@ -1,11 +1,10 @@
-:orphan:
-
 SeqFrame
 ========
 
 Sequence-centric dataframe abstraction (optional ``biolm-sdk[seqframe]`` extra).
 
-See :doc:`../guide/seqframe` for a usage guide and
+See :doc:`../guide/seqframe` for a usage guide,
+:doc:`../yaml/seqframe-schema` for Parquet metadata fields, and
 :doc:`../api-reference/biolm.seqframe` for the module reference.
 
 .. code-block:: python

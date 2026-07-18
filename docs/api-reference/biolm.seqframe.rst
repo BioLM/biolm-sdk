@@ -5,7 +5,8 @@ Sequence-centric dataframes over Parquet with DuckDB-backed query and enrichment
 
 Requires ``pip install 'biolm-sdk[seqframe]'`` (or ``biolm-sdk[pipeline]``).
 
-See :doc:`../guide/seqframe` and :doc:`../sdk/seqframe`.
+See :doc:`../guide/seqframe`, :doc:`../sdk/seqframe`, and
+:doc:`../yaml/seqframe-schema` for the Parquet metadata field reference.
 
 .. automodule:: biolm.seqframe
    :members:
