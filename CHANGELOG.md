@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.1.1 (2026-07-18)
+
+### Bug Fixes
+
+- Keep docs publish tree for Pages upload ([#19](https://github.com/BioLM/biolm-sdk/pull/19),
+  [`4b4bc5c`](https://github.com/BioLM/biolm-sdk/commit/4b4bc5c4ee75ab664b92a6769eddbf47bfa3a6b2))
+
+
 ## v1.1.0 (2026-07-17)
 
 ### Features
