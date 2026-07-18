@@ -2,6 +2,18 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-07-18)
+
+### Features
+
+- Add local-first datasets with MLflow push/pull backend
+  ([#20](https://github.com/BioLM/biolm-sdk/pull/20),
+  [`0a71a40`](https://github.com/BioLM/biolm-sdk/commit/0a71a405487622f70350d022667ef55fd8857954))
+
+- Local-first datasets with MLflow push/pull ([#20](https://github.com/BioLM/biolm-sdk/pull/20),
+  [`0a71a40`](https://github.com/BioLM/biolm-sdk/commit/0a71a405487622f70350d022667ef55fd8857954))
+
+
 ## v1.1.1 (2026-07-18)
 
 ### Bug Fixes
