@@ -110,6 +110,7 @@ Welcome to BioLM SDK Documentation
    :hidden:
 
    yaml/protocol-schema
+   yaml/dataset-schema
 
 .. toctree::
    :maxdepth: 1
