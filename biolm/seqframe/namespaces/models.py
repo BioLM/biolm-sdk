@@ -23,6 +23,7 @@ class ModelsNamespace:
         batch_size: int = 32,
         action: str = "predict",
         api_key: Optional[str] = None,
+        params: Optional[dict] = None,
         **kwargs: Any,
     ) -> "SeqFrame":
         col = column or f"{model.replace('-', '_')}_{action}"
@@ -33,6 +34,7 @@ class ModelsNamespace:
             batch_size=batch_size,
             action=action,
             api_key=api_key,
+            params=params,
             **kwargs,
         )
 
@@ -44,6 +46,7 @@ class ModelsNamespace:
         layer: Optional[int] = None,
         batch_size: int = 32,
         api_key: Optional[str] = None,
+        params: Optional[dict] = None,
         **kwargs: Any,
     ) -> "SeqFrame":
         col = column or f"{model.replace('-', '_')}_embedding"
@@ -54,5 +57,6 @@ class ModelsNamespace:
             layer=layer,
             batch_size=batch_size,
             api_key=api_key,
+            params=params,
             **kwargs,
         )

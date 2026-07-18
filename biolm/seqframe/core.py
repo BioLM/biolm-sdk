@@ -221,6 +221,38 @@ class SeqFrame:
 
         return from_protocol(run_or_path, **kwargs)
 
+    @classmethod
+    def from_dataset(cls, dataset: Any) -> "SeqFrame":
+        """Open a :class:`~biolm.datasets.Dataset` as a SeqFrame."""
+        from biolm.seqframe.dataset_bridge import open_seqframe
+
+        return open_seqframe(dataset)
+
+    def to_dataset(
+        self,
+        dataset_id: str,
+        *,
+        client: Any = None,
+        filename: str = "sequences.parquet",
+        tags: Optional[List[str]] = None,
+        description: Optional[str] = None,
+        attrs: Optional[Dict[str, Any]] = None,
+        force: bool = False,
+    ) -> Any:
+        """Write this SeqFrame into a local Dataset (``type: seqframe``)."""
+        from biolm.seqframe.dataset_bridge import seqframe_to_dataset
+
+        return seqframe_to_dataset(
+            self,
+            dataset_id,
+            client=client,
+            filename=filename,
+            tags=tags,
+            description=description,
+            attrs=attrs,
+            force=force,
+        )
+
     def merge_columns(self, df: pd.DataFrame, *, on: str = "id") -> "SeqFrame":
         """Join enrichment results back into this SeqFrame by key column."""
         base = self.collect()

@@ -21,7 +21,10 @@ lightweight metadata, not a query engine (SeqFrame) or a pipeline cache
 - Remote verbs: `push` / `pull --backend …`; MLflow is a plugin adapter only.
 - `pull` defaults to `~/.biolm/datasets/<id>/`; optional path override.
 - Duplicate IDs across roots are a hard error (no silent shadowing).
-- Typed openers (`SeqFrame`, etc.) are deferred; `type` is a soft label for now.
+- Typed openers: SeqFrame may open a dataset via ``Dataset.open_seqframe()`` /
+  ``SeqFrame.from_dataset()`` when there is exactly one SeqFrame Parquet (or
+  ``attrs.seqframe_path``). Broader typed loaders remain deferred; ``type`` stays
+  a soft label for inventory.
 
 ## On-disk layout
 
@@ -176,6 +179,6 @@ Missing backend → clear install hint (`pip install biolm-sdk[mlflow]`).
 | Construct | Role |
 |-----------|------|
 | Local dataset | Named, shareable bag of files + metadata |
-| SeqFrame (future) | Biological tabular query / enrich over local data |
+| SeqFrame | Biological tabular query / enrich; thin Dataset bridge via `open_seqframe` |
 | DuckDBDataStore | Pipeline execution / cache persistence |
 | MLflow plugin | Optional push/pull backend only |

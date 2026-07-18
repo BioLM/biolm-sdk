@@ -15,6 +15,7 @@ Subpackages
    biolm.models
    biolm.pipeline
    biolm.plugins
+   biolm.seqframe
 
 Submodules
 ----------

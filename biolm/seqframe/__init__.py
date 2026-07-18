@@ -2,8 +2,10 @@
 
 SeqFrame provides a high-level abstraction over Parquet for representing and
 operating on collections of biological sequences. It is complementary to
-``biolm dataset`` (upload/download/versioning): datasets may contain SeqFrames
-as artifacts, while SeqFrame handles querying, enrichment, and conversion.
+:mod:`biolm.datasets`: local datasets are inventory bags (``dataset.yaml`` +
+files, optional push/pull), while SeqFrame handles querying, enrichment, and
+conversion. Soft label ``type: seqframe`` marks a dataset that opens via
+``Dataset.open_seqframe()`` / ``SeqFrame.from_dataset()``.
 
 Requires optional dependencies::
 

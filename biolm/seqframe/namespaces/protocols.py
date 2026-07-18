@@ -23,15 +23,27 @@ class ProtocolsNamespace:
         join_on: str = "id",
         version: Optional[int] = None,
         run_name: Optional[str] = None,
+        environment_id: Optional[int] = None,
         timeout: float = 3600.0,
         show_progress: bool = True,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         output_dir: str = ".",
     ) -> "SeqFrame":
-        """Submit a protocol run and merge results back into this SeqFrame."""
+        """Submit a protocol run and merge results back into this SeqFrame.
+
+        Results are joined with ``join_on`` (default ``"id"``). Note that
+        ``sf.query.join`` defaults to ``sequence_hash``; pass ``join_on``
+        explicitly when protocol outputs use a different key.
+        """
         client = ProtocolClient(api_key=api_key, base_url=base_url)
-        run = client.submit(slug, inputs, version=version, run_name=run_name)
+        run = client.submit(
+            slug,
+            inputs,
+            version=version,
+            run_name=run_name,
+            environment_id=environment_id,
+        )
         run.wait(timeout=timeout, show_progress=show_progress)
         result_sf = from_protocol(run, output_dir=output_dir)
         return self._sf.query.join(result_sf, on=join_on, how="left")

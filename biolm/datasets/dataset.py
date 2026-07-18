@@ -120,6 +120,17 @@ class Dataset:
         """Push this dataset via a registered backend."""
         return get_backend(backend).push(self, **opts)
 
+    def open_seqframe(self):
+        """Open this dataset as a :class:`~biolm.seqframe.SeqFrame`.
+
+        Requires ``biolm-sdk[seqframe]``. Resolves ``attrs.seqframe_path`` or
+        exactly one ``*.parquet`` under the dataset. See
+        :mod:`biolm.seqframe.dataset_bridge`.
+        """
+        from biolm.seqframe.dataset_bridge import open_seqframe
+
+        return open_seqframe(self)
+
     def to_dict(self) -> Dict[str, Any]:
         data = self._meta.to_dict()
         data["path"] = str(self._path)

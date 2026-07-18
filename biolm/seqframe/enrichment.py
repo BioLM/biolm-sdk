@@ -22,6 +22,7 @@ class EnrichmentBackend(Protocol):
         batch_size: int = 32,
         action: str = "predict",
         api_key: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> "SeqFrame": ...
 
@@ -34,6 +35,7 @@ class EnrichmentBackend(Protocol):
         layer: Optional[int] = None,
         batch_size: int = 32,
         api_key: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> "SeqFrame": ...
 
@@ -51,6 +53,23 @@ def _extract_scalar(result: Dict[str, Any], action: str) -> Any:
     return result
 
 
+_BIOLM_API_CTOR_KEYS = frozenset(
+    {
+        "base_url",
+        "timeout",
+        "raise_httpx",
+        "unwrap_single",
+        "semaphore",
+        "rate_limit",
+        "retry_error_batches",
+        "compress_requests",
+        "compress_threshold",
+        "concurrent_batches",
+        "http2",
+    }
+)
+
+
 class ApiEnrichmentBackend:
     """v0 enrichment via sync BioLM API calls."""
 
@@ -63,6 +82,7 @@ class ApiEnrichmentBackend:
         batch_size: int = 32,
         action: str = "predict",
         api_key: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> "SeqFrame":
         from biolm.core.http import BioLMApi
@@ -73,14 +93,26 @@ class ApiEnrichmentBackend:
         values: List[Any] = []
         ids: List[str] = []
 
-        api = BioLMApi(model, api_key=api_key, **kwargs)
+        ctor_kwargs = {k: v for k, v in kwargs.items() if k in _BIOLM_API_CTOR_KEYS}
+        unknown = set(kwargs) - _BIOLM_API_CTOR_KEYS
+        if unknown:
+            raise TypeError(
+                f"Unexpected keyword arguments for models.predict/embed: {sorted(unknown)}. "
+                f"Pass model call options via params=; BioLMApi ctor options: "
+                f"{sorted(_BIOLM_API_CTOR_KEYS)}."
+            )
+
+        api = BioLMApi(model, api_key=api_key, **ctor_kwargs)
         method = getattr(api, action, None)
         if method is None:
             raise ValueError(f"Unsupported BioLM action: {action!r}")
         try:
             for batch in batch_iterable(df.to_dict(orient="records"), batch_size):
                 items = [{seq_col: row[seq_col]} for row in batch]
-                results = method(items=items, params=kwargs.get("params"))
+                call_kwargs: Dict[str, Any] = {"items": items}
+                if params is not None:
+                    call_kwargs["params"] = params
+                results = method(**call_kwargs)
                 if not isinstance(results, list):
                     results = [results]
                 for row, result in zip(batch, results):
@@ -101,12 +133,12 @@ class ApiEnrichmentBackend:
         layer: Optional[int] = None,
         batch_size: int = 32,
         api_key: Optional[str] = None,
+        params: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> "SeqFrame":
-        params = dict(kwargs.get("params") or {})
+        call_params = dict(params or {})
         if layer is not None:
-            params["layer"] = layer
-        kwargs = {**kwargs, "params": params}
+            call_params["layer"] = layer
         return self.predict(
             sf,
             model=model,
@@ -114,6 +146,7 @@ class ApiEnrichmentBackend:
             batch_size=batch_size,
             action="encode",
             api_key=api_key,
+            params=call_params or None,
             **kwargs,
         )
 

@@ -187,6 +187,103 @@ class TestSeqFrameModels:
         assert df.iloc[0]["score"] == 0.75
         mock_api.shutdown.assert_called_once()
 
+    def test_predict_params_not_passed_to_ctor(self):
+        sf = SeqFrame.from_rows([{"sequence": "MKLLIV", "id": "seq1"}])
+        mock_api = MagicMock()
+        mock_api.predict.return_value = [{"value": 1.0}]
+        mock_api.shutdown.return_value = None
+
+        with patch("biolm.core.http.BioLMApi", return_value=mock_api) as ctor:
+            sf.models.predict(
+                "esm2-8m",
+                column="score",
+                batch_size=1,
+                params={"temperature": 0.5},
+            )
+
+        ctor.assert_called_once()
+        assert "params" not in ctor.call_args.kwargs
+        mock_api.predict.assert_called_once()
+        assert mock_api.predict.call_args.kwargs.get("params") == {"temperature": 0.5}
+
+    def test_predict_rejects_unknown_kwargs(self):
+        sf = SeqFrame.from_rows([{"sequence": "MKLLIV", "id": "seq1"}])
+        with pytest.raises(TypeError, match="Unexpected keyword"):
+            sf.models.predict("esm2-8m", column="score", not_a_real_option=True)
+
+
+class TestSeqFrameDatasetBridge:
+    def test_to_dataset_and_open_roundtrip(self, tmp_path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+
+        from biolm.datasets import DatasetClient
+
+        root = tmp_path / ".biolm" / "datasets"
+        client = DatasetClient(primary_root=root, roots=[root])
+        sf = SeqFrame.from_rows(
+            [{"sequence": "MKLLIV", "id": "a"}, {"sequence": "ACDE", "id": "b"}]
+        )
+        ds = sf.to_dataset("proteins-v1", client=client, tags=["design"])
+        assert ds.type == "seqframe"
+        assert ds.attrs.get("seqframe_path") == "data/sequences.parquet"
+        assert (ds.path / "data" / "sequences.parquet").is_file()
+
+        opened = ds.open_seqframe()
+        assert len(opened) == 2
+        assert list(opened.collect()["id"]) == ["a", "b"]
+
+        again = SeqFrame.from_dataset(ds)
+        assert len(again) == 2
+
+    def test_open_requires_single_parquet_or_attr(self, tmp_path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+
+        from biolm.datasets import DatasetClient, DatasetError
+
+        root = tmp_path / ".biolm" / "datasets"
+        client = DatasetClient(primary_root=root, roots=[root])
+        ds = client.create("empty-ds", type="seqframe")
+        with pytest.raises(DatasetError, match="no Parquet"):
+            ds.open_seqframe()
+
+        sf = SeqFrame.from_rows([{"sequence": "MKLLIV", "id": "a"}])
+        ds = sf.to_dataset("proteins-v1", client=client)
+        # Add a second parquet without updating attrs → ambiguous
+        other = ds.data_dir / "other.parquet"
+        sf.io.to_parquet(other)
+        # Clear attr so resolution falls back to candidate count
+        from biolm.datasets.schema import DatasetMeta, write_dataset_yaml
+
+        meta = DatasetMeta(
+            id=ds.id,
+            type="seqframe",
+            attrs={},
+            created_at=ds.created_at,
+        )
+        write_dataset_yaml(ds.path, meta)
+        ds = ds.refresh()
+        with pytest.raises(DatasetError, match="Parquet files"):
+            ds.open_seqframe()
+
+    def test_to_dataset_refuses_overwrite_without_force(self, tmp_path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("biolm.hub.config.read_config", lambda: {})
+
+        from biolm.datasets import DatasetClient, DatasetError
+
+        root = tmp_path / ".biolm" / "datasets"
+        client = DatasetClient(primary_root=root, roots=[root])
+        sf = SeqFrame.from_rows([{"sequence": "MKLLIV", "id": "a"}])
+        sf.to_dataset("proteins-v1", client=client)
+        with pytest.raises(DatasetError, match="already exists"):
+            sf.to_dataset("proteins-v1", client=client)
+        sf.to_dataset("proteins-v1", client=client, force=True)
+
 
 class TestSeqFrameBio:
     def test_length_column(self):
