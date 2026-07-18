@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.3.0 (2026-07-18)
+
+### Features
+
+- Add SeqFrame sequence-centric dataframe abstraction
+  ([#7](https://github.com/BioLM/biolm-sdk/pull/7),
+  [`97a71e3`](https://github.com/BioLM/biolm-sdk/commit/97a71e31209782d548dd45dd8fd30429ed56db5e))
+
+- Bridge SeqFrame with local datasets and document coexistence
+  ([#7](https://github.com/BioLM/biolm-sdk/pull/7),
+  [`97a71e3`](https://github.com/BioLM/biolm-sdk/commit/97a71e31209782d548dd45dd8fd30429ed56db5e))
+
+
 ## v1.2.0 (2026-07-18)
 
 ### Features
