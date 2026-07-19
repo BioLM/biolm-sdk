@@ -78,6 +78,9 @@ setup(
             "duckdb>=0.9.0,<2",
             "pyarrow>=10.0.0",
         ],
+        "lltp": [
+            "lltp>=0.1.0a1",
+        ],
         "pipeline": [
             "pandas>=1.3.0,<3",
             "numpy>=1.20,<3",

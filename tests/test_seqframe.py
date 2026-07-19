@@ -292,10 +292,12 @@ class TestSeqFrameBio:
         df = result.collect()
         assert df.iloc[0]["seq_len"] == 6
 
-    def test_lab_stub_raises(self):
+    def test_lab_to_lltp_payload(self):
         sf = SeqFrame.from_rows(SAMPLE_ROWS[:1])
-        with pytest.raises(NotImplementedError, match="LLTP"):
-            sf.lab.to_lltp()
+        payload = sf.lab.to_lltp(service_id="adaptyv-lltp.expression-v1")
+        assert payload["service_id"] == "adaptyv-lltp.expression-v1"
+        assert payload["sequences"][0]["id"] == SAMPLE_ROWS[0]["id"]
+        assert payload["sequences"][0]["sequence"] == SAMPLE_ROWS[0]["sequence"]
 
 
 class TestSeqFrameExtrasGate:

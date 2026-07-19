@@ -108,6 +108,7 @@ def _root_help_sections(
         "Models",
         "Protocols",
         "Datasets",
+        "Lab",
         "Commands",
     )
     title_for_root = {
@@ -119,6 +120,7 @@ def _root_help_sections(
         "model": "Models",
         "protocol": "Protocols",
         "dataset": "Datasets",
+        "lab": "Lab",
     }
     sections: dict[str, builtins.list[tuple[str, click.Command]]] = {
         title: [] for title in section_order
@@ -4340,6 +4342,289 @@ def dataset_pull(dataset_id, backend, dest_path, force, mlflow_uri, experiment):
         ))
         sys.exit(1)
 
+
+
+@cli.group(cls=RichGroup)
+def lab():
+    """Submit sequences to lab providers via LLTP connectors and track runs.
+
+    Project config lives in ``lltp.yaml``; run state under ``.biolm/lltp/``.
+    Install ``biolm-sdk[lltp]`` plus a connector (adaptyv-lltp / twist-lltp).
+    """
+    pass
+
+
+@lab.command("init")
+@click.option(
+    "--path",
+    "config_path",
+    type=click.Path(),
+    default="lltp.yaml",
+    help="Path for the new lltp.yaml",
+)
+@click.option("--force", is_flag=True, help="Overwrite an existing file")
+def lab_init(config_path, force):
+    """Write an example ``lltp.yaml`` in the current project."""
+    from pathlib import Path
+
+    from biolm.lab.config import write_example_config
+
+    try:
+        out = write_example_config(Path(config_path), force=force)
+    except FileExistsError as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Error[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+    console.print(Panel(
+        f"[success]Wrote {out}[/success]",
+        title="[success]Lab config[/success]",
+        border_style="success",
+        box=box.ROUNDED,
+    ))
+
+
+def _load_seqframe_for_submit(path: str):
+    from pathlib import Path
+
+    from biolm import SeqFrame
+
+    p = Path(path)
+    suffix = p.suffix.lower()
+    if suffix in {".parquet", ".pq"}:
+        return SeqFrame.read(p)
+    if suffix in {".fa", ".fasta", ".fna", ".faa"}:
+        return SeqFrame.from_fasta(p)
+    if suffix == ".csv":
+        return SeqFrame.from_csv(p)
+    if suffix in {".jsonl", ".json"}:
+        return SeqFrame.from_jsonl(p)
+    raise click.ClickException(
+        f"Unsupported input type {suffix!r}; use parquet, fasta, csv, or jsonl"
+    )
+
+
+@lab.command("submit")
+@click.argument("path", type=click.Path(exists=True))
+@click.option("--experiment", default=None, help="Named experiment from lltp.yaml")
+@click.option("--connector", default=None, help="Connector name (adaptyv, twist)")
+@click.option("--service-id", default=None, help="LLTP service_id")
+@click.option("--name", "batch_name", default=None, help="Optional batch / order name")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(),
+    default=None,
+    help="Path to lltp.yaml",
+)
+def lab_submit(path, experiment, connector, service_id, batch_name, config_path):
+    """Submit a SeqFrame (parquet/fasta/csv/jsonl) to a lab connector."""
+    from pathlib import Path
+
+    from biolm.lab import submit
+
+    try:
+        sf = _load_seqframe_for_submit(path)
+        run = submit(
+            sf,
+            experiment=experiment,
+            connector=connector,
+            service_id=service_id,
+            name=batch_name,
+            config_path=Path(config_path) if config_path else None,
+        )
+    except Exception as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Submit failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+    console.print(Panel(
+        f"[success]Submitted run {run.run_id}[/success]\n\n"
+        f"Connector: {run.connector}\n"
+        f"Service: {run.service_id}\n"
+        f"Status: {run.status}",
+        title="[success]Lab submit[/success]",
+        border_style="success",
+        box=box.ROUNDED,
+    ))
+
+
+@lab.command("status")
+@click.argument("run_id")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(),
+    default=None,
+    help="Path to lltp.yaml",
+)
+def lab_status(run_id, config_path):
+    """Poll a lab run and print the latest status (on-demand)."""
+    from pathlib import Path
+
+    from biolm.lab import status
+
+    try:
+        run = status(
+            run_id,
+            config_path=Path(config_path) if config_path else None,
+        )
+    except Exception as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Status failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+    patches = (run.last_status or {}).get("patches") or []
+    patch_lines = "\n".join(
+        f"  - {p.get('requirement_id')}: {p.get('status')}" for p in patches
+    ) or "  (none)"
+    console.print(Panel(
+        f"Run: {run.run_id}\n"
+        f"Status: {run.status}\n"
+        f"Connector: {run.connector}\n"
+        f"Requirements:\n{patch_lines}",
+        title="[brand]Lab status[/brand]",
+        border_style="brand",
+        box=box.ROUNDED,
+    ))
+
+
+@lab.command("confirm")
+@click.argument("run_id")
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(),
+    default=None,
+    help="Path to lltp.yaml",
+)
+@click.option("--payment-method-id", default=None)
+@click.option("--shipping-address-id", default=None)
+def lab_confirm(run_id, config_path, payment_method_id, shipping_address_id):
+    """Confirm quote / approval for a blocked run."""
+    from pathlib import Path
+
+    from biolm.lab import confirm
+
+    kwargs = {}
+    if payment_method_id:
+        kwargs["payment_method_id"] = payment_method_id
+    if shipping_address_id:
+        kwargs["shipping_address_id"] = shipping_address_id
+
+    try:
+        run = confirm(
+            run_id,
+            config_path=Path(config_path) if config_path else None,
+            **kwargs,
+        )
+    except Exception as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Confirm failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+    console.print(Panel(
+        f"[success]Confirmed run {run.run_id}[/success]\n"
+        f"Status: {run.status}\n"
+        f"vendor_order_id: {run.handle.get('vendor_order_id')}",
+        title="[success]Lab confirm[/success]",
+        border_style="success",
+        box=box.ROUNDED,
+    ))
+
+
+@lab.command("results")
+@click.argument("run_id")
+@click.option(
+    "-o",
+    "--output",
+    "output_path",
+    type=click.Path(),
+    required=True,
+    help="Output parquet path for the result SeqFrame",
+)
+@click.option(
+    "--config",
+    "config_path",
+    type=click.Path(),
+    default=None,
+    help="Path to lltp.yaml",
+)
+def lab_results(run_id, output_path, config_path):
+    """Fetch results for a run and write a SeqFrame parquet."""
+    from pathlib import Path
+
+    from biolm.lab import results
+
+    try:
+        sf = results(
+            run_id,
+            config_path=Path(config_path) if config_path else None,
+        )
+        sf.io.to_parquet(output_path)
+    except Exception as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Results failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+    console.print(Panel(
+        f"[success]Wrote results to {output_path}[/success]\n"
+        f"Rows: {len(sf)}",
+        title="[success]Lab results[/success]",
+        border_style="success",
+        box=box.ROUNDED,
+    ))
+
+
+@lab.command("list")
+def lab_list():
+    """List lab runs under ``.biolm/lltp/``."""
+    from biolm.lab import list_runs
+
+    runs = list_runs()
+    if not runs:
+        console.print("[text.muted]No lab runs found under .biolm/lltp/[/text.muted]")
+        return
+
+    table = Table(
+        title="[brand]Lab runs[/brand]",
+        box=box.ROUNDED,
+        show_header=True,
+        header_style="brand.bright",
+    )
+    table.add_column("run_id", style="brand")
+    table.add_column("experiment")
+    table.add_column("connector")
+    table.add_column("status")
+    table.add_column("updated_at")
+    for run in runs:
+        table.add_row(
+            run.run_id,
+            run.experiment or "",
+            run.connector,
+            run.status,
+            run.updated_at,
+        )
+    console.print(table)
 
 
 if __name__ == "__main__":
