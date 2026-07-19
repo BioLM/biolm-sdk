@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v1.4.0 (2026-07-19)
+
+### Bug Fixes
+
+- Update SeqFrame lab test for implemented to_lltp
+  ([#21](https://github.com/BioLM/biolm-sdk/pull/21),
+  [`448cbb1`](https://github.com/BioLM/biolm-sdk/commit/448cbb187e7b012b6a573196a10c70e4daa8c216))
+
+### Features
+
+- Add LLTP lab orchestration with SeqFrame bridge
+  ([#21](https://github.com/BioLM/biolm-sdk/pull/21),
+  [`448cbb1`](https://github.com/BioLM/biolm-sdk/commit/448cbb187e7b012b6a573196a10c70e4daa8c216))
+
+- LLTP lab orchestration with SeqFrame bridge ([#21](https://github.com/BioLM/biolm-sdk/pull/21),
+  [`448cbb1`](https://github.com/BioLM/biolm-sdk/commit/448cbb187e7b012b6a573196a10c70e4daa8c216))
+
+
 ## v1.3.0 (2026-07-18)
 
 ### Features
