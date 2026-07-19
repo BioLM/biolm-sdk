@@ -53,6 +53,7 @@ Welcome to BioLM SDK Documentation
    guide/sequence-and-structure-data
    guide/managing-datasets
    guide/seqframe
+   guide/lab
 
 .. toctree::
    :maxdepth: 1

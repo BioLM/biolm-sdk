@@ -41,7 +41,8 @@ Namespaced APIs
 - ``sf.models`` — ``predict`` / ``embed`` via the BioLM API
 - ``sf.protocols`` — run a protocol and join results (default join key ``id``;
   ``query.join`` defaults to ``sequence_hash``)
-- ``sf.lab`` — LLTP bridge stubs (not implemented yet)
+- ``sf.lab`` — LLTP convert helpers (``to_lltp`` / ``from_lltp`` / ``merge``);
+  orchestration is :doc:`lab` (``biolm.lab`` / ``biolm lab``)
 
 
 Datasets bridge
@@ -63,5 +64,7 @@ Resolution uses ``attrs.seqframe_path`` when set, otherwise exactly one
 
 Parquet metadata (``seqframe.version`` / ``seqframe.schema``) is documented in
 :doc:`../yaml/seqframe-schema`.
+
+Lab-in-the-loop (LLTP) submit / status / results live in :doc:`lab`.
 
 See :doc:`../api-reference/biolm.seqframe` and :doc:`../sdk/seqframe`.
