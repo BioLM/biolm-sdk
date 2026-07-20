@@ -1,0 +1,26 @@
+name: esmfold-with-outputs
+schema_version: 1
+description: ESMFold predict with outputs[] selection rules
+
+inputs:
+  sequences:
+    type: list_of_str
+    label: Protein sequences
+    required: true
+
+tasks:
+  - id: fold
+    slug: esmfold
+    action: predict
+    request_body:
+      items: ${{ sequences }}
+    response_mapping:
+      mean_plddt: mean_plddt
+      pdb: pdb
+
+outputs:
+  - where: "${{ mean_plddt > 70 }}"
+    order_by:
+      - field: mean_plddt
+        order: desc
+    limit: 2

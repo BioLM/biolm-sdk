@@ -3392,10 +3392,14 @@ def run_local(protocol_file, input_pairs, output_json, output_dir):
         console.print(_json.dumps(result.records, indent=2), markup=False, highlight=False)
         return
 
+    selected_line = ""
+    if result.selected_records:
+        selected_line = f"\nSelected rows: {len(result.selected_records)}"
+
     console.print(Panel(
         f"[success]Protocol run complete[/success]\n\n"
         f"Run ID: {result.run_id}\n"
-        f"Rows: {len(result.records)}\n"
+        f"Rows: {len(result.records)}{selected_line}\n"
         f"Protocol: {result.plan.protocol_name}",
         title="[brand]Local Protocol Run[/brand]",
         border_style="brand",

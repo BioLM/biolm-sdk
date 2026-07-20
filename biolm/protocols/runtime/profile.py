@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-PROFILE_DOC = "docs/notes/local-protocol-profile-v1.md"
+PROFILE_DOC = "docs/guide/protocol-local-profile.rst"
 
 _UNSUPPORTED_TASK_KEYS = frozenset(
     {"class", "app", "method", "gather", "foreach", "subtasks"}

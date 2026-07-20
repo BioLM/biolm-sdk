@@ -29,6 +29,7 @@ from biolm.core.expression_evaluator import (
     evaluate_where_clause,
     extract_template_expr,
 )
+from biolm.protocols.outputs import select_results
 
 
 class MLflowNotAvailableError(Exception):
@@ -143,56 +144,6 @@ def load_outputs_config(
         raise TypeError(
             f"outputs_config must be a list, dict, or file path, got {type(outputs_config)}"
         )
-
-
-def select_results(results: List[Dict], output_rule: Dict) -> List[Dict]:
-    """Select results based on an output rule.
-    
-    Args:
-        results: List of result dictionaries
-        output_rule: Output rule configuration
-        
-    Returns:
-        List of selected result dictionaries
-    """
-    selected = results.copy()
-    
-    # Apply where filter
-    where_expr = output_rule.get("where")
-    if where_expr:
-        selected = [
-            row for row in selected if evaluate_where_clause(where_expr, row)
-        ]
-    
-    # Apply order_by
-    order_by = output_rule.get("order_by", [])
-    if order_by:
-        # Sort by multiple fields (most significant first)
-        for order_spec in reversed(order_by):
-            field = order_spec.get("field")
-            order = order_spec.get("order", "asc")
-            reverse = order == "desc"
-            
-            # Sort by field value
-            selected.sort(key=lambda x: x.get(field), reverse=reverse)
-    
-    # Apply limit
-    limit = output_rule.get("limit", 200)
-    if limit is not None:
-        # Evaluate limit if it's an expression
-        is_template, expr = extract_template_expr(str(limit))
-        if is_template:
-            # Use first row as context for limit expression
-            if selected:
-                limit = int(evaluate_expression(expr, selected[0]))
-            else:
-                limit = 200
-        else:
-            limit = int(limit)
-        
-        selected = selected[:limit]
-    
-    return selected
 
 
 def combine_output_rules(

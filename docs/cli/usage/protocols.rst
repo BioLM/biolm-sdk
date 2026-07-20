@@ -41,5 +41,5 @@ Use ``--format json`` for machine-readable list, run, status, wait, cancel, and
 results output. Authentication accepts ``BIOLM_TOKEN`` or saved OAuth
 credentials from ``biolm account login``.
 
-See :doc:`../../sdk/protocols` and :doc:`../../notes/local-protocol-profile-v1`
+See :doc:`../../sdk/protocols` and :doc:`../../guide/protocol-local-profile`
 for local vs hosted details, and :doc:`../protocol` for the complete command reference.

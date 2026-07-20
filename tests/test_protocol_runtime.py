@@ -135,6 +135,55 @@ class TestRunLocal:
             result = protocol.execute(inputs={"sequence": "MKLLIV"})
         assert len(result.records) == 1
 
+    def test_run_local_applies_outputs(self, tmp_path):
+        protocol = _load_fixture("esmfold_with_outputs.yaml")
+        mock_api = self._mock_predict_api(
+            [
+                {"mean_plddt": 65.0, "pdb": "ATOM 1"},
+                {"mean_plddt": 88.0, "pdb": "ATOM 2"},
+                {"mean_plddt": 92.0, "pdb": "ATOM 3"},
+            ]
+        )
+        with patch("biolm.pipeline.data.BioLMApiClient", return_value=mock_api):
+            result = run_local_protocol(
+                protocol,
+                inputs={"sequences": ["MKLLIV", "MKTAY", "AAAAA"]},
+                output_dir=tmp_path,
+                verbose=False,
+            )
+        assert len(result.records) == 3
+        assert len(result.output_selections) == 1
+        assert len(result.output_selections[0].records) == 2
+        assert len(result.selected_records) == 2
+        scores = [row["mean_plddt"] for row in result.selected_records]
+        assert scores == [92.0, 88.0]
+
+
+class TestProtocolOutputs:
+    def test_apply_protocol_outputs_empty_rules(self):
+        from biolm.protocols.outputs import apply_protocol_outputs
+
+        records = [{"score": 0.9}]
+        selections, selected = apply_protocol_outputs(records, None)
+        assert selections == []
+        assert selected == []
+
+    def test_apply_protocol_outputs_union_dedupes(self):
+        from biolm.protocols.outputs import apply_protocol_outputs
+
+        records = [
+            {"score": 0.9, "id": 1},
+            {"score": 0.8, "id": 2},
+            {"score": 0.3, "id": 3},
+        ]
+        rules = [
+            {"where": "${{ score > 0.5 }}", "limit": 1},
+            {"order_by": [{"field": "score", "order": "desc"}], "limit": 2},
+        ]
+        selections, selected = apply_protocol_outputs(records, rules)
+        assert len(selections) == 2
+        assert len(selected) == 2
+
 
 class TestCLI:
     def test_cli_protocol_run(self, tmp_path, monkeypatch):

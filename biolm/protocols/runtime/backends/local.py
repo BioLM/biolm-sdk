@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
@@ -10,6 +10,7 @@ import pandas as pd
 
 from biolm.pipeline.data import DataPipeline
 
+from biolm.protocols.outputs import OutputSelection, apply_protocol_outputs
 from biolm.protocols.runtime.compile import compile_to_pipeline
 from biolm.protocols.runtime.results import dataframe_to_records
 from biolm.protocols.runtime.spec import ExecutionPlan
@@ -24,6 +25,8 @@ class LocalRunResult:
     plan: ExecutionPlan
     pipeline: Optional[DataPipeline] = None
     run_id: Optional[str] = None
+    output_selections: list[OutputSelection] = field(default_factory=list)
+    selected_records: list[dict[str, Any]] = field(default_factory=list)
 
     def to_seqframe(self, *, molecule_type: Optional[str] = None, path: Optional[str | Path] = None):
         """Materialize results as a :class:`~biolm.seqframe.SeqFrame` (requires seqframe extra)."""
@@ -62,6 +65,10 @@ def run_local(
     pipeline.run()
     df = pipeline.get_final_data()
     records = dataframe_to_records(df)
+    output_rules = protocol.get("outputs")
+    if output_rules is not None and not isinstance(output_rules, list):
+        output_rules = None
+    output_selections, selected_records = apply_protocol_outputs(records, output_rules)
 
     return LocalRunResult(
         dataframe=df,
@@ -69,4 +76,6 @@ def run_local(
         plan=plan,
         pipeline=pipeline,
         run_id=plan.run_id,
+        output_selections=output_selections,
+        selected_records=selected_records,
     )

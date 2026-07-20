@@ -38,7 +38,7 @@ When to use which
 - ``biolm protocol run-local PROTOCOL.yaml --input key=value`` — compile and run locally
 - :meth:`Protocol.execute <biolm.protocols.Protocol.execute>` / :func:`~biolm.protocols.run_local_protocol`
 - Requires ``pip install "biolm-sdk[pipeline]"``
-- Supported features: see :doc:`../notes/local-protocol-profile-v1`
+- Supported features: see :doc:`../guide/protocol-local-profile`
 
 **Hosted (platform API)**
 
@@ -92,6 +92,7 @@ Run locally from Python:
    protocol = Protocol("my-protocol.yaml")
    result = protocol.execute(inputs={"sequence": "MKLLIV"})
    print(result.records)
+   print(result.selected_records)  # when protocol defines outputs[]
 
 Run locally from the CLI:
 
@@ -144,13 +145,11 @@ API
    :noindex:
 
 .. autoclass:: biolm.protocols.runtime.LocalRunResult
-   :members:
+   :members: records, selected_records, output_selections, to_seqframe
    :undoc-members:
 
 See also
 --------
 
-- :doc:`../cli/protocol` — CLI validate and run
-- :doc:`../yaml/protocol-schema` — protocol YAML schema
-- :doc:`../notes/local-protocol-profile-v1` — local execution profile (v1)
-- :doc:`../api-reference/biolm.protocols` — full package reference
+- :doc:`../guide/protocol-workflows` — authoring, local, and hosted guides
+- :doc:`../guide/protocol-local-profile` — local execution profile (v1)

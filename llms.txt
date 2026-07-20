@@ -280,4 +280,4 @@ pandas DataFrame or materialized into a local DuckDB database. See
 
 **Local runs** via `biolm.protocols.runtime` compile supported protocol YAML to
 `DataPipeline` stages and return a `LocalRunResult` (`dataframe`, `records`).
-See `docs/notes/local-protocol-profile-v1.md` for supported features.
+See `docs/guide/protocol-local-profile.rst` for supported features.
