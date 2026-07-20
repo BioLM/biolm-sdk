@@ -164,7 +164,7 @@ output_format = "md"
 [tool.semantic_release]
 version_variables = ["biolm/__init__.py:__version__"]
 version_toml = ["pyproject.toml:project.version"]
-commit_message = "chore(release): {version} [skip ci]"
+commit_message = "chore(release): {version} [skip version]"
 tag_format = "v{version}"
 upload_to_pypi = false
 upload_to_vcs_release = true

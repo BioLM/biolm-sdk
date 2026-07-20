@@ -22,8 +22,12 @@ This project uses **[python-semantic-release](https://python-semantic-release.re
    - Updates `biolm/__init__.py` and `pyproject.toml` (`project.version`)
    - Creates git tag (e.g. `v0.5.0`) via the deploy key (`SEMANTIC_RELEASE_SSH_KEY`)
    - Opens a GitHub Release via `SEMANTIC_RELEASE_TOKEN` (so `release: published` can trigger publish)
-   - Commits the version bump with `[skip ci]` to avoid loops
+   - Commits the version bump with `[skip version]` so the `version` job does not loop.
+     **Do not use `[skip ci]`** — GitHub suppresses *all* workflows for that phrase, including
+     docs Pages deploys, which left the site stuck on an older `package_version`.
+   - Dispatches `docs.yml` after a successful bump so Pages picks up the new version/changelog
 4. **Publish workflow** uploads to PyPI when the GitHub Release is published
+5. **Docs workflow** rebuilds on relevant path changes and after each release (see above)
 
 ### Required secrets
 

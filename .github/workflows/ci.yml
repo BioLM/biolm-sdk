@@ -249,9 +249,11 @@ jobs:
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main' &&
       github.repository == 'BioLM/biolm-sdk' &&
+      !contains(github.event.head_commit.message, '[skip version]') &&
       !contains(github.event.head_commit.message, '[skip ci]')
     permissions:
       contents: write
+      actions: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -279,10 +281,32 @@ jobs:
           git remote -v
 
       - name: Run python-semantic-release
+        id: release
         env:
           # PAT/App token required so creating a Release can trigger publish.yml.
           # Default GITHUB_TOKEN cannot start other workflows (GitHub recursion guard),
           # which left PyPI stuck while GitHub Releases advanced.
           # Secret: SEMANTIC_RELEASE_TOKEN (Contents: Read and write).
           GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
-        run: semantic-release version
+        run: |
+          BEFORE=$(git rev-parse HEAD)
+          semantic-release version
+          AFTER=$(git rev-parse HEAD)
+          if [ "$BEFORE" != "$AFTER" ]; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "Released: $BEFORE -> $AFTER"
+          else
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            echo "No version bump"
+          fi
+
+      # Release commits use [skip version] (not [skip ci]) so GitHub still runs
+      # path-filtered workflows. Explicitly dispatch docs as a backstop: the
+      # release push updates version + CHANGELOG, which the Pages site must show.
+      - name: Trigger docs deploy after release
+        if: steps.release.outputs.released == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
+        run: |
+          gh workflow run docs.yml --repo "${{ github.repository }}" --ref main
+          echo "Dispatched Deploy Documentation on main"
