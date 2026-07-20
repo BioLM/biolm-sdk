@@ -164,7 +164,7 @@ output_format = "md"
 [tool.semantic_release]
 version_variables = ["biolm/__init__.py:__version__"]
 version_toml = ["pyproject.toml:project.version"]
-commit_message = "chore(release): {version} [skip ci]"
+commit_message = "chore(release): {version} [skip version]"
 tag_format = "v{version}"
 upload_to_pypi = false
 upload_to_vcs_release = true
@@ -172,7 +172,8 @@ upload_to_vcs_release = true
 [tool.semantic_release.remote]
 type = "github"
 token = { env = "GH_TOKEN" }
-# Push via checkout SSH deploy key; keep GH_TOKEN only for GitHub Releases API.
+# Push via checkout SSH deploy key; GH_TOKEN is SEMANTIC_RELEASE_TOKEN (not GITHUB_TOKEN)
+# so creating a Release can trigger .github/workflows/publish.yml.
 ignore_token_for_push = true
 
 [tool.semantic_release.branches.main]

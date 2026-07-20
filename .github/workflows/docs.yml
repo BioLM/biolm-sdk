@@ -6,6 +6,8 @@ on:
     paths:
       - 'docs/**'
       - 'biolm/**'
+      - 'CHANGELOG.md'
+      - 'pyproject.toml'
       - 'Makefile'
       - 'scripts/generate_docs_manifest.py'
       - '.github/workflows/docs.yml'
