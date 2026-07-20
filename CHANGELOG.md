@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v1.5.0 (2026-07-20)
+
+### Bug Fixes
+
+- **docs**: Point changelog include at repo-root CHANGELOG.md
+  ([#11](https://github.com/BioLM/biolm-sdk/pull/11),
+  [`ac0218a`](https://github.com/BioLM/biolm-sdk/commit/ac0218a6cb237278fd3d5e45113ea03221051181))
+
+### Features
+
+- Apply outputs[] selection on local runs and split protocol docs
+  ([#11](https://github.com/BioLM/biolm-sdk/pull/11),
+  [`ac0218a`](https://github.com/BioLM/biolm-sdk/commit/ac0218a6cb237278fd3d5e45113ea03221051181))
+
+- **protocols**: Add local protocol runner and unify protocols package
+  ([#11](https://github.com/BioLM/biolm-sdk/pull/11),
+  [`ac0218a`](https://github.com/BioLM/biolm-sdk/commit/ac0218a6cb237278fd3d5e45113ea03221051181))
+
+- **protocols**: Local protocol runner and unified protocols package
+  ([#11](https://github.com/BioLM/biolm-sdk/pull/11),
+  [`ac0218a`](https://github.com/BioLM/biolm-sdk/commit/ac0218a6cb237278fd3d5e45113ea03221051181))
+
+
 ## v1.4.0 (2026-07-19)
 
 ### Bug Fixes

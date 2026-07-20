@@ -1,7 +1,7 @@
 """Top-level package for BioLM."""
 __author__ = """Nikhil Haas"""
 __email__ = "nikhil@biolm.ai"
-__version__ = '1.4.0'
+__version__ = '1.5.0'
 
 from biolm.core.http import BioLMApi, BioLMApiClient
 from biolm.client import BioLM
