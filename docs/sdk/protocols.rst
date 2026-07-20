@@ -35,13 +35,14 @@ When to use which
 **Local (SDK + pipeline)**
 
 - ``biolm protocol validate`` — YAML/schema checks
-- ``biolm protocol run PROTOCOL.yaml --input key=value`` — compile and run locally
+- ``biolm protocol run-local PROTOCOL.yaml --input key=value`` — compile and run locally
 - :meth:`Protocol.execute <biolm.protocols.Protocol.execute>` / :func:`~biolm.protocols.run_local_protocol`
 - Requires ``pip install "biolm-sdk[pipeline]"``
 - Supported features: see :doc:`../notes/local-protocol-profile-v1`
 
 **Hosted (platform API)**
 
+- ``biolm protocol run SLUG -i inputs.json [--wait]`` — submit registered protocol
 - :func:`biolm.run_protocol` — submit by slug and block until results
 - :class:`~biolm.protocols.ProtocolClient` — submit, poll, download, cancel
 - Full protocol feature set (gather, foreach, task-output expressions, etc.)
@@ -60,6 +61,16 @@ Validate a protocol file:
 .. code-block:: bash
 
    biolm protocol validate my-protocol.yaml
+
+Submit inputs to the registered protocol slug:
+
+.. code-block:: bash
+
+   biolm protocol run my-protocol-slug -i inputs.json --wait
+
+The CLI submits JSON inputs, not the local YAML file. Use ``protocol list`` to
+discover registered slugs and ``status``, ``wait``, ``cancel``, ``results``, or
+``download`` to manage a run by ID.
 
 Validate from Python:
 
@@ -87,7 +98,7 @@ Run locally from the CLI:
 .. code-block:: bash
 
    pip install "biolm-sdk[pipeline]"
-   biolm protocol run my-protocol.yaml --input sequence=MKLLIV --json
+   biolm protocol run-local my-protocol.yaml --input sequence=MKLLIV --json
 
 Run on the platform from Python:
 
@@ -130,6 +141,7 @@ API
 .. autoclass:: biolm.protocols.ProtocolRun
    :members: wait, results, cancel, download
    :undoc-members:
+   :noindex:
 
 .. autoclass:: biolm.protocols.runtime.LocalRunResult
    :members:

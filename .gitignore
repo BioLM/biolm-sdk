@@ -68,6 +68,9 @@ instance/
 # Sphinx documentation
 docs/_build/
 
+# Local pipeline DuckDB cache (see biolm.pipeline.base)
+.biolm/
+
 # PyBuilder
 target/
 

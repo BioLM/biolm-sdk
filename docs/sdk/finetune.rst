@@ -3,7 +3,7 @@
 
 Launch and track BioLM finetuning runs (XGBoost and DSM) from Python without
 browser cookies. Install ``biolm-sdk`` and authenticate with ``BIOLM_TOKEN`` or
-``biolm login``.
+``biolm account login``.
 
 XGBoost finetune
 ----------------

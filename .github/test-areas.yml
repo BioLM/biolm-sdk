@@ -58,6 +58,7 @@ areas:
       - tests/test_cli_model_run.py
       - tests/test_cli_model_show.py
       - tests/test_cli_theme.py
+      - tests/test_cli_protocol_runs.py
 
   protocols:
     sources:
@@ -73,6 +74,22 @@ areas:
       - tests/test_protocol_package.py
       - tests/test_protocol_client.py
       - tests/test_protocols_mlflow.py
+      - tests/test_cli_protocol_runs.py
+
+  seqframe:
+    sources:
+      - biolm/seqframe/
+    tests:
+      - tests/test_seqframe.py
+
+  lab:
+    sources:
+      - biolm/lab/
+    tests:
+      - tests/test_lab_api.py
+      - tests/test_lab_config.py
+      - tests/test_lab_runs.py
+      - tests/test_seqframe_lab.py
 
   hub:
     sources:

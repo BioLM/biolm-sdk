@@ -2,39 +2,89 @@
 Welcome to BioLM SDK Documentation
 ===================================
 
-.. include:: intro/quickstart.rst
+.. include:: guide/quickstart.rst
    :start-line: 1
    :end-line: 27
 
-.. include:: intro/overview.rst
+.. include:: guide/overview.rst
    :start-line: 1
    :end-line: 17
 
 .. toctree::
    :maxdepth: 1
-   :caption: Introduction
+   :caption: Getting started
    :hidden:
 
-   intro/quickstart
-   intro/installation
-   intro/authentication
-   intro/concepts
-   intro/sdk-overview
-   intro/client-interfaces
-   intro/batching
-   intro/error-handling
-   intro/concurrency
-   intro/rate-limiting
-   intro/faq
+   guide/quickstart
+   guide/installation
+   guide/authentication
+   guide/account-management
+   guide/concepts
+   guide/sdk-overview
+   guide/faq
+
+.. toctree::
+   :maxdepth: 1
+   :caption: How the client works
+   :hidden:
+
+   guide/client-interfaces
+   guide/batching
+   guide/error-handling
+   guide/concurrency
+   guide/rate-limiting
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Running BioLM inferences
+   :hidden:
+
+   guide/what-are-biolms
+   guide/how-biolms-work
+   guide/choosing-models
+   guide/running-inference
+   guide/biolm-hub
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Working with biological data
+   :hidden:
+
+   guide/sequence-and-structure-data
+   guide/managing-datasets
+   guide/seqframe
+   guide/lab
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Orchestrating molecular design workflows
+   :hidden:
+
+   guide/workflows-overview
+   guide/protocol-workflows
+   guide/pipeline-workflows
+   guide/pipeline-caching
+   guide/saturation-mutagenesis
+   guide/iterative-masking-dms
+   guide/structure-conditioned-generation
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Model finetuning
+   :hidden:
+
+   guide/finetuning-models
 
 .. toctree::
    :maxdepth: 1
    :caption: CLI
    :hidden:
 
+   cli/account
    cli/login
    cli/logout
    cli/status
+   cli/whoami
    cli/hub
    cli/workspace
    cli/model
@@ -49,6 +99,7 @@ Welcome to BioLM SDK Documentation
    sdk/models
    sdk/protocols
    sdk/pipeline
+   sdk/seqframe
    sdk/workspaces
    sdk/volumes
    sdk/io
@@ -62,6 +113,8 @@ Welcome to BioLM SDK Documentation
    :hidden:
 
    yaml/protocol-schema
+   yaml/dataset-schema
+   yaml/seqframe-schema
 
 .. toctree::
    :maxdepth: 1
@@ -70,3 +123,10 @@ Welcome to BioLM SDK Documentation
 
    changelog
    notes/migration-1.0
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Internal
+   :hidden:
+
+   notes/snippet-doctests

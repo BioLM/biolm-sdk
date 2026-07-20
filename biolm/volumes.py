@@ -1,77 +1,44 @@
-"""Volume management for BioLM (Python SDK not yet implemented; use CLI/hub)."""
-from typing import Optional, List, Dict, Any
+"""Deprecated compatibility placeholder for BioLM runtime volumes."""
+import warnings
+from typing import Optional
 
-from biolm.core.http import BioLMApiClient
-from biolm.core.auth import get_user_auth_header
+
+_DEPRECATION_MESSAGE = (
+    "Modal-backed volumes are runtime-managed and not a local SDK storage API; "
+    "manage them via the BioLM console, Jupyter, or protocol export workflows."
+)
+_UNSUPPORTED_MESSAGE = (
+    "Direct local volume management is unsupported. Modal-backed volumes are "
+    "managed by BioLM runtimes; use the BioLM console, Jupyter, or protocol "
+    "export workflows."
+)
 
 
 class Volume:
-    """Volume management interface (not yet implemented).
-
-    Use hub CLI and storage workflows today. This class defines the intended
-    Python API: ``list``, ``create``, and ``get``.
+    """Deprecated placeholder retained for constructor and import compatibility.
 
     Args:
-        name: Volume name. If ``None``, uses the default volume.
-        api_key: Optional API token; defaults to ``BIOLM_TOKEN``.
+        name: Legacy volume name.
+        api_key: Legacy API token argument.
     """
-    def __init__(self, name: Optional[str] = None, api_key: Optional[str] = None):
-        self.name = name
-        # Volume API endpoint will be implemented when volume management is added
-        # For now, this is a placeholder structure
-        self._api_key = api_key
-    
-    def list(self) -> List[Dict[str, Any]]:
-        """List all available volumes.
-        
-        Returns:
-            List of volume dictionaries.
-            
-        Note:
-            Volume listing is not yet implemented. This is a placeholder.
-        """
-        raise NotImplementedError("Volume listing is not yet implemented.")
-    
-    def create(self, name: str, **kwargs) -> Dict[str, Any]:
-        """Create a new volume.
-        
-        Args:
-            name: Name of the volume to create.
-            ``**kwargs``: Additional volume parameters.
-            
-        Returns:
-            Created volume information.
-            
-        Note:
-            Volume creation is not yet implemented. This is a placeholder.
-        """
-        raise NotImplementedError("Volume creation is not yet implemented.")
-    
-    def get(self, name: Optional[str] = None) -> Dict[str, Any]:
-        """Get volume information.
-        
-        Args:
-            name: Volume name. If None, uses the volume name from initialization.
-            
-        Returns:
-            Volume information dictionary.
-            
-        Note:
-            Volume retrieval is not yet implemented. This is a placeholder.
-        """
-        raise NotImplementedError("Volume retrieval is not yet implemented.")
-    
-    def delete(self, name: Optional[str] = None) -> bool:
-        """Delete a volume.
-        
-        Args:
-            name: Volume name. If None, uses the volume name from initialization.
-            
-        Returns:
-            True if deletion was successful.
-            
-        Note:
-            Volume deletion is not yet implemented. This is a placeholder.
-        """
-        raise NotImplementedError("Volume deletion is not yet implemented.")
 
+    def __init__(self, name: Optional[str] = None, api_key: Optional[str] = None):
+        warnings.warn(_DEPRECATION_MESSAGE, DeprecationWarning, stacklevel=2)
+        self.name = name
+        self._api_key = api_key
+
+    def list(self):
+        """Reject direct local volume listing."""
+        raise NotImplementedError(_UNSUPPORTED_MESSAGE)
+
+    def create(self, name: str, **kwargs):
+        """Reject direct local volume creation."""
+        raise NotImplementedError(_UNSUPPORTED_MESSAGE)
+
+    def get(self, name: Optional[str] = None):
+        """Reject direct local volume lookup."""
+        raise NotImplementedError(_UNSUPPORTED_MESSAGE)
+
+    def delete(self, name: Optional[str] = None) -> bool:
+        """Reject direct local volume deletion."""
+        raise NotImplementedError(_UNSUPPORTED_MESSAGE)

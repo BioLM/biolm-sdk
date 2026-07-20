@@ -25,6 +25,22 @@ class LocalRunResult:
     pipeline: Optional[DataPipeline] = None
     run_id: Optional[str] = None
 
+    def to_seqframe(self, *, molecule_type: Optional[str] = None, path: Optional[str | Path] = None):
+        """Materialize results as a :class:`~biolm.seqframe.SeqFrame` (requires seqframe extra)."""
+        try:
+            from biolm.seqframe import SeqFrame
+        except ImportError as exc:
+            raise ImportError(
+                "LocalRunResult.to_seqframe() requires the seqframe extra.\n\n"
+                "Install with:\n\n"
+                "    pip install 'biolm[seqframe]'\n"
+            ) from exc
+        return SeqFrame.from_dataframe(
+            self.dataframe,
+            molecule_type=molecule_type,
+            path=path,
+        )
+
 
 def run_local(
     protocol: dict,

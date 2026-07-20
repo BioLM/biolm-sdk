@@ -19,7 +19,7 @@ with open("README.md", encoding="utf-8") as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "Click>=6.0",
+    "Click>=8.0",
     "requests",
     "httpx>=0.23.0",
     "httpcore",
@@ -73,6 +73,14 @@ setup(
     },
     install_requires=requirements,
     extras_require={
+        "seqframe": [
+            "pandas>=1.3.0,<3",
+            "duckdb>=0.9.0,<2",
+            "pyarrow>=10.0.0",
+        ],
+        "lltp": [
+            "lltp>=0.1.0a1",
+        ],
         "pipeline": [
             "pandas>=1.3.0,<3",
             "numpy>=1.20,<3",

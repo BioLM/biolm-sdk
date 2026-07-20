@@ -1,33 +1,31 @@
 ``biolm.volumes``
 =================
 
-Volumes provide persistent storage for pipeline artifacts and large datasets.
-The intended Python API surface is ``list``, ``create``, and ``get`` on
-:class:`~biolm.volumes.Volume`.
+There is no local SDK API for BioLM volumes. Modal-backed volumes are mounted
+server-side into Jupyter and protocol runtimes; they are not general-purpose
+cloud storage that local Python code can list, create, fetch, or delete.
 
-.. note::
-   Python SDK volume management is coming soon. The ``Volume`` class in
-   ``biolm.volumes`` is not yet implemented. Use :doc:`../cli/hub` and hub
-   storage workflows today.
+Use the BioLM console or Jupyter environment to manage runtime data. For
+protocol results needed locally, use protocol result downloads or exports.
 
-Intended API
-------------
+Deprecated compatibility placeholder
+------------------------------------
 
-When implemented, ``Volume`` will support:
+:class:`~biolm.volumes.Volume` remains importable in this major version so
+existing ``from biolm import Volume`` imports and constructor calls do not
+break. Constructing it emits :class:`DeprecationWarning`. Its ``list``,
+``create``, ``get``, and ``delete`` methods raise ``NotImplementedError``
+because direct local volume management is unsupported.
 
-- ``list()`` — enumerate available volumes
-- ``create(name)`` — create a new volume
-- ``get(name)`` — fetch volume metadata
-
-API
----
+Volume compatibility API
+------------------------
 
 .. autoclass:: biolm.volumes.Volume
-   :members: list, create, get
+   :members: list, create, get, delete
    :undoc-members:
 
-See also
---------
+Volume documentation
+--------------------
 
-- :doc:`../cli/hub` — hub and storage CLI
+- :doc:`../guide/protocol-workflows` — run protocols and download results
 - :doc:`../api-reference/biolm` — ``biolm.volumes`` module reference

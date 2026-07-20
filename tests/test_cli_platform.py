@@ -1,0 +1,845 @@
+"""Tests for platform management CLI commands."""
+from __future__ import annotations
+
+import json
+from unittest.mock import MagicMock, patch
+
+import pytest
+from click.testing import CliRunner
+
+from biolm.cli import cli
+from biolm.platform import PlatformError, Workspace
+
+
+PERSONAL = Workspace("user", 1, 11, "alice", "default")
+ORG = Workspace("organization", 7, 22, "acme", "research")
+
+
+@pytest.fixture
+def platform_client():
+    with patch("biolm.cli.PlatformClient", create=True) as factory:
+        client = factory.return_value.__enter__.return_value
+        yield factory, client
+
+
+def invoke(*args):
+    return CliRunner().invoke(cli, list(args))
+
+
+def test_platform_groups_and_commands_are_registered():
+    result = invoke("--help")
+    assert result.exit_code == 0, result.output
+    assert "status" in result.output
+    assert "whoami" in result.output
+    assert "account" in result.output
+    assert "workspace" in result.output
+    assert "Account" in result.output
+    assert "Workspace" in result.output
+    # Root help expands leaf paths under each command-group panel.
+    assert "workspace list" in result.output
+    assert "account org list" in result.output
+    # Legacy short alias paths must not appear as help rows.
+    assert "org list" not in result.output.replace("account org list", "")
+    assert "org create" not in result.output
+    assert "budget show" not in result.output
+    assert "apikey create" not in result.output
+    assert "usage show" not in result.output
+    # Hidden aliases and removed create must not appear as help rows.
+    assert "\n│ login" not in result.output
+    assert "\n│ logout" not in result.output
+    assert "\n│ version" not in result.output
+    assert "Platform" not in result.output
+
+
+def _current_user_payload():
+    return {
+        "id": 1,
+        "username": "alice",
+        "email": "alice@example.com",
+        "first_name": "Alice",
+        "last_name": "Example",
+        "billing_address": "123 Secret Street",
+        "billing_email": "billing@example.com",
+        "stripe_customer_id": "cus_secret",
+    }
+
+
+def test_whoami_organization_json_allowlists_identity_and_context(platform_client):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.return_value = {
+        "account_type": "organization",
+        "account_id": 7,
+        "environment_id": 22,
+        "account_details": {"name": "Acme Labs", "slug": "acme"},
+    }
+
+    result = invoke("whoami", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == {
+        "id": 1,
+        "username": "alice",
+        "email": "alice@example.com",
+        "first_name": "Alice",
+        "last_name": "Example",
+        "account_type": "organization",
+        "account_id": 7,
+        "account_name": "Acme Labs",
+        "account_slug": "acme",
+        "environment_id": 22,
+    }
+    client.get_current_user.assert_called_once_with()
+    client.get_context.assert_called_once_with()
+
+
+def test_whoami_personal_json_uses_username_as_account_slug(platform_client):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.return_value = {
+        "account_type": "user",
+        "account_id": 1,
+        "environment_id": 11,
+        "account_details": {"name": "Ignored", "slug": "ignored"},
+    }
+
+    result = invoke("whoami", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    identity = json.loads(result.output)
+    assert identity["account_name"] is None
+    assert identity["account_slug"] == "alice"
+    assert "billing_address" not in identity
+    assert "stripe_customer_id" not in identity
+
+
+def test_whoami_table_shows_principal_and_active_context(platform_client):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.return_value = {
+        "account_type": "organization",
+        "account_id": 7,
+        "environment_id": 22,
+        "account_details": {"name": "Acme Labs", "slug": "acme"},
+    }
+
+    result = invoke("whoami")
+
+    assert result.exit_code == 0, result.output
+    for expected in (
+        "alice",
+        "alice@example.com",
+        "Alice Example",
+        "organization",
+        "Acme Labs",
+        "acme",
+        "22",
+    ):
+        assert expected in result.output
+
+
+def test_whoami_api_failure_is_nonzero_and_does_not_leak_billing_fields(
+    platform_client,
+):
+    _, client = platform_client
+    client.get_current_user.return_value = _current_user_payload()
+    client.get_context.side_effect = PlatformError("Authentication required")
+
+    result = invoke("whoami", "--format", "json")
+
+    assert result.exit_code != 0
+    assert "Authentication required" in result.output
+    assert "billing_address" not in result.output
+    assert "billing@example.com" not in result.output
+    assert "cus_secret" not in result.output
+
+
+def test_status_logged_out_keeps_endpoints_and_marks_context_unavailable():
+    with (
+        patch("biolm.cli.PlatformClient", side_effect=PlatformError("logged out")),
+        patch("biolm.cli.get_auth_status"),
+    ):
+        result = invoke("status")
+
+    assert result.exit_code == 0, result.output
+    assert "Model API URL" in result.output
+    assert "Platform Domain" in result.output
+    assert "Account" in result.output
+    assert "Workspace" in result.output
+    assert "unavailable" in result.output.lower()
+
+
+def test_status_shows_active_workspace():
+    client = MagicMock()
+    client.current_workspace.return_value = ORG
+    with (
+        patch("biolm.cli.PlatformClient", return_value=client),
+        patch("biolm.cli.get_auth_status"),
+    ):
+        result = invoke("status")
+
+    assert result.exit_code == 0, result.output
+    assert "Model API URL" in result.output
+    assert "acme" in result.output
+    assert "acme/research" in result.output
+    client.current_workspace.assert_called_once_with()
+    client.close.assert_called_once_with()
+
+
+def test_status_workspace_failure_keeps_endpoints_and_is_nonfatal():
+    client = MagicMock()
+    client.current_workspace.side_effect = PlatformError("service unavailable")
+    with (
+        patch("biolm.cli.PlatformClient", return_value=client),
+        patch("biolm.cli.get_auth_status"),
+    ):
+        result = invoke("status")
+
+    assert result.exit_code == 0, result.output
+    assert "Model API URL" in result.output
+    assert "Platform Domain" in result.output
+    assert "Workspace" in result.output
+    assert "unavailable" in result.output.lower()
+    client.close.assert_called_once_with()
+
+
+def test_org_create_is_unavailable_on_legacy_and_canonical_paths(platform_client):
+    _, client = platform_client
+
+    legacy = invoke("org", "create", "New Org", "--slug", "new-org")
+    canonical = invoke(
+        "account", "org", "create", "New Org", "--slug", "new-org"
+    )
+
+    assert legacy.exit_code != 0
+    assert "No such command" in legacy.output
+    assert canonical.exit_code != 0
+    assert "No such command" in canonical.output
+    client.create_organization.assert_not_called()
+
+
+def test_workspace_delete_is_not_registered():
+    help_result = invoke("workspace", "--help")
+    delete_result = invoke("workspace", "delete", "alice/default")
+
+    assert help_result.exit_code == 0, help_result.output
+    assert "delete " not in help_result.output
+    assert delete_result.exit_code != 0
+    assert "No such command" in delete_result.output
+
+
+def test_workspace_list_table(platform_client):
+    _, client = platform_client
+    client.list_workspaces.return_value = [PERSONAL, ORG]
+
+    result = invoke("workspace", "list")
+
+    assert result.exit_code == 0, result.output
+    assert "alice/default" in result.output
+    assert "acme/research" in result.output
+    assert "organization" in result.output
+    assert "7" in result.output
+    assert "22" in result.output
+
+
+def test_workspace_list_json_is_stable_plain_json(platform_client):
+    _, client = platform_client
+    client.list_workspaces.return_value = [PERSONAL, ORG]
+
+    result = invoke("workspace", "list", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == [
+        {
+            "path": "alice/default",
+            "account_type": "user",
+            "account_id": 1,
+            "environment_id": 11,
+        },
+        {
+            "path": "acme/research",
+            "account_type": "organization",
+            "account_id": 7,
+            "environment_id": 22,
+        },
+    ]
+
+
+def test_workspace_show_without_path_uses_current_workspace(platform_client):
+    _, client = platform_client
+    client.current_workspace.return_value = PERSONAL
+
+    result = invoke("workspace", "show", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["path"] == "alice/default"
+    client.current_workspace.assert_called_once_with()
+    client.list_workspaces.assert_not_called()
+
+
+def test_workspace_show_path_resolves_without_switching(platform_client):
+    _, client = platform_client
+    client.get_workspace.return_value = ORG
+
+    result = invoke("workspace", "show", "acme/research", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["environment_id"] == 22
+    client.switch_workspace.assert_not_called()
+    client.get_workspace.assert_called_once_with("acme/research")
+
+
+def test_workspace_show_missing_path_fails(platform_client):
+    _, client = platform_client
+    client.get_workspace.side_effect = PlatformError(
+        "No workspace found for path 'missing/dev'"
+    )
+
+    result = invoke("workspace", "show", "missing/dev")
+
+    assert result.exit_code != 0
+    assert "No workspace found" in result.output
+
+
+def test_workspace_switch_reports_active_workspace(platform_client):
+    _, client = platform_client
+    client.switch_workspace.return_value = ORG
+
+    result = invoke("workspace", "switch", "acme/research", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["path"] == "acme/research"
+    client.switch_workspace.assert_called_once_with("acme/research")
+
+
+def test_workspace_create_for_account(platform_client):
+    _, client = platform_client
+    client.create_workspace.return_value = ORG
+
+    result = invoke(
+        "workspace",
+        "create",
+        "research",
+        "--account",
+        "acme",
+        "--format",
+        "json",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["path"] == "acme/research"
+    client.create_workspace.assert_called_once_with("research", account="acme")
+
+
+def test_account_org_list_table_and_json(platform_client):
+    _, client = platform_client
+    organizations = [{"id": 7, "name": "Acme Labs", "slug": "acme"}]
+    client.list_organizations.return_value = organizations
+
+    table_result = invoke("account", "org", "list")
+    json_result = invoke("account", "org", "list", "--format", "json")
+
+    assert table_result.exit_code == 0, table_result.output
+    assert "Acme Labs" in table_result.output
+    assert "acme" in table_result.output
+    assert json.loads(json_result.output) == organizations
+
+
+def test_alias_org_list_still_works(platform_client):
+    _, client = platform_client
+    organizations = [{"id": 7, "name": "Acme Labs", "slug": "acme"}]
+    client.list_organizations.return_value = organizations
+
+    result = invoke("org", "list", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == organizations
+    assert "deprecated" not in result.output.lower()
+    assert "deprecat" not in result.output.lower()
+
+
+def test_account_org_show_and_invite_pass_string_identifiers(platform_client):
+    _, client = platform_client
+    client.get_organization.return_value = {
+        "id": 20,
+        "name": "Acme Labs",
+        "slug": "acme",
+    }
+    client.invite_to_organization.return_value = {
+        "email": "person@example.com",
+        "role": "admin",
+        "status": "invited",
+    }
+
+    name_result = invoke(
+        "account", "org", "show", "Acme Labs", "--format", "json"
+    )
+    id_result = invoke("account", "org", "show", "20", "--format", "json")
+    invite_result = invoke(
+        "account",
+        "org",
+        "invite",
+        "acme",
+        "person@example.com",
+        "--role",
+        "admin",
+        "--format",
+        "json",
+    )
+
+    assert name_result.exit_code == 0, name_result.output
+    assert id_result.exit_code == 0, id_result.output
+    assert invite_result.exit_code == 0, invite_result.output
+    assert json.loads(name_result.output)["slug"] == "acme"
+    assert json.loads(id_result.output)["id"] == 20
+    assert json.loads(invite_result.output)["status"] == "invited"
+    assert client.get_organization.call_args_list[0].args == ("Acme Labs",)
+    assert client.get_organization.call_args_list[1].args == ("20",)
+    assert isinstance(client.get_organization.call_args_list[1].args[0], str)
+    client.invite_to_organization.assert_called_once_with(
+        "acme", "person@example.com", role="admin"
+    )
+
+
+def test_alias_org_show_passes_string_identifier_without_int_coercion(
+    platform_client,
+):
+    _, client = platform_client
+    client.get_organization.return_value = {
+        "id": 20,
+        "name": "Acme Labs",
+        "slug": "acme",
+    }
+
+    result = invoke("org", "show", "20", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output)["id"] == 20
+    client.get_organization.assert_called_once_with("20")
+    assert isinstance(client.get_organization.call_args.args[0], str)
+    assert "deprecated" not in result.output.lower()
+
+
+def test_alias_org_invite_still_works(platform_client):
+    _, client = platform_client
+    client.invite_to_organization.return_value = {
+        "email": "person@example.com",
+        "role": "member",
+        "status": "invited",
+    }
+
+    result = invoke(
+        "org",
+        "invite",
+        "7",
+        "person@example.com",
+        "--format",
+        "json",
+    )
+
+    assert result.exit_code == 0, result.output
+    client.invite_to_organization.assert_called_once_with(
+        "7", "person@example.com", role="member"
+    )
+    assert "deprecated" not in result.output.lower()
+
+
+def test_org_invite_rejects_unknown_role(platform_client):
+    _, client = platform_client
+
+    result = invoke(
+        "account", "org", "invite", "7", "person@example.com", "--role", "owner"
+    )
+
+    assert result.exit_code != 0
+    assert "Invalid value for '--role'" in result.output
+    client.invite_to_organization.assert_not_called()
+
+
+def test_account_budget_show_without_subcommand(platform_client):
+    _, client = platform_client
+    client.get_budget.return_value = {
+        "total_budget": 100.0,
+        "current_usage": 25.0,
+        "remaining_budget": 75.0,
+        "currency": "USD",
+    }
+
+    result = invoke("account", "budget")
+
+    assert result.exit_code == 0, result.output
+    assert "total budget" in result.output.lower()
+    assert "100" in result.output
+    assert "USD" in result.output
+    client.get_budget.assert_called_once_with()
+
+
+def test_account_budget_set(platform_client):
+    _, client = platform_client
+    client.set_budget.return_value = {"workspace_budget": 42.5, "currency": "USD"}
+
+    valid = invoke("account", "budget", "set", "42.5", "--format", "json")
+    invalid = invoke("account", "budget", "set", "-0.01")
+
+    assert valid.exit_code == 0, valid.output
+    assert json.loads(valid.output)["workspace_budget"] == 42.5
+    client.set_budget.assert_called_once_with(42.5)
+    assert invalid.exit_code != 0
+    assert "not in the range" in invalid.output
+
+
+def test_alias_budget_show_and_set_emit_no_deprecation(platform_client):
+    _, client = platform_client
+    client.get_budget.return_value = {
+        "total_budget": 100.0,
+        "current_usage": 25.0,
+        "remaining_budget": 75.0,
+        "currency": "USD",
+    }
+    client.set_budget.return_value = {"workspace_budget": 42.5, "currency": "USD"}
+
+    show = invoke("budget", "show")
+    sett = invoke("budget", "set", "42.5", "--format", "json")
+
+    assert show.exit_code == 0, show.output
+    assert sett.exit_code == 0, sett.output
+    assert "deprecated" not in show.output.lower()
+    assert "deprecated" not in sett.output.lower()
+    client.get_budget.assert_called_once_with()
+    client.set_budget.assert_called_once_with(42.5)
+
+
+def test_budget_set_rejects_typo_option(platform_client):
+    _, client = platform_client
+
+    result = invoke("account", "budget", "set", "10", "--formt", "json")
+
+    assert result.exit_code != 0
+    assert "unexpected extra argument" in result.output.lower()
+    client.set_budget.assert_not_called()
+
+
+def test_platform_error_has_useful_nonzero_exit(platform_client):
+    _, client = platform_client
+    client.list_workspaces.side_effect = PlatformError("Authentication required")
+
+    result = invoke("workspace", "list")
+
+    assert result.exit_code != 0
+    assert "Authentication required" in result.output
+
+
+def test_each_command_uses_platform_client_context_manager(platform_client):
+    factory, client = platform_client
+    client.current_workspace.return_value = PERSONAL
+
+    result = invoke("workspace", "show")
+
+    assert result.exit_code == 0, result.output
+    factory.assert_called_once_with()
+    factory.return_value.__enter__.assert_called_once_with()
+    factory.return_value.__exit__.assert_called_once()
+
+
+def test_account_api_key_group_registered_without_list():
+    help_result = invoke("account", "api-key", "--help")
+    list_result = invoke("account", "api-key", "list")
+    top_help = invoke("--help")
+
+    assert help_result.exit_code == 0, help_result.output
+    assert "create" in help_result.output
+    assert "delete" in help_result.output
+    assert "list" not in help_result.output
+    assert list_result.exit_code != 0
+    assert "No such command" in list_result.output
+    assert "apikey create" not in top_help.output
+
+
+def test_alias_apikey_has_no_list_command(platform_client):
+    help_result = invoke("apikey", "--help")
+    list_result = invoke("apikey", "list")
+
+    assert help_result.exit_code == 0, help_result.output
+    assert "list" not in help_result.output
+    assert list_result.exit_code != 0
+    assert "No such command" in list_result.output
+
+
+def test_account_api_key_create_personal_default_prints_token_once(platform_client):
+    _, client = platform_client
+    client.create_api_key.return_value = {"token": "knox-secret-value"}
+
+    result = invoke("account", "api-key", "create")
+
+    assert result.exit_code == 0, result.output
+    assert "knox-secret-value" in result.output
+    assert "once" in result.output.lower()
+    client.create_api_key.assert_called_once_with(account=None)
+
+
+def test_account_api_key_create_with_account_selects_owner(platform_client):
+    _, client = platform_client
+    client.create_api_key.return_value = {"token": "knox-secret-value"}
+
+    result = invoke("account", "api-key", "create", "--account", "acme")
+
+    assert result.exit_code == 0, result.output
+    client.create_api_key.assert_called_once_with(account="acme")
+
+
+def test_account_api_key_create_json_outputs_raw_response(platform_client):
+    _, client = platform_client
+    payload = {"token": "knox-secret-value"}
+    client.create_api_key.return_value = payload
+
+    result = invoke("account", "api-key", "create", "--format", "json")
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == payload
+
+
+def test_account_api_key_create_api_error_is_click_error(platform_client):
+    _, client = platform_client
+    client.create_api_key.side_effect = PlatformError("Token creation failed")
+
+    result = invoke("account", "api-key", "create")
+
+    assert result.exit_code != 0
+    assert "Token creation failed" in result.output
+
+
+def test_account_api_key_delete_requires_confirmation_and_can_abort(platform_client):
+    _, client = platform_client
+
+    result = CliRunner().invoke(
+        cli, ["account", "api-key", "delete", "knox-secret-value"], input="n\n"
+    )
+
+    assert result.exit_code != 0
+    client.delete_api_key.assert_not_called()
+
+
+def test_account_api_key_delete_with_yes_skips_prompt_and_hides_token(
+    platform_client,
+):
+    _, client = platform_client
+    client.delete_api_key.return_value = None
+
+    result = invoke("account", "api-key", "delete", "knox-secret-value", "--yes")
+
+    assert result.exit_code == 0, result.output
+    assert "knox-secret-value" not in result.output
+    client.delete_api_key.assert_called_once_with("knox-secret-value")
+
+
+def test_account_api_key_delete_confirmed_via_prompt(platform_client):
+    _, client = platform_client
+    client.delete_api_key.return_value = None
+
+    result = CliRunner().invoke(
+        cli, ["account", "api-key", "delete", "knoxtok01"], input="y\n"
+    )
+
+    assert result.exit_code == 0, result.output
+    client.delete_api_key.assert_called_once_with("knoxtok01")
+
+
+def test_account_api_key_delete_api_error_is_click_error(platform_client):
+    _, client = platform_client
+    client.delete_api_key.side_effect = PlatformError("not found")
+
+    result = invoke("account", "api-key", "delete", "knoxtok01", "--yes")
+
+    assert result.exit_code != 0
+    assert "not found" in result.output
+
+
+def test_alias_apikey_create_and_delete_emit_no_deprecation(platform_client):
+    _, client = platform_client
+    client.create_api_key.return_value = {"token": "knox-secret-value"}
+    client.delete_api_key.return_value = None
+
+    create = invoke("apikey", "create")
+    delete = invoke("apikey", "delete", "knox-secret-value", "--yes")
+
+    assert create.exit_code == 0, create.output
+    assert delete.exit_code == 0, delete.output
+    assert "deprecated" not in create.output.lower()
+    assert "deprecated" not in delete.output.lower()
+    client.create_api_key.assert_called_once_with(account=None)
+    client.delete_api_key.assert_called_once_with("knox-secret-value")
+
+
+def _usage_payload():
+    return {
+        "account_type": "organization",
+        "account_id": 20,
+        "institute_id": 501,
+        "selected_year": 2025,
+        "selected_month": 6,
+        "current_year": 2026,
+        "current_month": 7,
+        "env_list": [{"id": 200, "slug": "prod"}],
+        "filter_env_id": 200,
+        "current_usage_amount": 12.5,
+        "environment_usage_amount": 3.0,
+        "environment_label": "prod",
+        "model_charges": [
+            {"model_name": "esm2-8m", "total_biolm_charge": 12.5},
+            {"model_name": None, "total_biolm_charge": 0.25},
+        ],
+    }
+
+
+def test_account_usage_is_leaf_not_nested_show():
+    account_help = invoke("account", "--help")
+    usage_help = invoke("account", "usage", "--help")
+    nested_show = invoke("account", "usage", "show")
+    top_help = invoke("--help")
+
+    assert account_help.exit_code == 0, account_help.output
+    assert "usage" in account_help.output
+    assert usage_help.exit_code == 0, usage_help.output
+    assert "--year" in usage_help.output
+    assert "--month" in usage_help.output
+    assert "--environment-id" in usage_help.output
+    assert "--account" in usage_help.output
+    assert "--format" in usage_help.output
+    assert nested_show.exit_code != 0
+    assert (
+        "No such command" in nested_show.output
+        or "unexpected extra argument" in nested_show.output.lower()
+    )
+    assert "usage show" not in top_help.output
+
+
+def test_account_usage_default_delegates_and_renders_summary(platform_client):
+    _, client = platform_client
+    client.get_usage_summary.return_value = _usage_payload()
+
+    result = invoke("account", "usage")
+
+    assert result.exit_code == 0, result.output
+    client.get_usage_summary.assert_called_once_with(
+        year=None,
+        month=None,
+        environment_id=None,
+        account=None,
+    )
+    assert "organization" in result.output
+    assert "2025-06" in result.output
+    assert "12.5" in result.output
+    assert "esm2-8m" in result.output
+    assert "0.25" in result.output
+    assert "—" in result.output
+
+
+def test_account_usage_filters_and_json_passthrough(platform_client):
+    _, client = platform_client
+    payload = _usage_payload()
+    client.get_usage_summary.return_value = payload
+
+    result = invoke(
+        "account",
+        "usage",
+        "--year",
+        "2025",
+        "--month",
+        "6",
+        "--environment-id",
+        "200",
+        "--account",
+        "acme",
+        "--format",
+        "json",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert json.loads(result.output) == payload
+    client.get_usage_summary.assert_called_once_with(
+        year=2025,
+        month=6,
+        environment_id=200,
+        account="acme",
+    )
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ("--year", "0"),
+        ("--month", "0"),
+        ("--month", "13"),
+        ("--environment-id", "0"),
+    ],
+)
+def test_account_usage_rejects_invalid_ranges_before_request(platform_client, args):
+    _, client = platform_client
+
+    result = invoke("account", "usage", *args)
+
+    assert result.exit_code != 0
+    client.get_usage_summary.assert_not_called()
+
+
+def test_account_usage_empty_model_charges(platform_client):
+    _, client = platform_client
+    payload = _usage_payload()
+    payload["model_charges"] = []
+    client.get_usage_summary.return_value = payload
+
+    result = invoke("account", "usage")
+
+    assert result.exit_code == 0, result.output
+    assert "No model charges" in result.output
+
+
+def test_account_usage_does_not_imply_rejected_environment_filter(platform_client):
+    _, client = platform_client
+    payload = _usage_payload()
+    payload["filter_env_id"] = None
+    payload["environment_label"] = "prod"
+    client.get_usage_summary.return_value = payload
+
+    result = invoke("account", "usage")
+
+    assert result.exit_code == 0, result.output
+    assert "Environment filter" in result.output
+    assert "prod" not in result.output
+
+
+def test_account_usage_api_error_is_click_error(platform_client):
+    _, client = platform_client
+    client.get_usage_summary.side_effect = PlatformError("Usage unavailable")
+
+    result = invoke("account", "usage")
+
+    assert result.exit_code != 0
+    assert "Usage unavailable" in result.output
+
+
+def test_alias_usage_show_emits_no_deprecation(platform_client):
+    _, client = platform_client
+    client.get_usage_summary.return_value = _usage_payload()
+
+    result = invoke("usage", "show")
+
+    assert result.exit_code == 0, result.output
+    assert "deprecated" not in result.output.lower()
+    client.get_usage_summary.assert_called_once_with(
+        year=None,
+        month=None,
+        environment_id=None,
+        account=None,
+    )
+
+
+def test_account_help_lists_direct_children_only():
+    result = invoke("account", "--help")
+
+    assert result.exit_code == 0, result.output
+    for name in ("login", "logout", "usage", "budget", "api-key", "org"):
+        assert name in result.output
+    assert "usage show" not in result.output
+    assert "org create" not in result.output
+    assert "apikey" not in result.output

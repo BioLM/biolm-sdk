@@ -12,6 +12,14 @@ biolm.plugins.mlflow.datasets module
    :undoc-members:
    :show-inheritance:
 
+biolm.plugins.mlflow.dataset_backend module
+-------------------------------------------
+
+.. automodule:: biolm.plugins.mlflow.dataset_backend
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 biolm.plugins.mlflow.protocols module
 -------------------------------------
 

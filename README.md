@@ -39,7 +39,7 @@ pip install biolm-sdk
 ```bash
 export BIOLM_TOKEN=<token>
 # or
-biolm login
+biolm account login
 ```
 
 Check everything is wired up:
@@ -120,7 +120,11 @@ Multi-step jobs defined in YAML — validate locally, run locally (pipeline) or 
 ```bash
 pip install "biolm-sdk[pipeline]"   # required for local execution
 biolm protocol validate design.yaml
-biolm protocol run design.yaml --input sequence=MKLLIV
+biolm protocol run-local design.yaml --input sequence=MKLLIV
+
+# Hosted: discover and submit a registered protocol slug
+biolm protocol list --search design
+biolm protocol run my-protocol-slug -i inputs.json --wait
 ```
 
 ```python
@@ -225,7 +229,8 @@ Generators work as `items` — the client consumes them batch-by-batch without l
 | YAML workflows | `Protocol.execute()`, `run_protocol()`, `ProtocolClient` | `biolm protocol` |
 | Design pipelines | `biolm.pipeline` *(optional extra)* | — |
 | Local model gateway | `biolm.hub` | `biolm hub` |
-| Cloud workspaces & datasets | `Workspace`, `Volume` | `biolm workspace`, `biolm dataset` |
+| Platform accounts, usage & environments | `PlatformClient`, `Workspace` | `biolm account`, `biolm workspace`, `biolm whoami` |
+| MLflow-backed datasets | `biolm.plugins.mlflow` *(optional extra)* | `biolm dataset` |
 | Finetuning (XGBoost, DSM) | `Finetune` | — |
 | File I/O | `biolm.io` (FASTA, CSV, PDB, JSON) | built into `biolm model run` |
 
@@ -239,8 +244,8 @@ Full guides, API reference, and tutorials: **[biolm.ai/docs](https://biolm.ai/do
 
 | Task | Link |
 |------|------|
-| First run | [Quickstart](https://biolm.ai/docs/intro/quickstart.html) |
-| Batching, errors, rate limits | [Core concepts](https://biolm.ai/docs/intro/concepts.html) |
+| First run | [Quickstart](https://biolm.ai/docs/guide/quickstart.html) |
+| Batching, errors, rate limits | [Core concepts](https://biolm.ai/docs/guide/concepts.html) |
 | Pipeline design primitives | [Pipeline](https://biolm.ai/docs/sdk/pipeline.html) |
 | Protocol YAML schema | [Protocol schema](https://biolm.ai/docs/yaml/protocol-schema.html) |
 | CLI reference | [CLI](https://biolm.ai/docs/cli/index.html) |

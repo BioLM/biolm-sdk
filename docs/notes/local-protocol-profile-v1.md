@@ -129,5 +129,18 @@ print(result.records)
 
 ```bash
 pip install "biolm[pipeline]"
-biolm protocol run my_protocol.yaml --input sequences='["MKLLIV"]'
+biolm protocol run-local my_protocol.yaml --input sequences='["MKLLIV"]'
 ```
+
+Hosted runs of a registered protocol slug use ``biolm protocol run SLUG`` (no pipeline extra).
+
+## Phase 2 note (SeqFrame)
+
+SeqFrame is available on main. After a local run you can bridge:
+
+```python
+result = protocol.execute(inputs={"sequence": "MKLLIV"})
+sf = result.to_seqframe()  # requires biolm[seqframe]
+```
+
+Scalable ``outputs[]`` collection remains deferred; use ``records`` / ``dataframe`` for v1.

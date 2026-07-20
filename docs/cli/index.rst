@@ -6,28 +6,36 @@ CLI
 ===
 
 Command-line interface for **biolm-sdk** (``biolm``). Authenticate once, then manage workspaces,
-run models, execute protocols, and work with MLflow-backed datasets from the terminal.
+run models, execute protocols, and work with local datasets from the terminal.
 
 .. _cli-index-authentication:
 
-Authentication
---------------
+Account and authentication
+--------------------------
 
-Sign in, check status, and manage saved credentials.
+Sign in, inspect identity and usage, and manage account resources.
 
 .. list-table::
    :header-rows: 0
    :widths: 28 72
    :class: cli-command-table
 
-   * - :clicmd:`biolm login <../login.html#biolm-login>`
+   * - :clicmd:`biolm account <../account.html#biolm-account>`
+     - Manage login, usage, budgets, API keys, and organizations.
+   * - :clicmd:`biolm account login <../login.html#biolm-account-login>`
      - Log in with OAuth (PKCE); credentials are saved to ``~/.biolm/credentials`` for later commands.
-   * - :clicmd:`biolm logout <../logout.html#biolm-logout>`
+   * - :clicmd:`biolm account logout <../logout.html#biolm-account-logout>`
      - Remove saved credentials so the CLI no longer has platform access until you log in again.
    * - :clicmd:`biolm status <../status.html#biolm-status>`
-     - Show auth state, environment variables, model API URL, hub mode, and credential path.
-   * - :clicmd:`biolm version <../../reference/cli.html#biolm-version>`
+     - Show endpoints, auth state, and the active account and workspace when available.
+   * - :clicmd:`biolm whoami <../whoami.html#biolm-whoami>`
+     - Show the authenticated principal and active account context.
+   * - ``biolm --version``
      - Print the installed ``biolm`` package version.
+
+For compatibility, short aliases such as ``biolm login`` and ``biolm logout``
+still work; this documentation uses the canonical ``biolm account login`` and
+``biolm account logout`` forms.
 
 .. _cli-index-models:
 
@@ -65,11 +73,13 @@ Define, validate, and execute multi-step workflows described in YAML.
    :class: cli-command-table
 
    * - :clicmd:`biolm protocol list <../protocol.html#biolm-protocol-list>`
-     - List platform protocols (listing UI coming soon; use ``show``/``validate`` for local YAML).
+     - List accessible registered protocols, with search, pagination, and JSON output.
    * - :clicmd:`biolm protocol show <../protocol.html#biolm-protocol-show>`
      - Render a readable report from a YAML file or a protocol ID on the platform.
    * - :clicmd:`biolm protocol run <../protocol.html#biolm-protocol-run>`
-     - Execute a protocol YAML file locally (requires ``biolm[pipeline]``; use ``--input key=value``, ``--json``, ``--output-dir``).
+     - Submit inputs to a registered protocol slug and optionally wait for results.
+   * - :clicmd:`biolm protocol run-local <../protocol.html#biolm-protocol-run-local>`
+     - Execute a protocol YAML file locally (requires ``biolm[pipeline]``).
    * - :clicmd:`biolm protocol validate <../protocol.html#biolm-protocol-validate>`
      - Validate YAML syntax, JSON schema, task graph, and template expressions.
    * - :clicmd:`biolm protocol init <../protocol.html#biolm-protocol-init>`
@@ -77,12 +87,17 @@ Define, validate, and execute multi-step workflows described in YAML.
    * - :clicmd:`biolm protocol log <../protocol.html#biolm-protocol-log>`
      - Push protocol run results to MLflow using the outputs section of the protocol.
 
+Use ``status`` and ``wait`` to monitor an existing run, ``cancel`` to request
+cancellation, ``results`` to inspect its final JSON, and ``download`` to fetch
+CSV or JSONL result archives.
+
 .. _cli-index-workspaces:
 
 Workspaces
 ----------
 
-Create and manage BioLM workspaces that scope projects and protocol runs.
+Manage immutable account/environment identities addressed as
+``{account}/{environment}``.
 
 .. list-table::
    :header-rows: 0
@@ -90,34 +105,75 @@ Create and manage BioLM workspaces that scope projects and protocol runs.
    :class: cli-command-table
 
    * - :clicmd:`biolm workspace list <../workspace.html#biolm-workspace-list>`
-     - List workspaces you can access with names, IDs, and basic metadata.
+     - List accessible personal and organization workspace paths and IDs.
    * - :clicmd:`biolm workspace show <../workspace.html#biolm-workspace-show>`
-     - Show details for a workspace by ID, or the current workspace when omitted.
+     - Show the current workspace, or resolve an exact path when one is provided.
+   * - :clicmd:`biolm workspace switch <../workspace.html#biolm-workspace-switch>`
+     - Switch the active account and environment to an exact workspace path.
    * - :clicmd:`biolm workspace create <../workspace.html#biolm-workspace-create>`
-     - Create a new workspace for organizing projects and protocol runs.
-   * - :clicmd:`biolm workspace delete <../workspace.html#biolm-workspace-delete>`
-     - Permanently delete a workspace and its associated resources.
+     - Create an environment in the active account or the account selected by ``--account``.
+
+There is no workspace delete command or platform delete endpoint.
+
+Organizations and budgets
+-------------------------
+
+Organization commands manage accounts available to the authenticated user:
+``biolm account org list`` lists organizations, ``biolm account org show``
+inspects an exact organization name or slug, and ``biolm account org invite``
+invites a member with an organization role. Organization creation is available
+in the BioLM console, not the CLI.
+
+Budget commands operate on the active account context. ``biolm account budget``
+displays budget and usage fields, while ``biolm account budget set`` sets a
+nonnegative account budget.
+
+Monthly usage
+-------------
+
+``biolm account usage`` displays the effective account, selected month, usage
+amounts, and charges grouped by model. It defaults to the current month and
+personal account. Use ``--year`` and ``--month`` for another month,
+``--environment-id`` to filter an environment, ``--account`` for an
+organization or personal account, and ``--format json`` for the unmodified API
+response. The platform exposes neither a billing-history list nor a stable
+live-activity API through this command.
+
+API keys
+--------
+
+``biolm account api-key create`` creates an API key for the active account, or
+the account named by ``--account``. The token is shown only once, so store it
+immediately. ``biolm account api-key delete`` revokes a key by its full token
+or its eight-character prefix. There is no list command because the platform
+exposes no API-key listing endpoint.
 
 .. _cli-index-datasets:
 
 Datasets
 --------
 
-Upload, download, and inspect MLflow-backed datasets on the platform.
+Create and inspect local datasets; optionally push/pull via a backend plugin.
 
 .. list-table::
    :header-rows: 0
    :widths: 28 72
    :class: cli-command-table
 
+   * - :clicmd:`biolm dataset create <../dataset.html#biolm-dataset-create>`
+     - Create a new local dataset under the primary root.
+   * - :clicmd:`biolm dataset init <../dataset.html#biolm-dataset-init>`
+     - Adopt an existing directory by writing ``dataset.yaml``.
    * - :clicmd:`biolm dataset list <../dataset.html#biolm-dataset-list>`
-     - List datasets in your MLflow experiment with optional JSON or CSV export.
+     - List local datasets under configured discovery roots.
    * - :clicmd:`biolm dataset show <../dataset.html#biolm-dataset-show>`
-     - Show metadata, tags, metrics, and artifact listings for a dataset by ID.
-   * - :clicmd:`biolm dataset upload <../dataset.html#biolm-dataset-upload>`
-     - Upload a file or directory to a dataset (creates the dataset run if needed).
-   * - :clicmd:`biolm dataset download <../dataset.html#biolm-dataset-download>`
-     - Download all artifacts, or a single artifact path, to a local directory.
+     - Show metadata and files for a dataset by id or path.
+   * - :clicmd:`biolm dataset add <../dataset.html#biolm-dataset-add>`
+     - Copy files into a local dataset.
+   * - :clicmd:`biolm dataset push <../dataset.html#biolm-dataset-push>`
+     - Push a local dataset to a remote backend (e.g. ``--backend mlflow``).
+   * - :clicmd:`biolm dataset pull <../dataset.html#biolm-dataset-pull>`
+     - Pull a remote dataset into a local directory.
 
 .. _cli-index-hub:
 

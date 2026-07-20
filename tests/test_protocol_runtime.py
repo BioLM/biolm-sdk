@@ -154,7 +154,7 @@ class TestCLI:
                 cli,
                 [
                     "protocol",
-                    "run",
+                    "run-local",
                     str(protocol_path),
                     "--input",
                     "sequence=MKLLIV",
@@ -164,3 +164,14 @@ class TestCLI:
         assert result.exit_code == 0, result.output
         records = json.loads(result.output)
         assert len(records) == 1
+
+    def test_cli_protocol_run_is_hosted_slug(self):
+        """Hosted ``protocol run`` expects a registered slug, not a YAML path."""
+        from click.testing import CliRunner
+        from biolm.cli.entry import cli
+
+        runner = CliRunner()
+        result = runner.invoke(cli, ["protocol", "run", "--help"])
+        assert result.exit_code == 0
+        assert "SLUG" in result.output or "slug" in result.output.lower()
+        assert "wait" in result.output.lower()
