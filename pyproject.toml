@@ -172,7 +172,8 @@ upload_to_vcs_release = true
 [tool.semantic_release.remote]
 type = "github"
 token = { env = "GH_TOKEN" }
-# Push via checkout SSH deploy key; keep GH_TOKEN only for GitHub Releases API.
+# Push via checkout SSH deploy key; GH_TOKEN is SEMANTIC_RELEASE_TOKEN (not GITHUB_TOKEN)
+# so creating a Release can trigger .github/workflows/publish.yml.
 ignore_token_for_push = true
 
 [tool.semantic_release.branches.main]

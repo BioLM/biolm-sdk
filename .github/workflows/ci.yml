@@ -280,6 +280,9 @@ jobs:
 
       - name: Run python-semantic-release
         env:
-          # Used for GitHub Releases API; git push uses the deploy key above.
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT/App token required so creating a Release can trigger publish.yml.
+          # Default GITHUB_TOKEN cannot start other workflows (GitHub recursion guard),
+          # which left PyPI stuck while GitHub Releases advanced.
+          # Secret: SEMANTIC_RELEASE_TOKEN (Contents: Read and write).
+          GH_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
         run: semantic-release version
