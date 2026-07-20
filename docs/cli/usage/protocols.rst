@@ -1,14 +1,22 @@
 Protocols
 =========
 
-Use ``biolm protocol`` to author local YAML and run protocols already registered
-on the BioLM platform.
+Use ``biolm protocol`` to author and validate local YAML, execute supported
+protocols locally, or run protocols already registered on the BioLM platform.
 
-Validate local YAML before registration:
+Validate local YAML before registration or local execution:
 
 .. code-block:: bash
 
    biolm protocol validate design.yaml
+
+Run a Local Protocol Profile–compatible YAML on your machine
+(requires ``pip install "biolm-sdk[pipeline]"``):
+
+.. code-block:: bash
+
+   biolm protocol run-local design.yaml --input sequence=MKLLIV
+   biolm protocol run-local design.yaml --input sequences='["MKLLIV"]' --json
 
 Discover registered protocols, then submit JSON inputs against a protocol slug:
 
@@ -18,7 +26,7 @@ Discover registered protocols, then submit JSON inputs against a protocol slug:
    biolm protocol run my-protocol-slug -i inputs.json
    biolm protocol run my-protocol-slug -i inputs.json --wait
 
-The submit command prints a run ID unless ``--wait`` is present. Reconnect to
+The hosted submit command prints a run ID unless ``--wait`` is present. Reconnect to
 that run from another shell:
 
 .. code-block:: bash
@@ -33,4 +41,5 @@ Use ``--format json`` for machine-readable list, run, status, wait, cancel, and
 results output. Authentication accepts ``BIOLM_TOKEN`` or saved OAuth
 credentials from ``biolm account login``.
 
-See :doc:`../protocol` for the complete generated command reference.
+See :doc:`../../sdk/protocols` and :doc:`../../guide/protocol-local-profile`
+for local vs hosted details, and :doc:`../protocol` for the complete command reference.

@@ -33,8 +33,10 @@ Protocols
 
    * - :sdklink:`Protocol <../protocols.html>`
      - Load, validate, and inspect protocol YAML locally.
+   * - :sdklink:`Protocol.execute() / run_local_protocol() <../protocols.html>`
+     - Execute supported protocol YAML locally via the pipeline runtime (``biolm[pipeline]``).
    * - :sdklink:`run_protocol() <../protocols.html>`
-     - Submit a protocol run and block until results are ready.
+     - Submit a hosted protocol run and block until results are ready.
    * - :sdklink:`ProtocolClient <../protocols.html>`
      - Submit, track, and download protocol runs programmatically.
 

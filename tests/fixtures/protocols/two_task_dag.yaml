@@ -1,0 +1,28 @@
+name: two-task-dag
+schema_version: 1
+description: Encode then predict with depends_on
+
+inputs:
+  sequences:
+    type: list_of_str
+    label: Sequences
+    required: true
+    initial: []
+
+tasks:
+  - id: encode
+    slug: esm2-8m
+    action: encode
+    request_body:
+      items: ${{ sequences }}
+    response_mapping:
+      embedding: mean_representations
+  - id: score
+    slug: temberture-regression
+    action: predict
+    depends_on:
+      - encode
+    request_body:
+      items: ${{ sequences }}
+    response_mapping:
+      stability: stability

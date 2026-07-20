@@ -145,10 +145,10 @@ experiments, shell scripts, or CI — without writing a Python file. The CLI is 
 front-end, not a fourth engine: ``biolm model`` calls the same endpoints as
 :class:`~biolm.models.Model`.
 
-Protocol authoring and validation also work from the CLI (``biolm protocol
-init``, ``show``, ``validate``, ``log``). Submitting and monitoring runs is
-**Python-only today** — ``biolm protocol run`` and ``biolm protocol list`` are
-placeholders. See :doc:`protocol-workflows`.
+Protocol authoring, validation, local execution, and hosted runs are documented
+in :doc:`protocol-workflows`. Submit and monitor platform runs from the CLI
+(``biolm protocol run``, ``list``, ``status``, ``wait``, …) or Python
+(:func:`~biolm.run_protocol`, :class:`~biolm.protocols.ProtocolClient`).
 
 .. code-block:: bash
 
@@ -164,7 +164,7 @@ Work down this checklist and stop at the first match:
 
 #. **Just one call?** Use a **Model** one-off.
 #. **From a shell script or CI, no Python file?** Use the **CLI** for model
-   calls (``biolm model``). Protocol runs still require Python today.
+   calls (``biolm model``) or protocol runs (``biolm protocol run``).
 #. **Needs to run server-side, be reproducible, or shared as a slug?** Use a
    **Protocol**.
 #. **Iterating locally with generate → score → filter loops, and you want

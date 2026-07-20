@@ -3317,6 +3317,97 @@ def protocol_download(run_id, output_dir, file_type, overwrite):
     )
     click.echo("Downloaded results to {}".format(path))
 
+@protocol.command("run-local")
+@click.argument('protocol_file', type=click.Path(exists=True))
+@click.option(
+    '--input', 'input_pairs', multiple=True,
+    help='Input key=value (value parsed as JSON when possible)',
+)
+@click.option('--json', 'output_json', is_flag=True, help='Output results as JSON records')
+@click.option('--output-dir', type=click.Path(), default=None, help='Pipeline output directory')
+def run_local(protocol_file, input_pairs, output_json, output_dir):
+    """Execute a protocol YAML file locally via the pipeline runtime.
+
+    Requires biolm[pipeline]. Validates the protocol, compiles to a DataPipeline,
+    runs tasks, and prints a summary (or JSON records with --json).
+
+    For hosted platform runs of a registered protocol slug, use ``biolm protocol run``.
+    """
+    import json as _json
+
+    from biolm.protocols import Protocol
+
+    try:
+        from biolm.protocols.runtime import run_local_protocol
+    except ImportError as exc:
+        console.print(Panel(
+            "[error]Local protocol execution requires pipeline dependencies.[/error]\n\n"
+            "Install with:\n\n"
+            "    pip install 'biolm[pipeline]'",
+            title="[error]Missing dependencies[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        raise SystemExit(1) from exc
+
+    inputs: dict = {}
+    for pair in input_pairs:
+        if '=' not in pair:
+            console.print(Panel(
+                f"[error]Invalid --input {pair!r}; use key=value[/error]",
+                title="[error]Error[/error]",
+                border_style="error",
+                box=box.ROUNDED,
+            ))
+            raise SystemExit(1)
+        key, _, raw = pair.partition('=')
+        key = key.strip()
+        raw = raw.strip()
+        try:
+            inputs[key] = _json.loads(raw)
+        except _json.JSONDecodeError:
+            inputs[key] = raw
+
+    try:
+        protocol = Protocol(protocol_file)
+        validation = Protocol.validate(protocol_file)
+        if not validation.is_valid:
+            msg = validation.errors[0].message if validation.errors else "Invalid protocol"
+            raise ValueError(msg)
+        result = run_local_protocol(
+            protocol.data,
+            inputs=inputs,
+            output_dir=output_dir,
+        )
+    except Exception as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Protocol run failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        raise SystemExit(1)
+
+    if output_json:
+        console.print(_json.dumps(result.records, indent=2), markup=False, highlight=False)
+        return
+
+    selected_line = ""
+    if result.selected_records:
+        selected_line = f"\nSelected rows: {len(result.selected_records)}"
+
+    console.print(Panel(
+        f"[success]Protocol run complete[/success]\n\n"
+        f"Run ID: {result.run_id}\n"
+        f"Rows: {len(result.records)}{selected_line}\n"
+        f"Protocol: {result.plan.protocol_name}",
+        title="[brand]Local Protocol Run[/brand]",
+        border_style="brand",
+        box=box.ROUNDED,
+    ))
+
+
+
 
 @protocol.command()
 @click.argument('protocol_file', type=click.Path(exists=True))

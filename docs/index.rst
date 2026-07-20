@@ -62,6 +62,10 @@ Welcome to BioLM SDK Documentation
 
    guide/workflows-overview
    guide/protocol-workflows
+   guide/protocol-authoring
+   guide/protocol-local-execution
+   guide/protocol-hosted-execution
+   guide/protocol-local-profile
    guide/pipeline-workflows
    guide/pipeline-caching
    guide/saturation-mutagenesis

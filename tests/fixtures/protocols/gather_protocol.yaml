@@ -1,0 +1,27 @@
+name: gather-protocol
+schema_version: 1
+description: Protocol with unsupported gather task
+
+inputs:
+  sequence:
+    type: text
+    required: true
+    initial: ''
+
+tasks:
+  - id: fold
+    slug: esmfold
+    action: predict
+    request_body:
+      items:
+        - sequence: ${{ sequence }}
+    response_mapping:
+      pdb: pdb
+  - id: collect
+    type: gather
+    from: fold
+    fields:
+      - pdb
+    depends_on:
+      - fold
+    into: 5

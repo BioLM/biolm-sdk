@@ -115,15 +115,25 @@ For jobs that are more than a single model call.
 
 ### Protocols
 
-Multi-step jobs defined in YAML — validate locally, submit to the platform, poll until done.
+Multi-step jobs defined in YAML — validate locally, run locally (pipeline) or submit to the platform.
 
 ```bash
+pip install "biolm-sdk[pipeline]"   # required for local execution
 biolm protocol validate design.yaml
+biolm protocol run-local design.yaml --input sequence=MKLLIV
+
+# Hosted: discover and submit a registered protocol slug
 biolm protocol list --search design
 biolm protocol run my-protocol-slug -i inputs.json --wait
 ```
 
 ```python
+from biolm.protocols import Protocol
+
+# Local execution (supported ApiTask protocols)
+result = Protocol("design.yaml").execute(inputs={"sequence": "MKLLIV"})
+
+# Hosted execution (full protocol feature set)
 from biolm import run_protocol
 
 results = run_protocol(
@@ -216,7 +226,7 @@ Generators work as `items` — the client consumes them batch-by-batch without l
 | | Python | CLI |
 |---|--------|-----|
 | Model inference | `Model`, `biolm()` | `biolm model` |
-| YAML workflows | `run_protocol()`, `ProtocolClient` | `biolm protocol` |
+| YAML workflows | `Protocol.execute()`, `run_protocol()`, `ProtocolClient` | `biolm protocol` |
 | Design pipelines | `biolm.pipeline` *(optional extra)* | — |
 | Local model gateway | `biolm.hub` | `biolm hub` |
 | Platform accounts, usage & environments | `PlatformClient`, `Workspace` | `biolm account`, `biolm workspace`, `biolm whoami` |

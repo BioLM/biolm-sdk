@@ -94,6 +94,7 @@ setup(
             "scipy>=1.7.0",
             "duckdb>=0.9.0,<2",
             "pyarrow>=10.0.0",
+            "jmespath>=1.0.0",
         ],
     },
     license="Apache Software License 2.0",
