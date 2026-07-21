@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.5.1 (2026-07-21)
+
+### Bug Fixes
+
+- **ci**: Republish docs after semantic-release version bumps
+  ([#22](https://github.com/BioLM/biolm-sdk/pull/22),
+  [`0106bd6`](https://github.com/BioLM/biolm-sdk/commit/0106bd68a5391793cc7883d0a149f3d14b3d06de))
+
+- **ci**: Use SEMANTIC_RELEASE_TOKEN so Releases trigger PyPI publish
+  ([#22](https://github.com/BioLM/biolm-sdk/pull/22),
+  [`0106bd6`](https://github.com/BioLM/biolm-sdk/commit/0106bd68a5391793cc7883d0a149f3d14b3d06de))
+
+
 ## v1.5.0 (2026-07-20)
 
 ### Bug Fixes
