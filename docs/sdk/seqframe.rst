@@ -1,5 +1,5 @@
-SeqFrame
-========
+``biolm.seqframe``
+==================
 
 Sequence-centric dataframe abstraction (optional ``biolm-sdk[seqframe]`` extra).
 
