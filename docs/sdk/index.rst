@@ -76,8 +76,8 @@ Datasets
    * - :sdklink:`DatasetClient, Dataset <../../api-reference/biolm.datasets.html>`
      - Local dataset inventory (``dataset.yaml``); optional push/pull backends.
 
-SeqFrame
-~~~~~~~~
+``biolm.seqframe``
+~~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :header-rows: 0

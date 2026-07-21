@@ -119,6 +119,7 @@ Welcome to BioLM SDK Documentation
    yaml/protocol-schema
    yaml/dataset-schema
    yaml/seqframe-schema
+   yaml/lltp-schema
 
 .. toctree::
    :maxdepth: 1
