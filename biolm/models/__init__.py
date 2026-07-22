@@ -256,6 +256,22 @@ class BioLM:
         return result
 
 
+from biolm.models.definition import BuiltPackage, build_model, load_recipe
+from biolm.models.errors import BuildError, RecipeError
+
+__all__ = [
+    "Model",
+    "predict",
+    "encode",
+    "generate",
+    "BuiltPackage",
+    "build_model",
+    "load_recipe",
+    "BuildError",
+    "RecipeError",
+]
+
+
 # Convenience functions
 def predict(model_name: str, items: Union[Any, List[Any]], type: Optional[str] = None, params: Optional[dict] = None, **kwargs):
     """Quick prediction using a model."""

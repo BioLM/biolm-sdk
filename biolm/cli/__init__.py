@@ -2869,6 +2869,111 @@ def example(model_name, action, format, output):
             console.print(f"[text.muted]{e.__cause__}[/text.muted]")
 
 
+@model.command("build")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--tag", default="latest", show_default=True, help="Package tag under ~/.biolm/models/<name>/")
+@click.option("--name", "model_name", default=None, help="Override recipe name for the package identity")
+@click.option("--bundle", is_flag=True, help="Download head artifact into package artifacts/ (preload)")
+@click.option(
+    "--artifact",
+    default=None,
+    help="Head artifact PATH or URL (required for --bundle if finetune result has no URI)",
+)
+def model_build(path, tag, model_name, bundle, artifact):
+    """Build a BioLM definition recipe into a locked local package.
+
+    Compiles an embedding_head recipe YAML via Finetune.xgboost and writes
+    ``~/.biolm/models/<name>/<tag>/BioLM``. The recipe file is not modified.
+
+    Examples:
+
+    .. code-block:: bash
+
+        biolm model build ./models/antibody-binder-clf.yaml
+        biolm model build ./models/antibody-binder-clf.yaml --tag v1
+        biolm model build ./recipe.yaml --bundle --artifact ./head.joblib
+    """
+    from biolm.models.definition import BIOLM_MANIFEST, build_model
+    from biolm.models.errors import BuildError, RecipeError
+
+    try:
+        with console.status("[brand]Building BioLM package...[/brand]"):
+            pkg = build_model(
+                path,
+                tag=tag,
+                name=model_name,
+                bundle=bundle,
+                artifact=artifact,
+            )
+        console.print(Panel(
+            f"[success]Built package '{pkg.manifest['name']}:{pkg.manifest['tag']}'[/success]\n\n"
+            f"Path: {pkg.path}\n"
+            f"Manifest: {pkg.path / BIOLM_MANIFEST}",
+            title="[success]Model Build Complete[/success]",
+            border_style="success",
+            box=box.ROUNDED,
+        ))
+    except (RecipeError, BuildError, PermissionError) as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Model Build Failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+
+@model.command("export-mlflow")
+@click.argument("package")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(file_okay=False),
+    default=None,
+    help="Output directory for the MLflow model (default: <package>/mlflow)",
+)
+def model_export_mlflow(package, output):
+    """Export a local BioLM package to an MLflow model directory.
+
+    Requires the ``mlflow-biolm`` package (``pip install mlflow-biolm``).
+    PACKAGE is ``name``, ``name:tag``, or a package directory path.
+    """
+    from biolm.models.definition import resolve_package
+    from biolm.models.errors import BuildError
+
+    try:
+        pkg_dir = resolve_package(package)
+        try:
+            from mlflow_biolm.export import export_biolm_package
+        except ImportError:
+            console.print(Panel(
+                "[error]mlflow-biolm is not installed.[/error]\n\n"
+                "Install with: pip install mlflow-biolm",
+                title="[error]Export Failed[/error]",
+                border_style="error",
+                box=box.ROUNDED,
+            ))
+            sys.exit(1)
+
+        out = Path(output) if output else (pkg_dir / "mlflow")
+        with console.status("[brand]Exporting BioLM package to MLflow...[/brand]"):
+            result = export_biolm_package(pkg_dir, out)
+        console.print(Panel(
+            f"[success]Exported MLflow model[/success]\n\nPath: {result}",
+            title="[success]Export Complete[/success]",
+            border_style="success",
+            box=box.ROUNDED,
+        ))
+    except (BuildError, OSError, ValueError) as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Export Failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+
 @cli.group(cls=RichGroup)
 def protocol():
     """Define, validate, run, and log multi-step BioLM protocol workflows.
