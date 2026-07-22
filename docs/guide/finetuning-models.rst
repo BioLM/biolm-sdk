@@ -164,6 +164,45 @@ the ``_async`` names when you are already in async code (see
 :doc:`client-interfaces`).
 
 
+Declarative builds (BioLM definition)
+=====================================
+
+Besides calling :class:`~biolm.finetune.Finetune` from Python, you can describe
+an XGBoost-on-embeddings adaptation as a **recipe** YAML — a Dockerfile-like
+blueprint — and compile it with ``biolm model build``. Build writes a locked
+**package** under ``~/.biolm/models/<name>/<tag>/`` with a shouty ``BioLM``
+manifest (YAML without a ``.yaml`` suffix). The recipe file is not modified;
+think dbt source SQL versus compiled SQL in ``target/``.
+
+Minimal recipe::
+
+    schema_version: 1
+    name: antibody-binder-clf
+    from: esm2-8m
+    layers:
+      - type: embedding_head
+        task: classification
+        data: ./data/binders.csv
+
+Build it::
+
+    biolm model build ./models/antibody-binder-clf.yaml
+    biolm model build ./models/antibody-binder-clf.yaml --tag v1
+
+Or from Python::
+
+    from biolm.models import build_model
+
+    pkg = build_model("models/antibody-binder-clf.yaml", tag="v1")
+    print(pkg.path)  # ~/.biolm/models/antibody-binder-clf/v1
+
+``data`` must be a local CSV path (resolved relative to the recipe). v0 supports
+exactly one ``embedding_head`` layer and maps it to
+:meth:`~biolm.finetune.Finetune.xgboost`. The package records lineage
+(``run_id``, resolved data path) and serving ``actions`` (``encode`` +
+``predict``) for later Hub or MLflow consumers.
+
+
 Where to go next
 ================
 
@@ -173,3 +212,4 @@ Where to go next
 - :doc:`authentication` — set ``BIOLM_TOKEN`` and confirm finetuning is enabled.
 - :doc:`client-interfaces` — sync vs. async, and when to reach for the ``_async`` methods.
 - :doc:`../sdk/finetune` — the full :class:`~biolm.finetune.Finetune` API reference.
+- :doc:`../cli/usage/models` — ``biolm model build`` and other model CLI commands.
