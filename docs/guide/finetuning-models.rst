@@ -188,6 +188,7 @@ Build it::
 
     biolm model build ./models/antibody-binder-clf.yaml
     biolm model build ./models/antibody-binder-clf.yaml --tag v1
+    biolm model build ./recipe.yaml --bundle --artifact ./head.joblib
 
 Or from Python::
 
@@ -199,8 +200,13 @@ Or from Python::
 ``data`` must be a local CSV path (resolved relative to the recipe). v0 supports
 exactly one ``embedding_head`` layer and maps it to
 :meth:`~biolm.finetune.Finetune.xgboost`. The package records lineage
-(``run_id``, resolved data path) and serving ``actions`` (``encode`` +
-``predict``) for later Hub or MLflow consumers.
+(``run_id``, resolved data path), weight policy (``from.load: lazy``, head
+``artifact.load: preload``), and serving ``actions`` (``encode`` + ``predict``
+with schema refs) for MLflow / Modal consumers via ``mlflow-biolm``.
+
+Use ``--bundle`` to download the head artifact into ``artifacts/`` (or pass
+``--artifact`` when the finetune result has no URI). Export to MLflow with
+``biolm model export-mlflow name:tag`` after installing ``mlflow-biolm``.
 
 
 Where to go next

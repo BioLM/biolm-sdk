@@ -294,3 +294,8 @@ pkg.manifest  # parsed BioLM
    resolved lineage fields and ``encode`` + ``predict`` actions.
 4. Recipe file on disk is unchanged after a successful build.
 5. Docs explain recipe vs ``BioLM`` package using the Docker/dbt analogies above.
+
+## Related
+
+See [2026-07-22-biolm-package-mlflow-bridge-design.md](2026-07-22-biolm-package-mlflow-bridge-design.md)
+for weight load modes, actions translation, ``mlflow-biolm`` ownership, and export/deploy.

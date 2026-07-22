@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
+from urllib.parse import urlparse
 
 import yaml
 
@@ -16,6 +17,7 @@ from biolm.models.paths import user_models_dir
 BIOLM_MANIFEST = "BioLM"
 SCHEMA_VERSION = 1
 ALLOWED_TASKS = frozenset({"classification", "regression"})
+REQUIRED_ACTIONS = frozenset({"encode", "predict"})
 PathLike = Union[str, Path]
 
 
@@ -25,6 +27,115 @@ class BuiltPackage:
 
     path: Path
     manifest: Dict[str, Any]
+
+
+def extract_artifact_uri(payload: Any) -> Optional[str]:
+    """Best-effort artifact URI from a Finetune wait/get_run payload."""
+    if not isinstance(payload, dict):
+        return None
+
+    def _from_value(value: Any) -> Optional[str]:
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+        if isinstance(value, dict):
+            for key in ("uri", "url", "path"):
+                cand = value.get(key)
+                if isinstance(cand, str) and cand.strip():
+                    return cand.strip()
+        return None
+
+    for key in ("artifact", "artifact_uri", "model_uri"):
+        found = _from_value(payload.get(key))
+        if found:
+            return found
+
+    results = payload.get("results")
+    if isinstance(results, dict):
+        found = _from_value(results.get("artifact"))
+        if found:
+            return found
+
+    artifacts = payload.get("artifacts")
+    if isinstance(artifacts, list) and artifacts:
+        found = _from_value(artifacts[0])
+        if found:
+            return found
+
+    return None
+
+
+def download_artifact(uri: str, dest: Path) -> Path:
+    """Copy or download ``uri`` into ``dest`` (file path). Returns ``dest``."""
+    dest = Path(dest)
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    parsed = urlparse(uri)
+
+    if parsed.scheme in ("", "file"):
+        src = Path(parsed.path if parsed.scheme == "file" else uri).expanduser()
+        if not src.is_file():
+            src = Path(uri).expanduser()
+        if not src.is_file():
+            raise BuildError(f"Artifact file not found: {uri}")
+        shutil.copy2(src, dest)
+        return dest
+
+    if parsed.scheme in ("http", "https"):
+        try:
+            import httpx
+        except ImportError as exc:  # pragma: no cover
+            raise BuildError("httpx is required to download HTTP artifacts") from exc
+        try:
+            with httpx.stream("GET", uri, follow_redirects=True, timeout=120.0) as resp:
+                resp.raise_for_status()
+                with dest.open("wb") as fh:
+                    for chunk in resp.iter_bytes():
+                        fh.write(chunk)
+        except Exception as exc:
+            raise BuildError(f"Failed to download artifact from {uri!r}: {exc}") from exc
+        return dest
+
+    raise BuildError(f"Unsupported artifact URI scheme: {parsed.scheme!r} ({uri})")
+
+
+def _validate_recipe_actions(raw_actions: Any) -> Optional[Dict[str, Any]]:
+    if raw_actions is None:
+        return None
+    if not isinstance(raw_actions, dict):
+        raise RecipeError("'actions' must be a mapping when set")
+    missing = REQUIRED_ACTIONS - set(raw_actions.keys())
+    if missing:
+        raise RecipeError(
+            f"Recipe 'actions' must include {sorted(REQUIRED_ACTIONS)} "
+            f"(missing {sorted(missing)})"
+        )
+    return dict(raw_actions)
+
+
+def _default_actions(task: str, recipe_actions: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    actions: Dict[str, Any] = {
+        "encode": {"input": "sequence", "schema": "biolm.encode.v1"},
+        "predict": {
+            "input": "sequence",
+            "task": task,
+            "schema": "biolm.predict.v1",
+        },
+    }
+    if recipe_actions:
+        for name, spec in recipe_actions.items():
+            if isinstance(spec, dict):
+                merged = dict(actions.get(name, {}))
+                merged.update(spec)
+                actions[name] = merged
+            else:
+                actions[name] = spec
+        if isinstance(actions.get("encode"), dict):
+            actions["encode"].setdefault("schema", "biolm.encode.v1")
+            actions["encode"].setdefault("input", "sequence")
+        if isinstance(actions.get("predict"), dict):
+            actions["predict"].setdefault("schema", "biolm.predict.v1")
+            actions["predict"].setdefault("input", "sequence")
+            actions["predict"].setdefault("task", task)
+    return actions
 
 
 def load_recipe(path: PathLike) -> Dict[str, Any]:
@@ -111,12 +222,15 @@ def load_recipe(path: PathLike) -> Dict[str, Any]:
     if description is not None and not isinstance(description, str):
         raise RecipeError("'description' must be a string when set")
 
+    recipe_actions = _validate_recipe_actions(raw.get("actions"))
+
     return {
         "schema_version": schema_version,
         "name": name.strip(),
         "description": description,
         "from": from_slug.strip(),
         "recipe_path": recipe_path,
+        "actions": recipe_actions,
         "layers": [
             {
                 "type": "embedding_head",
@@ -131,6 +245,13 @@ def load_recipe(path: PathLike) -> Dict[str, Any]:
     }
 
 
+def _artifact_basename(uri: str) -> str:
+    parsed = urlparse(uri)
+    path = parsed.path if parsed.scheme else uri
+    name = Path(path).name
+    return name or "model.artifact"
+
+
 def build_model(
     recipe_path: PathLike,
     *,
@@ -139,11 +260,17 @@ def build_model(
     api_key: Optional[str] = None,
     poll_interval: float = 15.0,
     timeout: Optional[float] = None,
+    bundle: bool = False,
+    artifact: Optional[str] = None,
 ) -> BuiltPackage:
     """Compile a recipe into a locked ``BioLM`` package under ``~/.biolm/models``.
 
     Does not modify the recipe file. Overwrites an existing package dir for the
     same ``name``/``tag``.
+
+    When ``bundle=True``, requires a resolvable head artifact URI (from the
+    finetune result or ``artifact=`` override), downloads into
+    ``artifacts/``, and sets ``artifact.path`` with ``load: preload``.
     """
     if not isinstance(tag, str) or not tag.strip():
         raise BuildError("tag must be a non-empty string")
@@ -193,6 +320,16 @@ def build_model(
             f"Finetune run {run_id} ended with status {status!r} (expected 'succeeded')"
         )
 
+    artifact_uri = None
+    if artifact:
+        artifact_uri = str(artifact).strip() or None
+    if not artifact_uri and isinstance(result, dict):
+        artifact_uri = extract_artifact_uri(result)
+
+    artifact_block: Dict[str, Any] = {"load": "preload"}
+    if artifact_uri:
+        artifact_block["uri"] = artifact_uri
+
     built_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     package_layer: Dict[str, Any] = {
         "type": "embedding_head",
@@ -202,23 +339,18 @@ def build_model(
         "target_column": layer["target_column"],
         "text_column": layer["text_column"],
         "run_id": str(run_id),
+        "artifact": artifact_block,
     }
-    if isinstance(result, dict):
-        if "artifact" in result:
-            package_layer["artifact"] = result["artifact"]
-        if "metrics" in result:
-            package_layer["metrics"] = result["metrics"]
+    if isinstance(result, dict) and "metrics" in result:
+        package_layer["metrics"] = result["metrics"]
 
     manifest: Dict[str, Any] = {
         "schema_version": recipe["schema_version"],
         "name": model_name,
         "tag": tag,
-        "from": {"slug": recipe["from"]},
+        "from": {"slug": recipe["from"], "load": "lazy"},
         "layers": [package_layer],
-        "actions": {
-            "encode": {"input": "sequence"},
-            "predict": {"input": "sequence", "task": layer["task"]},
-        },
+        "actions": _default_actions(layer["task"], recipe.get("actions")),
         "built": {
             "at": built_at,
             "status": "locked",
@@ -228,13 +360,50 @@ def build_model(
     if recipe.get("description"):
         manifest["description"] = recipe["description"]
 
+    if bundle and not artifact_uri:
+        raise BuildError(
+            "bundle=True requires a head artifact URI from the finetune result "
+            "or an explicit artifact= PATH|URL override"
+        )
+
     pkg_dir = user_models_dir() / model_name / tag
     if pkg_dir.exists():
         shutil.rmtree(pkg_dir)
     pkg_dir.mkdir(parents=True, exist_ok=True)
+
+    if bundle and artifact_uri:
+        arts = pkg_dir / "artifacts"
+        arts.mkdir(parents=True, exist_ok=True)
+        dest = arts / _artifact_basename(artifact_uri)
+        download_artifact(artifact_uri, dest)
+        package_layer["artifact"] = {
+            "load": "preload",
+            "uri": artifact_uri,
+            "path": str(dest.resolve()),
+        }
+
     manifest_path = pkg_dir / BIOLM_MANIFEST
     manifest_path.write_text(
         yaml.safe_dump(manifest, default_flow_style=False, sort_keys=False),
         encoding="utf-8",
     )
     return BuiltPackage(path=pkg_dir, manifest=manifest)
+
+
+def resolve_package(name_or_path: str, tag: Optional[str] = None) -> Path:
+    """Resolve ``name``, ``name:tag``, or a package directory path to the package dir."""
+    raw = str(name_or_path).strip()
+    path = Path(raw).expanduser()
+    if path.is_dir() and (path / BIOLM_MANIFEST).is_file():
+        return path.resolve()
+    if path.is_file() and path.name == BIOLM_MANIFEST:
+        return path.parent.resolve()
+
+    pkg_name = raw
+    pkg_tag = tag or "latest"
+    if tag is None and ":" in raw and not raw.startswith("."):
+        pkg_name, _, pkg_tag = raw.partition(":")
+    pkg_dir = user_models_dir() / pkg_name / pkg_tag
+    if not (pkg_dir / BIOLM_MANIFEST).is_file():
+        raise BuildError(f"BioLM package not found: {pkg_dir}")
+    return pkg_dir.resolve()

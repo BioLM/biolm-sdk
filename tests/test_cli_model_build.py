@@ -51,9 +51,27 @@ class TestModelBuildCli:
         kwargs = mock_build.call_args
         assert kwargs[0][0] == str(recipe) or Path(kwargs[0][0]) == recipe
         assert kwargs[1]["tag"] == "v1"
+        assert kwargs[1]["bundle"] is False
         assert "Built package" in result.output
         assert "antibody-binder-clf:v1" in result.output
         assert "Model Build Complete" in result.output
+
+    def test_build_bundle_flag(self, tmp_path: Path):
+        recipe = _write_recipe(tmp_path)
+        fake = BuiltPackage(
+            path=tmp_path / "pkg",
+            manifest={"name": "antibody-binder-clf", "tag": "latest"},
+        )
+        with patch("biolm.models.definition.build_model", return_value=fake) as mock_build:
+            runner = CliRunner()
+            result = runner.invoke(
+                cli,
+                ["model", "build", str(recipe), "--bundle", "--artifact", "/tmp/h.joblib"],
+            )
+        assert result.exit_code == 0, result.output
+        assert mock_build.call_args[1]["bundle"] is True
+        assert mock_build.call_args[1]["artifact"] == "/tmp/h.joblib"
+
     def test_build_recipe_error(self, tmp_path: Path):
         recipe = _write_recipe(tmp_path)
         with patch(
@@ -66,3 +84,24 @@ class TestModelBuildCli:
         assert result.exit_code == 1
         assert "bad recipe" in result.output
         assert "Model Build Failed" in result.output
+
+    def test_export_mlflow_missing_plugin(self, tmp_path: Path, monkeypatch):
+        monkeypatch.setattr("biolm.core.paths.Path.home", lambda: tmp_path)
+        pkg = tmp_path / ".biolm" / "models" / "m" / "latest"
+        pkg.mkdir(parents=True)
+        (pkg / BIOLM_MANIFEST).write_text("name: m\n")
+
+        import builtins
+
+        real_import = builtins.__import__
+
+        def fake_import(name, *args, **kwargs):
+            if name.startswith("mlflow_biolm"):
+                raise ImportError("nope")
+            return real_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=fake_import):
+            runner = CliRunner()
+            result = runner.invoke(cli, ["model", "export-mlflow", "m:latest"])
+        assert result.exit_code == 1
+        assert "mlflow-biolm" in result.output

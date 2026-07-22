@@ -160,17 +160,79 @@ class TestBuildModel:
         assert manifest["name"] == "antibody-binder-clf"
         assert manifest["tag"] == "latest"
         assert manifest["from"]["slug"] == "esm2-8m"
+        assert manifest["from"]["load"] == "lazy"
         assert manifest["layers"][0]["run_id"] == "ALY_test123"
+        assert manifest["layers"][0]["artifact"]["load"] == "preload"
         assert Path(manifest["layers"][0]["data"]["path"]).is_absolute()
         assert manifest["actions"]["encode"]["input"] == "sequence"
+        assert manifest["actions"]["encode"]["schema"] == "biolm.encode.v1"
         assert manifest["actions"]["predict"]["input"] == "sequence"
         assert manifest["actions"]["predict"]["task"] == "classification"
+        assert manifest["actions"]["predict"]["schema"] == "biolm.predict.v1"
         assert manifest["built"]["status"] == "locked"
         assert "at" in manifest["built"]
         assert manifest["layers"][0].get("metrics") == {"auc": 0.9}
 
         on_disk = yaml.safe_load(manifest_path.read_text())
         assert on_disk["built"]["status"] == "locked"
+
+    def test_artifact_uri_from_wait(self, recipe_tree: Path, home_root: Path, monkeypatch):
+        monkeypatch.setattr(
+            "biolm.models.definition.Finetune.xgboost",
+            lambda **kw: {"run_id": "ALY_a"},
+        )
+        monkeypatch.setattr(
+            "biolm.models.definition.Finetune.wait",
+            lambda run_id, **kw: {
+                "run_id": run_id,
+                "status": "succeeded",
+                "artifact_uri": "https://example.com/model.joblib",
+            },
+        )
+        pkg = build_model(recipe_tree)
+        assert pkg.manifest["layers"][0]["artifact"]["uri"] == "https://example.com/model.joblib"
+
+    def test_recipe_actions_validated(self, tmp_path: Path):
+        csv = tmp_path / "t.csv"
+        csv.write_text("sequence,label\nM,1\n")
+        path = tmp_path / "r.yaml"
+        path.write_text(
+            "name: x\nfrom: esm2-8m\nlayers:\n"
+            f"  - type: embedding_head\n    task: classification\n    data: {csv.name}\n"
+            "actions:\n  encode:\n    input: sequence\n"
+        )
+        with pytest.raises(RecipeError, match="predict"):
+            load_recipe(path)
+
+    def test_bundle_copies_artifact(self, recipe_tree: Path, home_root: Path, monkeypatch):
+        head = home_root / "head.joblib"
+        head.write_bytes(b"fake-model")
+        monkeypatch.setattr(
+            "biolm.models.definition.Finetune.xgboost",
+            lambda **kw: {"run_id": "ALY_b"},
+        )
+        monkeypatch.setattr(
+            "biolm.models.definition.Finetune.wait",
+            lambda run_id, **kw: {"run_id": run_id, "status": "succeeded"},
+        )
+        pkg = build_model(recipe_tree, bundle=True, artifact=str(head))
+        art = pkg.manifest["layers"][0]["artifact"]
+        assert art["load"] == "preload"
+        assert Path(art["path"]).is_file()
+        assert Path(art["path"]).read_bytes() == b"fake-model"
+        assert (pkg.path / "artifacts" / "head.joblib").is_file()
+
+    def test_bundle_requires_artifact(self, recipe_tree: Path, home_root: Path, monkeypatch):
+        monkeypatch.setattr(
+            "biolm.models.definition.Finetune.xgboost",
+            lambda **kw: {"run_id": "ALY_b"},
+        )
+        monkeypatch.setattr(
+            "biolm.models.definition.Finetune.wait",
+            lambda run_id, **kw: {"run_id": run_id, "status": "succeeded"},
+        )
+        with pytest.raises(BuildError, match="bundle"):
+            build_model(recipe_tree, bundle=True)
 
     def test_overwrite_latest(self, recipe_tree: Path, home_root: Path, monkeypatch):
         monkeypatch.setattr(
