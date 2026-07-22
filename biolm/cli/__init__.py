@@ -2869,6 +2869,47 @@ def example(model_name, action, format, output):
             console.print(f"[text.muted]{e.__cause__}[/text.muted]")
 
 
+@model.command("build")
+@click.argument("path", type=click.Path(exists=True, dir_okay=False))
+@click.option("--tag", default="latest", show_default=True, help="Package tag under ~/.biolm/models/<name>/")
+@click.option("--name", "model_name", default=None, help="Override recipe name for the package identity")
+def model_build(path, tag, model_name):
+    """Build a BioLM definition recipe into a locked local package.
+
+    Compiles an embedding_head recipe YAML via Finetune.xgboost and writes
+    ``~/.biolm/models/<name>/<tag>/BioLM``. The recipe file is not modified.
+
+    Examples:
+
+    .. code-block:: bash
+
+        biolm model build ./models/antibody-binder-clf.yaml
+        biolm model build ./models/antibody-binder-clf.yaml --tag v1
+    """
+    from biolm.models.definition import BIOLM_MANIFEST, build_model
+    from biolm.models.errors import BuildError, RecipeError
+
+    try:
+        with console.status("[brand]Building BioLM package...[/brand]"):
+            pkg = build_model(path, tag=tag, name=model_name)
+        console.print(Panel(
+            f"[success]Built package '{pkg.manifest['name']}:{pkg.manifest['tag']}'[/success]\n\n"
+            f"Path: {pkg.path}\n"
+            f"Manifest: {pkg.path / BIOLM_MANIFEST}",
+            title="[success]Model Build Complete[/success]",
+            border_style="success",
+            box=box.ROUNDED,
+        ))
+    except (RecipeError, BuildError, PermissionError) as e:
+        console.print(Panel(
+            f"[error]{e}[/error]",
+            title="[error]Model Build Failed[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        sys.exit(1)
+
+
 @cli.group(cls=RichGroup)
 def protocol():
     """Define, validate, run, and log multi-step BioLM protocol workflows.
