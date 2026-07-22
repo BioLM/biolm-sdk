@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.6.0 (2026-07-22)
+
+### Features
+
+- BioLM definition recipe build (embedding_head → BioLM package)
+  ([#24](https://github.com/BioLM/biolm-sdk/pull/24),
+  [`858d2e4`](https://github.com/BioLM/biolm-sdk/commit/858d2e40d08836c0ca4427ecdf1092c9e3acf365))
+
+- **cli**: Add biolm model build ([#24](https://github.com/BioLM/biolm-sdk/pull/24),
+  [`858d2e4`](https://github.com/BioLM/biolm-sdk/commit/858d2e40d08836c0ca4427ecdf1092c9e3acf365))
+
+- **models**: Add models local registry paths and errors
+  ([#24](https://github.com/BioLM/biolm-sdk/pull/24),
+  [`858d2e4`](https://github.com/BioLM/biolm-sdk/commit/858d2e40d08836c0ca4427ecdf1092c9e3acf365))
+
+- **models**: Enrich BioLM packages with load modes, bundle, MLflow export CLI
+  ([#24](https://github.com/BioLM/biolm-sdk/pull/24),
+  [`858d2e4`](https://github.com/BioLM/biolm-sdk/commit/858d2e40d08836c0ca4427ecdf1092c9e3acf365))
+
+- **models**: Validate recipes and build BioLM packages
+  ([#24](https://github.com/BioLM/biolm-sdk/pull/24),
+  [`858d2e4`](https://github.com/BioLM/biolm-sdk/commit/858d2e40d08836c0ca4427ecdf1092c9e3acf365))
+
+
 ## v1.5.1 (2026-07-21)
 
 ### Bug Fixes
