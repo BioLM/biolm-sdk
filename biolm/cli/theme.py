@@ -9,21 +9,21 @@ from rich.theme import Theme
 
 ThemeMode = Literal["auto", "light", "dark"]
 
-# Light background — brand hex colors (docs/web palette)
+# Light background — ANSI colors (JupyterLab/xterm often ignore truecolor hex)
 _LIGHT_THEME = Theme(
     {
-        "brand": "#558BF7",
-        "brand.bold": "#558BF7 bold",
-        "brand.bright": "#2563EB",
-        "brand.dark": "#131443",
-        "text": "#171717",
-        "text.muted": "#666666",
-        "success": "#10B981",
-        "success.bold": "#10B981 bold",
-        "error": "#F59E0B",
-        "warning": "#F59E0B",
-        "accent": "#8B5CF6",
-        "border": "#666666",
+        "brand": "blue",
+        "brand.bold": "bold blue",
+        "brand.bright": "bold blue",
+        "brand.dark": "black",
+        "text": "black",
+        "text.muted": "bright_black",
+        "success": "green",
+        "success.bold": "bold green",
+        "error": "red",
+        "warning": "yellow",
+        "accent": "magenta",
+        "border": "bright_black",
     }
 )
 
@@ -67,6 +67,10 @@ def terminal_is_dark() -> bool:
     Only treats unambiguously light backgrounds as light. Solarized Dark and
     similar themes often use palette index 8–11 for the background, which is
     still visually dark but was previously misclassified as light.
+
+    JupyterLab's default terminal is light and often omits COLORFGBG; when we
+    can tell we are inside a Jupyter session and COLORFGBG is unset, prefer
+    the light theme.
     """
     colorfgbg = os.environ.get("COLORFGBG", "").strip()
     if colorfgbg:
@@ -78,8 +82,20 @@ def terminal_is_dark() -> bool:
             return True
         except ValueError:
             pass
-    # Conservative default: most dev terminals are dark
+    if _in_jupyter_session():
+        return False
+    # Conservative default: most standalone dev terminals are dark
     return True
+
+
+def _in_jupyter_session() -> bool:
+    """True when running under Jupyter / IPython kernel or Lab terminal."""
+    return bool(
+        os.environ.get("JPY_PARENT_PID")
+        or os.environ.get("JPY_SESSION_NAME")
+        or os.environ.get("JUPYTER_SERVER_ROOT")
+        or os.environ.get("JUPYTERHUB_API_TOKEN")
+    )
 
 
 def build_theme(*, dark: bool, plain: bool = False) -> Theme:
@@ -122,4 +138,15 @@ def create_console(
         use_dark = terminal_is_dark()
 
     theme = build_theme(dark=use_dark, plain=no_color)
-    return Console(no_color=no_color, highlight=not no_color, theme=theme)
+    # 256-color ANSI keeps brand styles visible in JupyterLab terminals that
+    # ignore truecolor hex sequences. force_terminal when the theme is chosen
+    # explicitly so Lab/CI pipes still get color.
+    force_terminal = False if no_color else (mode in ("light", "dark") or None)
+    color_system = None if no_color else "256"
+    return Console(
+        no_color=no_color,
+        highlight=not no_color,
+        theme=theme,
+        color_system=color_system,
+        force_terminal=force_terminal,
+    )

@@ -31,6 +31,10 @@ def test_resolve_theme_mode_from_env(monkeypatch):
 
 
 def test_terminal_is_dark_from_colorfgbg(monkeypatch):
+    monkeypatch.delenv("JPY_PARENT_PID", raising=False)
+    monkeypatch.delenv("JPY_SESSION_NAME", raising=False)
+    monkeypatch.delenv("JUPYTER_SERVER_ROOT", raising=False)
+    monkeypatch.delenv("JUPYTERHUB_API_TOKEN", raising=False)
     monkeypatch.setenv("COLORFGBG", "15;0")
     assert terminal_is_dark() is True
     monkeypatch.setenv("COLORFGBG", "0;15")
@@ -40,12 +44,28 @@ def test_terminal_is_dark_from_colorfgbg(monkeypatch):
     assert terminal_is_dark() is True
 
 
+def test_terminal_defaults_light_inside_jupyter_without_colorfgbg(monkeypatch):
+    monkeypatch.delenv("COLORFGBG", raising=False)
+    monkeypatch.delenv("JPY_SESSION_NAME", raising=False)
+    monkeypatch.delenv("JUPYTER_SERVER_ROOT", raising=False)
+    monkeypatch.delenv("JUPYTERHUB_API_TOKEN", raising=False)
+    monkeypatch.setenv("JPY_PARENT_PID", "12345")
+    assert terminal_is_dark() is False
+
+
+def test_jupyter_colorfgbg_still_controls_theme(monkeypatch):
+    monkeypatch.setenv("JPY_PARENT_PID", "12345")
+    monkeypatch.setenv("COLORFGBG", "15;0")
+    assert terminal_is_dark() is True
+
+
 def test_dark_theme_uses_readable_text_style():
     theme = build_theme(dark=True)
     assert "bright_white" in str(theme.styles["text"].color)
     assert "bright_cyan" in str(theme.styles["brand"].color)
 
 
-def test_light_theme_uses_hex_text():
+def test_light_theme_uses_ansi_text():
     theme = build_theme(dark=False)
-    assert "171717" in str(theme.styles["text"].color)
+    assert "black" in str(theme.styles["text"].color)
+    assert "blue" in str(theme.styles["brand"].color)
