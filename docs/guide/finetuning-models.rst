@@ -208,6 +208,8 @@ Use ``--bundle`` to download the head artifact into ``artifacts/`` (or pass
 ``--artifact`` when the finetune result has no URI). Export to MLflow with
 ``biolm model export-mlflow name:tag`` after installing ``mlflow-biolm``.
 
+Field-level recipe and package reference: :doc:`../yaml/biolm-definition-schema`.
+
 
 Where to go next
 ================
@@ -219,3 +221,4 @@ Where to go next
 - :doc:`client-interfaces` — sync vs. async, and when to reach for the ``_async`` methods.
 - :doc:`../sdk/finetune` — the full :class:`~biolm.finetune.Finetune` API reference.
 - :doc:`../cli/usage/models` — ``biolm model build`` and other model CLI commands.
+- :doc:`../yaml/biolm-definition-schema` — recipe and ``BioLM`` package field reference.

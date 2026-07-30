@@ -1,6 +1,9 @@
 biolm.models package
 ====================
 
+Recipe builds and the locked ``BioLM`` package layout are documented in
+:doc:`../yaml/biolm-definition-schema` and :doc:`../guide/finetuning-models`.
+
 Submodules
 ----------
 

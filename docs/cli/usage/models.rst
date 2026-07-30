@@ -16,5 +16,6 @@ Export for MLflow / Modal (requires ``pip install mlflow-biolm``)::
 
     biolm model export-mlflow antibody-binder-clf:latest -o ./mlflow-model
 
-See :doc:`../../guide/finetuning-models` for the recipe format and how it relates
-to :class:`~biolm.finetune.Finetune`.
+See :doc:`../../guide/finetuning-models` for the recipe workflow and
+:doc:`../../yaml/biolm-definition-schema` for the field reference. Both relate
+to :class:`~biolm.finetune.Finetune` under the hood.
