@@ -2,6 +2,29 @@
 
 <!-- version list -->
 
+## v1.7.0 (2026-08-01)
+
+### Bug Fixes
+
+- Avoid forced ANSI-256 on non-TTY CLI pipes ([#25](https://github.com/BioLM/biolm-sdk/pull/25),
+  [`737afe6`](https://github.com/BioLM/biolm-sdk/commit/737afe693366195c7db6b88a1b0a565a37f7c0ac))
+
+- Force non-TTY CLI console so CliRunner JSON stays clean
+  ([`5f9e570`](https://github.com/BioLM/biolm-sdk/commit/5f9e57019ecb2ede14f0efb589b957e4210c55f1))
+
+- Stop BIOLM_CLI_THEME from forcing Rich ANSI on pipes
+  ([`97c4e8e`](https://github.com/BioLM/biolm-sdk/commit/97c4e8e48ee5e95acbe7f0aba86a266faac0a64d))
+
+### Features
+
+- Add biolm notebook start/stop for local JupyterLab
+  ([#25](https://github.com/BioLM/biolm-sdk/pull/25),
+  [`737afe6`](https://github.com/BioLM/biolm-sdk/commit/737afe693366195c7db6b88a1b0a565a37f7c0ac))
+
+- Local JupyterLab via biolm notebook start/stop ([#25](https://github.com/BioLM/biolm-sdk/pull/25),
+  [`737afe6`](https://github.com/BioLM/biolm-sdk/commit/737afe693366195c7db6b88a1b0a565a37f7c0ac))
+
+
 ## v1.6.0 (2026-07-22)
 
 ### Features
