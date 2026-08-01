@@ -109,6 +109,7 @@ def _root_help_sections(
         "Protocols",
         "Datasets",
         "Lab",
+        "Notebook",
         "Commands",
     )
     title_for_root = {
@@ -121,6 +122,7 @@ def _root_help_sections(
         "protocol": "Protocols",
         "dataset": "Datasets",
         "lab": "Lab",
+        "notebook": "Notebook",
     }
     sections: dict[str, builtins.list[tuple[str, click.Command]]] = {
         title: [] for title in section_order
@@ -4821,6 +4823,162 @@ def lab_list():
             run.updated_at,
         )
     console.print(table)
+
+
+@cli.group(cls=RichGroup)
+def notebook():
+    """Start and stop BioLM-configured JupyterLab sessions.
+
+    Use ``start`` / ``stop`` with ``--local`` for a machine-local Lab session
+    (jupyterlab-biolm + credential env). Platform-hosted sandboxes may be
+    added as additional targets later.
+    """
+    pass
+
+
+def _notebook_target_local(local: bool) -> None:
+    """Validate notebook target flags for the current CLI surface."""
+    if not local:
+        raise click.ClickException(
+            "Specify a notebook target. Currently only --local is supported.\n\n"
+            "  biolm notebook start --local\n"
+            "  biolm notebook stop --local"
+        )
+
+
+@notebook.command(
+    "start",
+    context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+)
+@click.option(
+    "--local",
+    "local_target",
+    is_flag=True,
+    help="Start JupyterLab on this machine (currently required)",
+)
+@click.option(
+    "-d",
+    "--detach",
+    is_flag=True,
+    help="Run JupyterLab in the background and print the URL",
+)
+@click.option("--port", type=int, default=None, help="JupyterLab server port")
+@click.option(
+    "--dir",
+    "notebook_dir",
+    type=click.Path(exists=True, file_okay=False, resolve_path=True),
+    default=None,
+    help="Notebook root directory (default: current working directory)",
+)
+@click.option(
+    "--no-browser",
+    is_flag=True,
+    help="Do not open a browser automatically",
+)
+@click.pass_context
+def notebook_start(ctx, local_target, detach, port, notebook_dir, no_browser):
+    """Start a BioLM JupyterLab session.
+
+    Requires ``biolm-sdk[notebook]``. Resolves ``BIOLM_TOKEN`` /
+    ``BIOLMAI_TOKEN`` / ``BIOLM_API_KEY`` so the SDK and jupyterlab-biolm
+    agree, then starts ``jupyter lab``. Extra args are forwarded to JupyterLab.
+
+    Examples:
+
+        biolm notebook start --local
+
+        biolm notebook start --local -d
+
+        biolm notebook start --local --port 8888 --dir ./work
+
+        biolm notebook start --local --no-browser -- --ServerApp.token=''
+    """
+    from biolm.notebook import (
+        NotebookDepsError,
+        NotebookSessionError,
+        start_local_notebook,
+    )
+
+    _notebook_target_local(local_target)
+
+    try:
+        url = start_local_notebook(
+            port=port,
+            notebook_dir=notebook_dir,
+            browser=not no_browser,
+            detach=detach,
+            extra_args=tuple(ctx.args),
+        )
+    except NotebookDepsError as exc:
+        missing = ", ".join(exc.missing)
+        console.print(Panel(
+            "[error]Notebook dependencies are not installed.[/error]\n\n"
+            f"Missing: [brand]{missing}[/brand]\n"
+            f"Python:  [text.muted]{exc.python_executable}[/text.muted]",
+            title="[error]Missing dependencies[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        console.print(
+            f"\nInstall into this environment with:\n\n    {exc.install_hint}\n",
+            markup=False,
+        )
+        raise SystemExit(1) from exc
+    except NotebookSessionError as exc:
+        console.print(Panel(
+            f"[error]{exc}[/error]",
+            title="[error]Notebook[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        raise SystemExit(1) from exc
+
+    if detach and url:
+        console.print(Panel(
+            f"[success]Local notebook started[/success]\n\n"
+            f"URL: [brand]{url}[/brand]\n\n"
+            "Stop with: [brand]biolm notebook stop --local[/brand]",
+            title="[success]Notebook[/success]",
+            border_style="success",
+            box=box.ROUNDED,
+        ))
+
+
+@notebook.command("stop")
+@click.option(
+    "--local",
+    "local_target",
+    is_flag=True,
+    help="Stop the local JupyterLab session (currently required)",
+)
+def notebook_stop(local_target):
+    """Stop a BioLM JupyterLab session started by ``biolm notebook start``.
+
+    Examples:
+
+        biolm notebook stop --local
+    """
+    from biolm.notebook import NotebookSessionError, stop_local_notebook
+
+    _notebook_target_local(local_target)
+
+    try:
+        message = stop_local_notebook()
+    except NotebookSessionError as exc:
+        console.print(Panel(
+            f"[error]{exc}[/error]",
+            title="[error]Notebook[/error]",
+            border_style="error",
+            box=box.ROUNDED,
+        ))
+        raise SystemExit(1) from exc
+
+    console.print(Panel(
+        f"[success]{message}[/success]",
+        title="[success]Notebook[/success]",
+        border_style="success",
+        box=box.ROUNDED,
+    ))
 
 
 if __name__ == "__main__":

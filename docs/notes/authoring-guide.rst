@@ -101,6 +101,7 @@ Protocol Schema
 - ``docs/yaml/dataset-schema.rst`` — Local ``dataset.yaml`` field reference
 - ``docs/yaml/seqframe-schema.rst`` — SeqFrame Parquet key-value metadata (``seqframe.version`` / ``seqframe.schema``)
 - ``docs/yaml/lltp-schema.rst`` — Project ``lltp.yaml`` compose (connectors, auth, experiments)
+- ``docs/yaml/biolm-definition-schema.rst`` — Recipe YAML and locked ``BioLM`` package manifest
 - ``docs/sdk/protocols.rst`` — When to use protocols in Python/CLI (links to Reference)
 
 **Schema source:** ``schema/protocol_schema.json``
