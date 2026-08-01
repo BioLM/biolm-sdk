@@ -72,24 +72,67 @@ def test_light_theme_uses_ansi_text():
 
 
 def test_auto_theme_does_not_force_color_on_pipe(monkeypatch):
-    """Non-TTY stdout must not pin color_system (CliRunner / CI pipes)."""
+    """Non-TTY stdout must not look like a terminal to Rich (CliRunner / CI)."""
     monkeypatch.delenv("NO_COLOR", raising=False)
     monkeypatch.delenv("BIOLM_CLI_THEME", raising=False)
     monkeypatch.setattr("biolm.cli.theme._stdout_is_tty", lambda stream=None: False)
     console = create_console()
+    assert console.is_terminal is False
     assert console._color_system is None
-    # Pinning color_system="256" would emit ANSI even on StringIO; ensure we don't.
     from io import StringIO
 
     buf = StringIO()
     console.file = buf
+    with console.status("Fetching models..."):
+        pass
     console.print("[error]Missing dependencies[/error]")
-    assert "\x1b" not in buf.getvalue()
-    assert "Missing dependencies" in buf.getvalue()
+    console.print('[{"a": 1}]')
+    out = buf.getvalue()
+    assert "\x1b" not in out
+    assert "Missing dependencies" in out
+    assert '[{"a": 1}]' in out
 
 
-def test_explicit_theme_forces_ansi256(monkeypatch):
+def test_theme_env_does_not_force_color_on_pipe(monkeypatch):
+    """BIOLM_CLI_THEME must not enable ANSI on non-TTY captures."""
     monkeypatch.delenv("NO_COLOR", raising=False)
-    console = create_console(theme_mode="light")
+    monkeypatch.setenv("BIOLM_CLI_THEME", "light")
+    monkeypatch.setattr("biolm.cli.theme._stdout_is_tty", lambda stream=None: False)
+    console = create_console()
+    assert console.is_terminal is False
+    assert console._color_system is None
+
+
+def test_force_color_enables_ansi256(monkeypatch):
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    console = create_console(force_color=True)
     assert console.is_terminal is True
     assert console._color_system is not None
+
+
+def test_click_runner_json_not_polluted_by_status(monkeypatch):
+    """Regression: Rich+Click wrapper must not inject spinner into JSON."""
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.delenv("BIOLM_CLI_THEME", raising=False)
+
+    import json
+    from unittest.mock import patch
+
+    from click.testing import CliRunner
+
+    from biolm.cli import cli
+
+    models = [
+        {
+            "model_name": "ESM2-8M",
+            "model_slug": "esm2-8m",
+            "encoder": True,
+            "predictor": False,
+            "generator": False,
+        }
+    ]
+    with patch("biolm.cli.list_models", return_value=models):
+        result = CliRunner().invoke(cli, ["model", "list", "--format", "json"])
+    assert result.exit_code == 0, result.output
+    assert "\x1b" not in result.output
+    assert json.loads(result.output)[0]["model_slug"] == "esm2-8m"

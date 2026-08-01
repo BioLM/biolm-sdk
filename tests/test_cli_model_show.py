@@ -62,7 +62,7 @@ class TestModelShow:
         mock_list_models.return_value = mock_models
         
         runner = CliRunner()
-        result = runner.invoke(cli, ['model', 'show', 'esm2-8m', '--format', 'json'])
+        result = runner.invoke(cli, ['--no-color', 'model', 'show', 'esm2-8m', '--format', 'json'])
         
         assert result.exit_code == 0
         # Should be valid JSON

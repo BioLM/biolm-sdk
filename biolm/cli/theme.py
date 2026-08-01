@@ -121,8 +121,16 @@ def build_theme(*, dark: bool, plain: bool = False) -> Theme:
     return _DARK_THEME if dark else _LIGHT_THEME
 
 
+def _is_click_runner_stream(stream: Optional[TextIO] = None) -> bool:
+    """True for Click CliRunner's captured stdout/stderr wrappers."""
+    file = sys.stdout if stream is None else stream
+    return type(file).__name__ == "_NamedTextIOWrapper"
+
+
 def _stdout_is_tty(stream: Optional[TextIO] = None) -> bool:
     file = sys.stdout if stream is None else stream
+    if _is_click_runner_stream(file):
+        return False
     try:
         return bool(file.isatty())
     except Exception:
@@ -133,8 +141,15 @@ def create_console(
     *,
     no_color: bool | None = None,
     theme_mode: ThemeMode | None = None,
+    force_color: bool = False,
 ) -> Console:
-    """Create a Rich Console with terminal-appropriate colors."""
+    """Create a Rich Console with terminal-appropriate colors.
+
+    Color/ANSI is enabled only for a real TTY, or when ``force_color`` is set
+    (``biolm --color``). Theme mode (light/dark) chooses the palette but does
+    not by itself force terminal control codes — otherwise ``BIOLM_CLI_THEME``
+    and CliRunner tests fight each other under ``pytest -s``.
+    """
     if no_color is None:
         no_color = no_color_requested()
 
@@ -147,25 +162,32 @@ def create_console(
         use_dark = terminal_is_dark()
 
     theme = build_theme(dark=use_dark, plain=no_color)
-    # Pin ANSI-256 when coloring a real TTY (or an explicitly forced theme) so
-    # JupyterLab/xterm get readable styles instead of ignored truecolor hex.
-    # Do not pin color_system for non-TTY pipes — Rich would still emit ANSI
-    # and break CliRunner JSON / substring assertions.
+    is_tty = _stdout_is_tty()
+
     if no_color:
         force_terminal: bool | None = False
         color_system = None
-    elif mode in ("light", "dark"):
+        highlight = False
+    elif force_color:
+        # User passed ``--color``: allow ANSI even when stdout is piped.
         force_terminal = True
         color_system = "256"
-    elif _stdout_is_tty():
+        highlight = True
+    elif is_tty:
+        # Real interactive terminal (incl. JupyterLab). Pin ANSI-256 so Lab/xterm
+        # get readable styles instead of ignored truecolor hex.
         force_terminal = None
         color_system = "256"
+        highlight = True
     else:
-        force_terminal = None
+        # Pipes / Click CliRunner: never emit spinner or color into captures.
+        force_terminal = False
         color_system = None
+        highlight = False
+
     return Console(
         no_color=no_color,
-        highlight=not no_color,
+        highlight=highlight,
         theme=theme,
         color_system=color_system,
         force_terminal=force_terminal,
