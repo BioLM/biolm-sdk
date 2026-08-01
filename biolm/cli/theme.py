@@ -149,8 +149,11 @@ def create_console(
     theme = build_theme(dark=use_dark, plain=no_color)
     # Pin ANSI-256 when coloring a real TTY (or an explicitly forced theme) so
     # JupyterLab/xterm get readable styles instead of ignored truecolor hex.
-    # Do not pin color_system for non-TTY pipes — Rich would still emit ANSI
-    # and break CliRunner JSON / substring assertions.
+    #
+    # Click's CliRunner wraps stdout in _NamedTextIOWrapper: isatty() is False,
+    # but Rich still treats force_terminal=None as a terminal and emits status
+    # spinner / ANSI into captured output (breaking JSON CliRunner assertions).
+    # Force force_terminal=False on non-TTY pipes.
     if no_color:
         force_terminal: bool | None = False
         color_system = None
@@ -161,7 +164,7 @@ def create_console(
         force_terminal = None
         color_system = "256"
     else:
-        force_terminal = None
+        force_terminal = False
         color_system = None
     return Console(
         no_color=no_color,
