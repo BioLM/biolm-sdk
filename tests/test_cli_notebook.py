@@ -335,7 +335,7 @@ def test_cli_notebook_start_missing_deps_message(mock_start):
         ["jupyterlab", "jupyterlab-biolm"],
         python_executable=fake_python,
     )
-    result = CliRunner().invoke(cli, ["notebook", "start", "--local"])
+    result = CliRunner().invoke(cli, ["--no-color", "notebook", "start", "--local"])
     assert result.exit_code == 1
     assert "Missing dependencies" in result.output
     assert fake_python in result.output

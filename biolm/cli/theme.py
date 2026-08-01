@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import os
-from typing import Literal
+import sys
+from typing import Literal, Optional, TextIO
 
 from rich.console import Console
 from rich.theme import Theme
@@ -120,6 +121,14 @@ def build_theme(*, dark: bool, plain: bool = False) -> Theme:
     return _DARK_THEME if dark else _LIGHT_THEME
 
 
+def _stdout_is_tty(stream: Optional[TextIO] = None) -> bool:
+    file = sys.stdout if stream is None else stream
+    try:
+        return bool(file.isatty())
+    except Exception:
+        return False
+
+
 def create_console(
     *,
     no_color: bool | None = None,
@@ -138,11 +147,22 @@ def create_console(
         use_dark = terminal_is_dark()
 
     theme = build_theme(dark=use_dark, plain=no_color)
-    # 256-color ANSI keeps brand styles visible in JupyterLab terminals that
-    # ignore truecolor hex sequences. force_terminal when the theme is chosen
-    # explicitly so Lab/CI pipes still get color.
-    force_terminal = False if no_color else (mode in ("light", "dark") or None)
-    color_system = None if no_color else "256"
+    # Pin ANSI-256 when coloring a real TTY (or an explicitly forced theme) so
+    # JupyterLab/xterm get readable styles instead of ignored truecolor hex.
+    # Do not pin color_system for non-TTY pipes — Rich would still emit ANSI
+    # and break CliRunner JSON / substring assertions.
+    if no_color:
+        force_terminal: bool | None = False
+        color_system = None
+    elif mode in ("light", "dark"):
+        force_terminal = True
+        color_system = "256"
+    elif _stdout_is_tty():
+        force_terminal = None
+        color_system = "256"
+    else:
+        force_terminal = None
+        color_system = None
     return Console(
         no_color=no_color,
         highlight=not no_color,

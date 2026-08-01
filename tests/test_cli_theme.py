@@ -69,3 +69,27 @@ def test_light_theme_uses_ansi_text():
     theme = build_theme(dark=False)
     assert "black" in str(theme.styles["text"].color)
     assert "blue" in str(theme.styles["brand"].color)
+
+
+def test_auto_theme_does_not_force_color_on_pipe(monkeypatch):
+    """Non-TTY stdout must not pin color_system (CliRunner / CI pipes)."""
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.delenv("BIOLM_CLI_THEME", raising=False)
+    monkeypatch.setattr("biolm.cli.theme._stdout_is_tty", lambda stream=None: False)
+    console = create_console()
+    assert console._color_system is None
+    # Pinning color_system="256" would emit ANSI even on StringIO; ensure we don't.
+    from io import StringIO
+
+    buf = StringIO()
+    console.file = buf
+    console.print("[error]Missing dependencies[/error]")
+    assert "\x1b" not in buf.getvalue()
+    assert "Missing dependencies" in buf.getvalue()
+
+
+def test_explicit_theme_forces_ansi256(monkeypatch):
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    console = create_console(theme_mode="light")
+    assert console.is_terminal is True
+    assert console._color_system is not None
