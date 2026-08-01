@@ -434,7 +434,7 @@ def cli(ctx, debug, color):
     if color is False or (color is None and no_color_requested()):
         console = create_console(no_color=True)
     elif color is True:
-        console = create_console(no_color=False)
+        console = create_console(no_color=False, force_color=True)
     else:
         console = create_console()
 
@@ -1768,8 +1768,15 @@ def list(filter, sort, format, output, fields, view):
         biolm model list --view compact
     """
     try:
-        with console.status("[brand]Fetching models...[/brand]"):
-            models = list_models(base_url=_client_catalog_base())
+        def _fetch_models():
+            return list_models(base_url=_client_catalog_base())
+
+        # Keep machine-readable JSON free of status spinners / ANSI.
+        if format == "json":
+            models = _fetch_models()
+        else:
+            with console.status("[brand]Fetching models...[/brand]"):
+                models = _fetch_models()
         
         if not models:
             console.print(Panel(
@@ -2105,8 +2112,14 @@ def show(model_name, format, output, include_schemas, include_code_examples):
         biolm model show esm2-8m --format json --output model.json
     """
     try:
-        with console.status("[brand]Fetching model information...[/brand]"):
-            models = list_models(base_url=_client_catalog_base())
+        def _fetch_models():
+            return list_models(base_url=_client_catalog_base())
+
+        if format == "json":
+            models = _fetch_models()
+        else:
+            with console.status("[brand]Fetching model information...[/brand]"):
+                models = _fetch_models()
         
         if not models:
             console.print(Panel(

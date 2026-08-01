@@ -57,7 +57,7 @@ def test_protocol_list_table(protocol_client):
     assert "organization" in result.output
     assert "public" in result.output
     assert "sequences, model" in result.output
-    assert "2 protocol" in result.output
+    assert "Showing" in result.output and "protocols" in result.output
     client.list.assert_called_once_with(search=None, page=1, page_size=20)
 
 

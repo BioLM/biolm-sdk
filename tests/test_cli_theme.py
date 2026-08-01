@@ -93,6 +93,23 @@ def test_auto_theme_does_not_force_color_on_pipe(monkeypatch):
     assert '[{"a": 1}]' in out
 
 
+def test_theme_env_does_not_force_color_on_pipe(monkeypatch):
+    """BIOLM_CLI_THEME must not enable ANSI on non-TTY captures."""
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    monkeypatch.setenv("BIOLM_CLI_THEME", "light")
+    monkeypatch.setattr("biolm.cli.theme._stdout_is_tty", lambda stream=None: False)
+    console = create_console()
+    assert console.is_terminal is False
+    assert console._color_system is None
+
+
+def test_force_color_enables_ansi256(monkeypatch):
+    monkeypatch.delenv("NO_COLOR", raising=False)
+    console = create_console(force_color=True)
+    assert console.is_terminal is True
+    assert console._color_system is not None
+
+
 def test_click_runner_json_not_polluted_by_status(monkeypatch):
     """Regression: Rich+Click wrapper must not inject spinner into JSON."""
     monkeypatch.delenv("NO_COLOR", raising=False)
@@ -119,10 +136,3 @@ def test_click_runner_json_not_polluted_by_status(monkeypatch):
     assert result.exit_code == 0, result.output
     assert "\x1b" not in result.output
     assert json.loads(result.output)[0]["model_slug"] == "esm2-8m"
-
-
-def test_explicit_theme_forces_ansi256(monkeypatch):
-    monkeypatch.delenv("NO_COLOR", raising=False)
-    console = create_console(theme_mode="light")
-    assert console.is_terminal is True
-    assert console._color_system is not None
