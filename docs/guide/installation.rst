@@ -30,7 +30,7 @@ The ``[mlflow]`` extra is required for ``biolm dataset`` and ``biolm protocol lo
 See :sdklink:`SDK plugins <../../sdk/index.html#plugins-optional>`.
 
 The ``[notebook]`` extra is required for ``biolm notebook start`` / ``stop``.
-See :doc:`local-jupyterlab`.
+See :doc:`local-jupyterlab` and :doc:`../cli/notebook`.
 
 The ``biolmai`` package name is deprecated; use ``biolm-sdk``. See :doc:`../notes/migration-1.0`.
 

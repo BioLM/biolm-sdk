@@ -124,7 +124,8 @@ Plugins (optional)
 
 Optional third-party backends under ``biolm.plugins``. Install extras as needed
 (``pip install biolm-sdk[mlflow]``). Plugins are not imported from the top-level
-``biolm`` package.
+``biolm`` package. For a local JupyterLab launcher (not a Python plugin), install
+``biolm-sdk[notebook]`` and see :doc:`../guide/local-jupyterlab`.
 
 .. list-table::
    :header-rows: 0

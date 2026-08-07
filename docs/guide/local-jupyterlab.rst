@@ -4,13 +4,11 @@
 Local JupyterLab sessions
 =========================
 
-Notebooks are where most BioLM exploration happens — try a model, load a
-FASTA, plot a distribution, adjust, repeat. Rather than hand-wire auth and
-extensions yourself, ``biolm-sdk`` ships a launcher that starts a local
-JupyterLab session with BioLM credentials and the jupyterlab-biolm extension
-already in place. This guide covers that local launcher — starting,
-stopping, and what you get inside Lab. It does not cover platform-hosted
-sandboxes; ``--local`` is currently the only supported target.
+``biolm-sdk`` can start a local JupyterLab session with BioLM credentials and
+the jupyterlab-biolm extension already wired for the SDK. This guide covers
+that launcher — install, start/stop, auth, and what you get inside Lab. It
+does not cover platform-hosted sandboxes; ``--local`` is currently the only
+supported target.
 
 Install
 =======
@@ -24,6 +22,7 @@ SDK:
 
 If you start a session without these installed, the CLI reports which package
 is missing and prints an install command pinned to the active interpreter.
+See also :doc:`../cli/notebook`.
 
 Starting a session
 ==================
@@ -35,10 +34,11 @@ terminal:
 
     biolm notebook start --local
 
-This resolves your BioLM credentials, sets a light CLI theme for Lab's
-terminal (see :ref:`auth-and-env` below), and starts ``jupyter lab`` on port
-8888 by default. Press Ctrl+C to shut it down — the launcher answers
-JupyterLab's shutdown prompt for you, so one Ctrl+C is enough.
+This normalizes token environment variables when any are set, seeds a light
+CLI theme for Lab's terminal (see :ref:`auth-and-env`), and starts
+``jupyter lab`` on port 8888 by default. Press Ctrl+C to shut it down — the
+launcher answers JupyterLab's shutdown prompt for you, so one Ctrl+C is
+enough.
 
 To free the terminal, start the session detached instead. ``-d`` (or
 ``--detach``) spawns JupyterLab in the background and prints the URL:
@@ -64,7 +64,9 @@ Useful options
 - ``--no-browser`` — skip opening a browser tab (handy on a remote host or in
   CI).
 
-Anything after a bare ``--`` is passed through to ``jupyter lab``:
+Anything after a bare ``--`` is passed through to ``jupyter lab``. For a
+local URL without a Jupyter token query string (useful when sharing a link on
+your machine only), clear the server token:
 
 .. code-block:: bash
 
@@ -90,28 +92,38 @@ Stopping a session
     biolm notebook stop --local
 
 This stops the process the CLI is tracking, whether it was started in the
-foreground or detached. If no session is tracked, the command reports that
-instead of guessing which process to kill.
+foreground or detached. Foreground sessions also write session metadata, so
+you can stop them from a second terminal with the same command. If no session
+is tracked, the CLI reports that instead of guessing which process to kill.
 
 Session metadata
 ================
 
 Each launch writes its pid, port, and URL to
-``~/.biolm/notebook-local.json``. ``biolm notebook stop --local`` reads this
-file to find the process and clears it when the session ends. You do not need
-to edit the file; it is plain JSON if you want to inspect it.
+``~/.biolm/notebook-local.json``. The stored URL is
+``http://127.0.0.1:<port>/lab`` without a Jupyter token query string — if Lab
+still requires a token, open the URL printed in the server log, or start with
+``--ServerApp.token=''`` as above. ``biolm notebook stop --local`` reads this
+file to find the process and clears it when the session ends.
 
 .. _auth-and-env:
 
 Auth and environment
 ====================
 
-The launcher normalizes ``BIOLM_TOKEN``, ``BIOLMAI_TOKEN``, and
-``BIOLM_API_KEY`` before starting Lab: whichever one you have set fills in
-the others, so the SDK and the jupyterlab-biolm extension agree on the same
-token. If none are set, the extension's Settings panel can authenticate from
-inside Lab, and credentials from ``biolm account login`` (or
-``~/.biolm/credentials``) still work — see :doc:`authentication`.
+When any of ``BIOLM_TOKEN``, ``BIOLMAI_TOKEN``, or ``BIOLM_API_KEY`` is set,
+the launcher fills in the unset names so the SDK and jupyterlab-biolm see the
+same token. Prefer exporting ``BIOLM_TOKEN`` (or setting it before start) for
+the simplest path.
+
+If none of those env vars are set:
+
+- Use the BioLM sidebar **Settings** panel inside Lab to add an API key
+  profile (the extension injects it into the kernel), or
+- Rely on ``biolm account login`` / ``~/.biolm/credentials`` for SDK calls
+  that read the credentials file (see :doc:`authentication`). The sidebar
+  still needs a key profile or env token for its own authenticated catalog
+  requests.
 
 The launcher also seeds ``BIOLM_CLI_THEME=light`` when you have not set it, so
 ``biolm`` output stays readable in JupyterLab's light terminal. A value you
@@ -128,8 +140,9 @@ Once JupyterLab opens, jupyterlab-biolm adds a BioLM sidebar with:
 
 Inside a notebook, the SDK behaves as it does anywhere else — the same
 ``Model`` calls and file loaders from :doc:`sequence-and-structure-data` and
-:doc:`running-inference` work once a token is available from the environment,
-``~/.biolm/credentials``, or the sidebar Settings panel.
+:doc:`running-inference` work once a token is available. Sync wrappers detect
+the notebook kernel and apply ``nest_asyncio`` as described in
+:doc:`concurrency`.
 
 ``jupyterlab-mlflow`` is not part of the notebook extra. Install it separately
 if you want MLflow alongside BioLM notebooks.
@@ -137,11 +150,17 @@ if you want MLflow alongside BioLM notebooks.
 Troubleshooting
 ===============
 
-If ``biolm notebook start --local`` reports missing dependencies, install the
-notebook extra for the interpreter you are actually running. The error includes
-a copy-pasteable ``pip install`` command pinned to that interpreter — important
-when ``jupyter`` on your ``PATH`` belongs to a different environment than the
-one where you installed ``biolm-sdk[notebook]``.
+**Missing dependencies.** Install the notebook extra for the interpreter you
+are actually running. The error includes a copy-pasteable ``pip install``
+command pinned to that interpreter — important when ``jupyter`` on your
+``PATH`` belongs to a different environment than the one where you installed
+``biolm-sdk[notebook]``.
+
+**Detached session URL never loads.** Detached mode discards JupyterLab's
+stdout and stderr. If the port is already taken or Lab fails to start, the
+CLI may still print a URL. Run ``biolm notebook start --local`` in the
+foreground (or free the port) to see the server log, then ``stop`` any
+tracked session before retrying.
 
 Where to go next
 ================
@@ -149,4 +168,5 @@ Where to go next
 - :doc:`authentication` — how ``BIOLM_TOKEN`` and ``biolm account login`` work.
 - :doc:`sequence-and-structure-data` — load files into ``items`` in a notebook.
 - :doc:`running-inference` — call a model from Python or the CLI.
+- :doc:`concurrency` — sync vs async inside Jupyter.
 - :doc:`../cli/notebook` — the complete ``biolm notebook`` command reference.

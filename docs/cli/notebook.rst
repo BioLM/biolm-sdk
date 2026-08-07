@@ -23,8 +23,10 @@ wired for the SDK. Platform-hosted sandboxes are not part of this command yet â€
     biolm notebook stop --local
 
 Session metadata (pid, port, URL) is stored in ``~/.biolm/notebook-local.json``
-so ``stop`` can find the process. Only one tracked local session is allowed at
-a time.
+so ``stop`` can find the process â€” including a foreground session stopped from
+a second terminal. Only one tracked local session is allowed at a time.
+Detached mode discards Lab server logs; use foreground start if the printed
+URL never loads.
 
 For a walkthrough of auth, Lab features, and troubleshooting, see
 :doc:`../guide/local-jupyterlab`.
