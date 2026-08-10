@@ -22,7 +22,7 @@ Documentation Structure
 - Getting started — quickstart, install, auth, concepts, SDK overview, FAQ
 - How the client works — client interfaces, batching, errors, concurrency, rate limiting
 - Running BioLM inferences — what BioLMs are, how they work, choosing models, running inference, biolm-hub (growing)
-- Working with biological data — sequence/structure files, platform datasets (growing)
+- Working with biological data — sequence/structure files, platform datasets, SeqFrame, lab orchestration, local JupyterLab (growing)
 - Orchestrating molecular design workflows — workflows overview, protocols, pipelines, caching, saturation mutagenesis, iterative masking DMS, structure-conditioned generation (growing)
 - Model finetuning — XGBoost on embeddings, DSM stages (growing)
 

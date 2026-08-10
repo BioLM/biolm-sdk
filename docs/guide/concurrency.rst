@@ -196,6 +196,7 @@ Jupyter Notebook Usage
 
 - In Jupyter, the library detects the notebook environment and applies ``nest_asyncio`` so that sync wrappers (e.g. ``biolm()``, ``BioLMApi``) work correctly inside the notebook kernel.
 - You can use the sync interface as usual: ``result = biolm(...)`` or ``model = BioLMApi("esmfold"); result = model.predict(...)``.
+- To launch a local JupyterLab session with BioLM auth and the jupyterlab-biolm extension, see :doc:`local-jupyterlab`.
 - For **best performance** in Jupyter (e.g. large batches), use the async client with top-level ``await`` so the event loop runs natively:
 
 .. code-block:: python

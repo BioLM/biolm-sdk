@@ -193,3 +193,21 @@ Route model inference through a local or self-hosted `biolm-hub <https://github.
      - Show saved hub config, active model API URL, and live gateway health.
    * - :clicmd:`biolm hub unset <../hub.html#biolm-hub-unset>`
      - Clear saved hub settings and revert model calls to the hosted biolm.ai API.
+
+.. _cli-index-notebook:
+
+Notebook
+--------
+
+Start and stop a local JupyterLab session with BioLM auth and the jupyterlab-biolm
+extension. See :doc:`../guide/local-jupyterlab` for a walkthrough.
+
+.. list-table::
+   :header-rows: 0
+   :widths: 28 72
+   :class: cli-command-table
+
+   * - :clicmd:`biolm notebook start <../notebook.html#biolm-notebook-start>`
+     - Start a local Lab session (``--local``; optional ``-d`` to detach).
+   * - :clicmd:`biolm notebook stop <../notebook.html#biolm-notebook-stop>`
+     - Stop the tracked local Lab session (``--local``).

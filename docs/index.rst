@@ -54,6 +54,7 @@ Welcome to BioLM SDK Documentation
    guide/managing-datasets
    guide/seqframe
    guide/lab
+   guide/local-jupyterlab
 
 .. toctree::
    :maxdepth: 1
@@ -94,6 +95,7 @@ Welcome to BioLM SDK Documentation
    cli/model
    cli/protocol
    cli/dataset
+   cli/notebook
 
 .. toctree::
    :maxdepth: 1
